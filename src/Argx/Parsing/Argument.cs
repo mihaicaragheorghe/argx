@@ -1,4 +1,4 @@
-namespace Argx.Internal;
+namespace Argx.Parsing;
 
 internal class Argument
 {
@@ -6,7 +6,7 @@ internal class Argument
 
     internal string? Shorten { get; private set; }
 
-    internal ArgumentType Type { get; private set; }
+    internal Type Type { get; private set; }
 
     internal string Action { get; private set; }
 
@@ -25,7 +25,7 @@ internal class Argument
         string? usage = null,
         string? defaultVal = null,
         bool isRequired = false,
-        ArgumentType type = ArgumentType.String)
+        Type? type = null)
     {
         Name = name;
         Shorten = shorten;
@@ -34,7 +34,7 @@ internal class Argument
         Value = defaultVal;
         DefaultValue = defaultVal;
         IsRequired = isRequired;
-        Type = type;
+        Type = type ?? typeof(string);
     }
 
     internal void Set(string value)

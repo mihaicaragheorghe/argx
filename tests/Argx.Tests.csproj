@@ -18,4 +18,8 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\src\Argx\Argx.csproj" />
+  </ItemGroup>
+
 </Project>
