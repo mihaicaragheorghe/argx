@@ -1,3 +1,5 @@
+using System.Globalization;
+
 namespace Argx.Binding;
 
 internal static partial class ArgumentConverter
@@ -101,7 +103,7 @@ internal static partial class ArgumentConverter
 
             [typeof(decimal)] = (string input, out object? value) =>
             {
-                if (decimal.TryParse(input, out var parsed))
+                if (decimal.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
                 {
                     value = parsed;
                     return true;
@@ -113,7 +115,7 @@ internal static partial class ArgumentConverter
 
             [typeof(double)] = (string input, out object? value) =>
             {
-                if (double.TryParse(input, out var parsed))
+                if (double.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
                 {
                     value = parsed;
                     return true;
@@ -125,7 +127,7 @@ internal static partial class ArgumentConverter
 
             [typeof(float)] = (string input, out object? value) =>
             {
-                if (float.TryParse(input, out var parsed))
+                if (float.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
                 {
                     value = parsed;
                     return true;
