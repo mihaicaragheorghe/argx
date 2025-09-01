@@ -1,44 +1,46 @@
+using Argx.Actions;
+
 namespace Argx.Parsing;
 
 internal class Argument
 {
-    internal string Name { get; private set; }
+    internal string Name { get; }
 
-    internal string? Shorten { get; private set; }
+    internal string? Alias { get; }
 
-    internal Type Type { get; private set; }
+    internal string Action { get; }
 
-    internal string Action { get; private set; }
+    internal Type Type { get; }
 
-    internal string? Usage { get; private set; }
+    internal string? Usage { get; }
 
-    internal string? DefaultValue { get; private set; }
+    internal string? DefaultValue { get; }
 
-    internal string? Value { get; private set; }
+    internal string? ConstValue { get; }
 
-    internal bool IsRequired { get; private set; }
+    internal string[]? Choices { get; }
+
+    internal bool IsRequired { get; }
 
     internal Argument(
         string name,
-        string? shorten = null,
-        string action = "store",
+        string? alias = null,
+        string? action = null,
         string? usage = null,
         string? defaultVal = null,
+        string? constValue = null,
+        string[]? choices = null,
         bool isRequired = false,
         Type? type = null)
     {
         Name = name;
-        Shorten = shorten;
-        Usage = usage;
-        Action = action;
-        Value = defaultVal;
-        DefaultValue = defaultVal;
-        IsRequired = isRequired;
+        Alias = alias;
         Type = type ?? typeof(string);
-    }
-
-    internal void Set(string value)
-    {
-        Value = value;
+        Action = action ?? ArgumentActions.Store;
+        Usage = usage;
+        DefaultValue = defaultVal;
+        ConstValue = defaultVal;
+        Choices = choices;
+        IsRequired = isRequired;
     }
 }

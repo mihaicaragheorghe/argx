@@ -1,0 +1,60 @@
+using Argx.Actions;
+using Argx.Parsing;
+
+namespace Argx.Tests.Actions;
+
+public class ActionRegistryTests
+{
+    [Theory]
+    [InlineData(null, typeof(StoreAction))]
+    [InlineData(ArgumentActions.Store, typeof(StoreAction))]
+    [InlineData(ArgumentActions.StoreTrue, typeof(StoreTrueAction))]
+    [InlineData(ArgumentActions.StoreFalse, typeof(StoreFalseAction))]
+    [InlineData(ArgumentActions.StoreConst, typeof(StoreConstAction))]
+    [InlineData(ArgumentActions.Choice, typeof(ChoiceAction))]
+    [InlineData(ArgumentActions.Count, typeof(CountAction))]
+    [InlineData(ArgumentActions.Append, typeof(AppendAction))]
+    public void Registry_ShouldContainBuiltinValues_WhenNotExplicitlySet(string? action, Type expectedType)
+    {
+        // Act
+        var success = ActionRegistry.TryGetHandler(action, out var handler);
+
+        // Assert
+        Assert.True(success);
+        Assert.IsType(expectedType, handler);
+    }
+
+    [Fact]
+    public void TryGetHandler_ShouldReturnFalse_WhenActionNotRegistered()
+    {
+        // Act
+        var success = ActionRegistry.TryGetHandler("bad_name", out var handler);
+
+        // Assert
+        Assert.False(success);
+        Assert.Null(handler);
+    }
+
+    [Fact]
+    public void Add_ShouldAddActionToRegistry()
+    {
+        // Arrange
+        var action = "custom";
+        ActionRegistry.Add(action, new CustomAction());
+
+        // Act
+        var success = ActionRegistry.TryGetHandler(action, out var handler);
+
+        // Assert
+        Assert.True(success);
+        Assert.IsType<CustomAction>(handler);
+    }
+
+    private class CustomAction : ArgumentAction
+    {
+        public override void Execute(ReadOnlySpan<string> values, string dest, Type type, ArgumentStore store, int? narg = null, object? defaultValue = null, object? constValue = null, string[]? choises = null)
+        {
+            throw new NotImplementedException();
+        }
+    }
+}

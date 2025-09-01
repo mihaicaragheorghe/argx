@@ -31,7 +31,7 @@ internal static class TypeExtensions
         };
     }
 
-    private static bool IsEnumerable(this Type type)
+    internal static bool IsEnumerable(this Type type)
     {
         if (type == typeof(string))
         {

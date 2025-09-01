@@ -5,53 +5,59 @@ namespace Argx.Parsing;
 public class ArgumentParser
 {
     private readonly List<Argument> _knownArgs = [];
+    private readonly ArgumentStore _store = new();
 
     public ArgumentParser Add(
         string arg,
-        string? shorten = null,
+        string? alias = null,
+        string? action = null,
         string? usage = null,
         string? defaultVal = null,
-        string action = ArgumentActions.Store,
-        int narg = 1)
+        string? constValue = null,
+        string[]? choices = null,
+        int? arity = null)
     {
-        if (string.IsNullOrWhiteSpace(arg))
-            throw new ArgumentException("Argument name cannot be null or empty", nameof(arg));
-
-        _knownArgs.Add(new Argument(
-            name: arg,
-            shorten: shorten,
+        return Add<string>(
+            arg: arg,
+            alias: alias,
             action: action,
             usage: usage,
             defaultVal: defaultVal,
-            isRequired: IsPositional(arg),
-            type: typeof(string)));
-
-        return this;
+            constValue: constValue,
+            choices: choices,
+            arity: arity);
     }
 
     public ArgumentParser Add<T>(
         string arg,
-        string? shorten = null,
+        string? alias = null,
         string? usage = null,
         string? defaultVal = null,
-        string action = ArgumentActions.Store,
-        int narg = 1)
+        string? constValue = null,
+        string? action = null,
+        string[]? choices = null,
+        int? arity = null)
     {
         if (string.IsNullOrWhiteSpace(arg))
             throw new ArgumentException("Argument name cannot be null or empty", nameof(arg));
 
-        if (typeof(T) == typeof(bool) || typeof(T) == typeof(bool?))
-            narg = 0;
-
         _knownArgs.Add(new Argument(
             name: arg,
-            shorten: shorten,
+            alias: alias,
             action: action,
             usage: usage,
             defaultVal: defaultVal,
+            constValue: constValue,
+            choices: choices,
             isRequired: IsPositional(arg),
             type: typeof(T)));
 
+        return this;
+    }
+
+    public ArgumentParser AddAction(string name, ArgumentAction action)
+    {
+        ActionRegistry.Add(name, action);
         return this;
     }
 
