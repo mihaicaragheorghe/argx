@@ -6,15 +6,27 @@ namespace Argx.Binding;
 
 internal static partial class ArgumentConverter
 {
-    public static object? ConvertToken(Type type, object? obj) =>
+    internal static ArgumentConversionResult TryConvert(Type type, object? obj)
+    {
+        try
+        {
+            return ConvertToken(type, obj);
+        }
+        catch (Exception ex)
+        {
+            return ArgumentConversionResult.Failure(ex.Message);
+        }
+    }
+
+    internal static ArgumentConversionResult ConvertToken(Type type, object? obj) =>
         obj switch
         {
             Token single => ConvertToken(type, single),
             IReadOnlyList<Token> list => ConvertTokens(type, list),
-            _ => throw new InvalidCastException($"Cannot convert token '{obj}' to type {type}")
+            _ => throw new InvalidCastException($"Cannot convert '{obj}' to type {type}")
         };
 
-    private static object? ConvertToken(Type type, Token token)
+    private static ArgumentConversionResult ConvertToken(Type type, Token token)
     {
         if (type.TryGetNullableType(out var nullableType))
         {
@@ -24,13 +36,13 @@ internal static partial class ArgumentConverter
         if (StringConverters.TryGetValue(type, out var tryConvert)
             && tryConvert(token.Value, out var converted))
         {
-            return converted;
+            return ArgumentConversionResult.Success(converted);
         }
 
-        throw new InvalidCastException($"Cannot convert token '{token}' to type {type}");
+        return ArgumentConversionResult.Failure($"Cannot convert token '{token}' to type {type}");
     }
 
-    private static object ConvertTokens(Type type, IReadOnlyList<Token> tokens)
+    private static ArgumentConversionResult ConvertTokens(Type type, IReadOnlyList<Token> tokens)
     {
         var itemType = type.GetElementTypeIfEnumerable() ?? typeof(string);
         var values = CreateCollection(type, itemType, tokens.Count);
@@ -40,17 +52,23 @@ internal static partial class ArgumentConverter
         {
             var converted = ConvertToken(itemType, tokens[i]);
 
+            if (converted.IsError)
+            {
+                return ArgumentConversionResult.Failure(
+                    $"Cannot convert token '{tokens[i]}' in collection of type {itemType} to type {type}");
+            }
+
             if (isArray)
             {
-                values[i] = converted;
+                values[i] = converted.Value;
             }
             else
             {
-                values.Add(converted);
+                values.Add(converted.Value);
             }
         }
 
-        return values;
+        return ArgumentConversionResult.Success(values);
     }
 
     private static IList CreateCollection(Type type, Type itemType, int capacity = 0)

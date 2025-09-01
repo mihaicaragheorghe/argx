@@ -6,6 +6,38 @@ namespace Argx.Tests.Binding;
 public class ArgumentConverterTests
 {
     [Fact]
+    public void TryConvertToken_ShouldReturnOkResult_WhenConversionIsSuccessful()
+    {
+        // Arrange
+        var token = new Token("123");
+
+        // Act
+        var result = ArgumentConverter.ConvertToken(typeof(int), token);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Error);
+        Assert.NotNull(result.Value);
+    }
+
+    [Fact]
+    public void TryConvertToken_ShouldReturnResult_WhenConversionThrowsException()
+    {
+        // Arrange
+        var token = new Token("str");
+
+        // Act
+        var result = ArgumentConverter.ConvertToken(typeof(int), token);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.False(result.IsSuccess);
+        Assert.Null(result.Value);
+        Assert.NotEmpty(result.Error ?? "");
+    }
+
+    [Fact]
     public void ConvertToken_ShouldConvertToString_WhenTokenIsValid()
     {
         // Arrange
@@ -15,7 +47,10 @@ public class ArgumentConverterTests
         var result = ArgumentConverter.ConvertToken(typeof(string), token);
 
         // Assert
-        Assert.Equal(token.Value, result);
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Error);
+        Assert.Equal(token.Value, result.Value);
     }
 
     [Theory]
@@ -34,7 +69,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(bool), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Theory]
@@ -53,7 +88,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(int), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Theory]
@@ -73,7 +108,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(long), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
 
@@ -94,7 +129,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(short), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Theory]
@@ -111,7 +146,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(uint), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Theory]
@@ -129,7 +164,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(ulong), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Theory]
@@ -147,7 +182,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(ushort), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     public static IEnumerable<object[]> DecimalData => new List<object[]>
@@ -179,7 +214,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(decimal), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Theory]
@@ -210,7 +245,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(float), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Theory]
@@ -242,7 +277,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(double), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Fact]
@@ -256,7 +291,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(Guid), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Theory]
@@ -275,7 +310,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(DateTime), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Theory]
@@ -295,7 +330,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(DateTimeOffset), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Theory]
@@ -318,7 +353,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(TimeSpan), token);
 
         // Assert
-        Assert.Equal(expected, actual);
+        Assert.Equal(expected, actual.Value);
     }
 
     [Fact]
@@ -335,7 +370,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(int[]), tokens);
 
         // Assert
-        Assert.Equivalent(expected, actual);
+        Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
@@ -352,7 +387,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(int[]), tokens);
 
         // Assert
-        Assert.Equivalent(expected, actual);
+        Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
@@ -369,7 +404,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(List<int>), tokens);
 
         // Assert
-        Assert.Equivalent(expected, actual);
+        Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
@@ -386,7 +421,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(List<int>), tokens);
 
         // Assert
-        Assert.Equivalent(expected, actual);
+        Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
@@ -403,7 +438,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(IEnumerable<int>), tokens);
 
         // Assert
-        Assert.Equivalent(expected, actual);
+        Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
@@ -420,7 +455,7 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(ICollection<int>), tokens);
 
         // Assert
-        Assert.Equivalent(expected, actual);
+        Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
@@ -437,6 +472,6 @@ public class ArgumentConverterTests
         var actual = ArgumentConverter.ConvertToken(typeof(IList<int>), tokens);
 
         // Assert
-        Assert.Equivalent(expected, actual);
+        Assert.Equivalent(expected, actual.Value);
     }
 }
