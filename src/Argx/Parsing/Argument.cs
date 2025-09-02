@@ -2,27 +2,29 @@ using Argx.Actions;
 
 namespace Argx.Parsing;
 
-internal class Argument
+public class Argument
 {
-    internal string Name { get; }
+    public string Name { get; }
 
-    internal string? Alias { get; }
+    public string? Alias { get; }
 
-    internal string Action { get; }
+    public string Action { get; }
 
-    internal Type Type { get; }
+    public Type Type { get; }
 
-    internal string? Usage { get; }
+    public string? Usage { get; }
 
-    internal string? DefaultValue { get; }
+    public string? DefaultValue { get; }
 
-    internal string? ConstValue { get; }
+    public string? ConstValue { get; }
 
-    internal string[]? Choices { get; }
+    public string[]? Choices { get; }
 
-    internal bool IsRequired { get; }
+    public int? Arity { get; }
 
-    internal Argument(
+    public bool IsRequired { get; }
+
+    public Argument(
         string name,
         string? alias = null,
         string? action = null,
@@ -31,6 +33,7 @@ internal class Argument
         string? constValue = null,
         string[]? choices = null,
         bool isRequired = false,
+        int? arity = null,
         Type? type = null)
     {
         Name = name;
@@ -41,6 +44,7 @@ internal class Argument
         DefaultValue = defaultVal;
         ConstValue = defaultVal;
         Choices = choices;
+        Arity = arity;
         IsRequired = isRequired;
     }
 }

@@ -7,12 +7,8 @@ public abstract class ArgumentAction
     public ArgumentAction() { }
 
     public abstract void Execute(
-        ReadOnlySpan<string> values,
-        string dest,
-        Type type,
+        Argument argument,
         ArgumentStore store,
-        int? narg = null,
-        object? defaultValue = null,
-        object? constValue = null,
-        string[]? choices = null);
+        string dest,
+        ReadOnlySpan<Token> values);
 }

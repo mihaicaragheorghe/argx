@@ -52,7 +52,7 @@ public class ActionRegistryTests
 
     private class CustomAction : ArgumentAction
     {
-        public override void Execute(ReadOnlySpan<string> values, string dest, Type type, ArgumentStore store, int? narg = null, object? defaultValue = null, object? constValue = null, string[]? choises = null)
+        public override void Execute(Argument argument, ArgumentStore store, string dest, ReadOnlySpan<Token> values)
         {
             throw new NotImplementedException();
         }

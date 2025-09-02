@@ -5,15 +5,10 @@ namespace Argx.Actions;
 public class AppendAction : ArgumentAction
 {
     public override void Execute(
-        ReadOnlySpan<string> values,
-        string dest,
-        Type type,
+        Argument argument,
         ArgumentStore store,
-        int? narg = null,
-        object? defaultValue = null,
-        object? constValue = null,
-        string[]? choices = null)
+        string dest,
+        ReadOnlySpan<Token> tokens)
     {
-        throw new NotImplementedException();
     }
 }

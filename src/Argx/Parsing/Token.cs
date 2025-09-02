@@ -1,10 +1,10 @@
 namespace Argx.Parsing;
 
-internal sealed class Token
+public sealed class Token
 {
-    internal string Value { get; }
+    public string Value { get; }
 
-    internal Token(string value)
+    public Token(string value)
     {
         Value = value;
     }

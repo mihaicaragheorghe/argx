@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace Argx.Binding;
 
-internal static partial class ArgumentConverter
+internal static partial class TokenConverter
 {
     private delegate bool TryConvertString(string token, out object? value);
 

@@ -3,32 +3,68 @@ using Argx.Parsing;
 
 namespace Argx.Tests.Binding;
 
-public class ArgumentConverterTests
+public class TokenConverterTests
 {
     [Fact]
-    public void TryConvertToken_ShouldReturnOkResult_WhenConversionIsSuccessful()
+    public void TryConvertSpan_ShouldReturnOkResult_WhenConversionDoesntThrow()
     {
         // Arrange
-        var token = new Token("123");
+        var expected = 123;
+        var tokens = new Token[] { new Token(expected.ToString()) };
+        var span = tokens.AsSpan();
 
         // Act
-        var result = ArgumentConverter.ConvertToken(typeof(int), token);
+        var result = TokenConverter.TryConvert(type: typeof(int), tokens: span);
 
         // Assert
         Assert.True(result.IsSuccess);
         Assert.False(result.IsError);
         Assert.Null(result.Error);
-        Assert.NotNull(result.Value);
+        Assert.Equal(expected, result.Value);
     }
 
     [Fact]
-    public void TryConvertToken_ShouldReturnResult_WhenConversionThrowsException()
+    public void TryConvertSpan_ShouldReturnErrorResult_WhenConversionThrows()
+    {
+        // Arrange
+        var tokens = new Token[] { new Token("abc") };
+        var span = tokens.AsSpan();
+
+        // Act
+        var result = TokenConverter.TryConvert(type: typeof(int[]), tokens: span);
+
+        // Assert
+        Assert.True(result.IsError);
+        Assert.False(result.IsSuccess);
+        Assert.NotEmpty(result.Error!);
+        Assert.Null(result.Value);
+    }
+
+    [Fact]
+    public void TryConvertObject_ShouldReturnResult_WhenConversionDoesntThrow()
+    {
+        // Arrange
+        var expected = 123;
+        var token = new Token(expected.ToString());
+
+        // Act
+        var result = TokenConverter.TryConvert(type: typeof(int), obj: token);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
+        Assert.Null(result.Error);
+        Assert.Equal(expected, result.Value);
+    }
+
+    [Fact]
+    public void TryConvertTokenObject_ShouldReturnErrorResult_WhenConversionThrows()
     {
         // Arrange
         var token = new Token("str");
 
         // Act
-        var result = ArgumentConverter.ConvertToken(typeof(int), token);
+        var result = TokenConverter.TryConvert(type: typeof(int[]), obj: token);
 
         // Assert
         Assert.True(result.IsError);
@@ -38,13 +74,104 @@ public class ArgumentConverterTests
     }
 
     [Fact]
-    public void ConvertToken_ShouldConvertToString_WhenTokenIsValid()
+    public void ConvertTokens_ShouldConvertToSingleValueType_WhenNotEnumerable()
+    {
+        // Arrange
+        var tokens = new Token[] { new Token("123") };
+        var span = tokens.AsSpan();
+
+        // Act
+        var result = TokenConverter.TryConvert(type: typeof(int), tokens: span);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(result.Value, 123);
+        Assert.False(result.IsError);
+        Assert.Null(result.Error);
+    }
+
+    [Fact]
+    public void ConvertTokens_ShouldThrowInvalidCastException_WhenMultipleTokensAndTypeNotEnumerable()
+    {
+        Assert.Throws<InvalidCastException>(() =>
+        {
+            var tokens = new Token[] { new Token("123"), new Token("456"), new Token("789") };
+            var span = tokens.AsSpan();
+            TokenConverter.ConvertTokens(type: typeof(int), tokens: span);
+        });
+    }
+
+    [Fact]
+    public void ConvertTokens_ShouldConvertCollection_WhenSingleTokenAndTypeEnumerable()
+    {
+        // Arrange
+        var tokens = new Token[] { new Token("123") };
+        var span = tokens.AsSpan();
+
+        // Act
+        var result = TokenConverter.TryConvert(type: typeof(int[]), tokens: span);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(result.Value, new int[] { 123 });
+        Assert.False(result.IsError);
+        Assert.Null(result.Error);
+    }
+
+    [Fact]
+    public void ConvertTokens_ShouldConvertToCollection_WhenSpanLengthNotOne()
+    {
+        // Arrange
+        var tokens = new Token[] { new Token("123"), new Token("456"), new Token("789") };
+        var span = tokens.AsSpan();
+
+        // Act
+        var result = TokenConverter.TryConvert(type: typeof(int[]), tokens: span);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(result.Value, new int[] { 123, 456, 789 });
+    }
+
+    [Fact]
+    public void ConvertTokens_ShouldConvertToEmptyCollection_WhenSpanLengthIsZero()
+    {
+        // Arrange
+        var tokens = Array.Empty<Token>();
+        var span = tokens.AsSpan();
+
+        // Act
+        var result = TokenConverter.TryConvert(type: typeof(int[]), tokens: span);
+
+        // Assert
+        Assert.True(result.IsSuccess);
+        Assert.Equal(result.Value, Array.Empty<int>());
+    }
+
+    [Fact]
+    public void ConvertObject_ShouldThrow_WhenObjectIsNotTypeToken()
+    {
+        // Arrange
+        var token = new { Value = "foo" };
+
+        // Act & Assert
+        Assert.Throws<InvalidCastException>(() => TokenConverter.ConvertObject(typeof(string[]), token));
+    }
+
+    [Fact]
+    public void ConvertObject_ShouldThrow_WhenTypeIsNotSupported()
+    {
+        Assert.Throws<NotSupportedException>(() => TokenConverter.ConvertObject(typeof(void), new Token("12:45")));
+    }
+
+    [Fact]
+    public void ConvertObject_ShouldConvertToString_WhenTokenIsValid()
     {
         // Arrange
         var token = new Token("str");
 
         // Act
-        var result = ArgumentConverter.ConvertToken(typeof(string), token);
+        var result = TokenConverter.ConvertObject(typeof(string), token);
 
         // Assert
         Assert.True(result.IsSuccess);
@@ -60,13 +187,13 @@ public class ArgumentConverterTests
     [InlineData("false", false)]
     [InlineData("False", false)]
     [InlineData("FALSE", false)]
-    public void ConvertToken_ShouldConvertToBool_WhenTokenIsValid(string val, bool expected)
+    public void ConvertObject_ShouldConvertToBool_WhenTokenIsValid(string val, bool expected)
     {
         // Arrange
         var token = new Token(val);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(bool), token);
+        var actual = TokenConverter.ConvertObject(typeof(bool), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -79,13 +206,13 @@ public class ArgumentConverterTests
     [InlineData("-123", -123)]
     [InlineData("2147483647", int.MaxValue)]
     [InlineData("-2147483648", int.MinValue)]
-    public void ConvertToken_ShouldConvertToInt_WhenTokenIsValid(string val, int expected)
+    public void ConvertObject_ShouldConvertToInt_WhenTokenIsValid(string val, int expected)
     {
         // Arrange
         var token = new Token(val);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(int), token);
+        var actual = TokenConverter.ConvertObject(typeof(int), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -99,13 +226,13 @@ public class ArgumentConverterTests
     [InlineData("-202508301040", -202508301040)]
     [InlineData("9223372036854775807", long.MaxValue)]
     [InlineData("-9223372036854775808", long.MinValue)]
-    public void ConvertToken_ShouldConvertToLong_WhenTokenIsValid(string val, long expected)
+    public void ConvertObject_ShouldConvertToLong_WhenTokenIsValid(string val, long expected)
     {
         // Arrange
         var token = new Token(val);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(long), token);
+        var actual = TokenConverter.ConvertObject(typeof(long), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -120,13 +247,13 @@ public class ArgumentConverterTests
     [InlineData("-12345", -12345)]
     [InlineData("32767", short.MaxValue)]
     [InlineData("-32768", short.MinValue)]
-    public void ConvertToken_ShouldConvertToShort_WhenTokenIsValid(string val, short expected)
+    public void ConvertObject_ShouldConvertToShort_WhenTokenIsValid(string val, short expected)
     {
         // Arrange
         var token = new Token(val);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(short), token);
+        var actual = TokenConverter.ConvertObject(typeof(short), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -137,13 +264,13 @@ public class ArgumentConverterTests
     [InlineData("123", 123)]
     [InlineData("0", uint.MinValue)]
     [InlineData("4294967295", uint.MaxValue)]
-    public void ConvertToken_ShouldConvertToUint_WhenTokenIsValid(string val, uint expected)
+    public void ConvertObject_ShouldConvertToUint_WhenTokenIsValid(string val, uint expected)
     {
         // Arrange
         var token = new Token(val);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(uint), token);
+        var actual = TokenConverter.ConvertObject(typeof(uint), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -155,13 +282,13 @@ public class ArgumentConverterTests
     [InlineData("202508301040", 202508301040)]
     [InlineData("18446744073709551615", ulong.MaxValue)]
     [InlineData("0", ulong.MinValue)]
-    public void ConvertToken_ShouldConvertToUlong_WhenTokenIsValid(string val, ulong expected)
+    public void ConvertObject_ShouldConvertToUlong_WhenTokenIsValid(string val, ulong expected)
     {
         // Arrange
         var token = new Token(val);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(ulong), token);
+        var actual = TokenConverter.ConvertObject(typeof(ulong), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -173,13 +300,13 @@ public class ArgumentConverterTests
     [InlineData("12345", 12345)]
     [InlineData("0", ushort.MinValue)]
     [InlineData("65535", ushort.MaxValue)]
-    public void ConvertToken_ShouldConvertToUshort_WhenTokenIsValid(string val, ushort expected)
+    public void ConvertObject_ShouldConvertToUshort_WhenTokenIsValid(string val, ushort expected)
     {
         // Arrange
         var token = new Token(val);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(ushort), token);
+        var actual = TokenConverter.ConvertObject(typeof(ushort), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -205,13 +332,13 @@ public class ArgumentConverterTests
 
     [Theory]
     [MemberData(nameof(DecimalData))]
-    public void ConvertToken_ShouldConvertToDecimal_WhenTokenIsValid(string val, decimal expected)
+    public void ConvertObject_ShouldConvertToDecimal_WhenTokenIsValid(string val, decimal expected)
     {
         // Arrange
         var token = new Token(val);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(decimal), token);
+        var actual = TokenConverter.ConvertObject(typeof(decimal), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -236,13 +363,13 @@ public class ArgumentConverterTests
     [InlineData("NaN", float.NaN)]
     [InlineData("Infinity", float.PositiveInfinity)]
     [InlineData("-Infinity", float.NegativeInfinity)]
-    public void ConvertToken_ShouldConvertToFloat_WhenTokenIsValid(string val, float expected)
+    public void ConvertObject_ShouldConvertToFloat_WhenTokenIsValid(string val, float expected)
     {
         // Arrange
         var token = new Token(val);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(float), token);
+        var actual = TokenConverter.ConvertObject(typeof(float), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -268,27 +395,27 @@ public class ArgumentConverterTests
     [InlineData("-Infinity", double.NegativeInfinity)]
     [InlineData("1.234E+5", 123400.0)]
     [InlineData("1.234E-5", 0.00001234)]
-    public void ConvertToken_ShouldConvertToDouble_WhenTokenIsValid(string val, double expected)
+    public void ConvertObject_ShouldConvertToDouble_WhenTokenIsValid(string val, double expected)
     {
         // Arrange
         var token = new Token(val);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(double), token);
+        var actual = TokenConverter.ConvertObject(typeof(double), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
     }
 
     [Fact]
-    public void ConvertToken_ShouldConvertToGuid_WhenTokenIsValid()
+    public void ConvertObject_ShouldConvertToGuid_WhenTokenIsValid()
     {
         // Arrange
         var expected = Guid.NewGuid();
         var token = new Token(expected.ToString());
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(Guid), token);
+        var actual = TokenConverter.ConvertObject(typeof(Guid), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -300,14 +427,14 @@ public class ArgumentConverterTests
     [InlineData("2025-08-30T10:50", 2025, 08, 30, 10, 50, 0)]
     [InlineData("2025-08-30 10:50:30", 2025, 08, 30, 10, 50, 30)]
     [InlineData("2025-08-30T10:50:30", 2025, 08, 30, 10, 50, 30)]
-    public void ConvertToken_ShouldConvertToDateTime_WhenTokenIsValid(string val, int y, int m, int d, int h, int min, int s)
+    public void ConvertObject_ShouldConvertToDateTime_WhenTokenIsValid(string val, int y, int m, int d, int h, int min, int s)
     {
         // Arrange
         var token = new Token(val);
         var expected = new DateTime(y, m, d, h, min, s);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(DateTime), token);
+        var actual = TokenConverter.ConvertObject(typeof(DateTime), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -319,7 +446,7 @@ public class ArgumentConverterTests
     [InlineData("2025-08-30T10:50", 2025, 08, 30, 10, 50, 0)]
     [InlineData("2025-08-30 10:50:30", 2025, 08, 30, 10, 50, 30)]
     [InlineData("2025-08-30T10:50:30", 2025, 08, 30, 10, 50, 30)]
-    public void ConvertToken_ShouldConvertToDateTimeOffset_WhenTokenIsValid(string val, int y, int m, int d, int h, int min, int s)
+    public void ConvertObject_ShouldConvertToDateTimeOffset_WhenTokenIsValid(string val, int y, int m, int d, int h, int min, int s)
     {
         // Arrange
         var token = new Token(val);
@@ -327,7 +454,7 @@ public class ArgumentConverterTests
         var expected = new DateTimeOffset(dt);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(DateTimeOffset), token);
+        var actual = TokenConverter.ConvertObject(typeof(DateTimeOffset), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
@@ -343,21 +470,21 @@ public class ArgumentConverterTests
     [InlineData("10675199.02:48:05", 10675199, 2, 48, 5)] // TimeSpan.MaxValue
     [InlineData("-10675199.02:48:05", -10675199, -2, -48, -5)] // TimeSpan.MinValue
     [InlineData("12.23:59:59", 12, 23, 59, 59)] // 12 days, etc.
-    public void ConvertToken_ShouldConvertToTimeSpan_WhenTokenIsValid(string val, int d, int h, int m, int s)
+    public void ConvertObject_ShouldConvertToTimeSpan_WhenTokenIsValid(string val, int d, int h, int m, int s)
     {
         // Arrange
         var token = new Token(val);
         var expected = new TimeSpan(d, h, m, s);
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(TimeSpan), token);
+        var actual = TokenConverter.ConvertObject(typeof(TimeSpan), token);
 
         // Assert
         Assert.Equal(expected, actual.Value);
     }
 
     [Fact]
-    public void ConvertToken_ShouldConvertToIntArray_WhenTokenIsIntArray()
+    public void ConvertObject_ShouldConvertToIntArray_WhenTokenIsIntArray()
     {
         // Arrange
         int[] expected = [1, 2, 3, 4, 5];
@@ -367,14 +494,14 @@ public class ArgumentConverterTests
             .AsReadOnly<Token>();
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(int[]), tokens);
+        var actual = TokenConverter.ConvertObject(typeof(int[]), tokens);
 
         // Assert
         Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
-    public void ConvertToken_ShouldConvertToEmptyIntArray_WhenTokenIsEmptyIntArray()
+    public void ConvertObject_ShouldConvertToEmptyIntArray_WhenTokenIsEmptyIntArray()
     {
         // Arrange
         int[] expected = [];
@@ -384,14 +511,14 @@ public class ArgumentConverterTests
             .AsReadOnly<Token>();
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(int[]), tokens);
+        var actual = TokenConverter.ConvertObject(typeof(int[]), tokens);
 
         // Assert
         Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
-    public void ConvertToken_ShouldConvertToIntList_WhenTokenIsIntList()
+    public void ConvertObject_ShouldConvertToIntList_WhenTokenIsIntList()
     {
         // Arrange
         List<int> expected = [1, 2, 3, 4, 5];
@@ -401,14 +528,14 @@ public class ArgumentConverterTests
             .AsReadOnly<Token>();
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(List<int>), tokens);
+        var actual = TokenConverter.ConvertObject(typeof(List<int>), tokens);
 
         // Assert
         Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
-    public void ConvertToken_ShouldConvertToEmptyIntList_WhenTokenIsEmptyIntList()
+    public void ConvertObject_ShouldConvertToEmptyIntList_WhenTokenIsEmptyIntList()
     {
         // Arrange
         List<int> expected = [];
@@ -418,14 +545,14 @@ public class ArgumentConverterTests
             .AsReadOnly<Token>();
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(List<int>), tokens);
+        var actual = TokenConverter.ConvertObject(typeof(List<int>), tokens);
 
         // Assert
         Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
-    public void ConvertToken_ShouldConvertToIntArray_WhenTokenIsIEnumerableInt()
+    public void ConvertObject_ShouldConvertToIntArray_WhenTokenIsIEnumerableInt()
     {
         // Arrange
         int[] expected = [1, 2, 3, 4, 5];
@@ -435,14 +562,14 @@ public class ArgumentConverterTests
             .AsReadOnly<Token>();
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(IEnumerable<int>), tokens);
+        var actual = TokenConverter.ConvertObject(typeof(IEnumerable<int>), tokens);
 
         // Assert
         Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
-    public void ConvertToken_ShouldConvertToIntArray_WhenTokenIsICollectionInt()
+    public void ConvertObject_ShouldConvertToIntArray_WhenTokenIsICollectionInt()
     {
         // Arrange
         int[] expected = [1, 2, 3, 4, 5];
@@ -452,14 +579,14 @@ public class ArgumentConverterTests
             .AsReadOnly<Token>();
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(ICollection<int>), tokens);
+        var actual = TokenConverter.ConvertObject(typeof(ICollection<int>), tokens);
 
         // Assert
         Assert.Equivalent(expected, actual.Value);
     }
 
     [Fact]
-    public void ConvertToken_ShouldConvertToIntArray_WhenTokenIsIListInt()
+    public void ConvertObject_ShouldConvertToIntArray_WhenTokenIsIListInt()
     {
         // Arrange
         int[] expected = [1, 2, 3, 4, 5];
@@ -469,9 +596,37 @@ public class ArgumentConverterTests
             .AsReadOnly<Token>();
 
         // Act
-        var actual = ArgumentConverter.ConvertToken(typeof(IList<int>), tokens);
+        var actual = TokenConverter.ConvertObject(typeof(IList<int>), tokens);
 
         // Assert
         Assert.Equivalent(expected, actual.Value);
+    }
+
+    [Fact]
+    public void ConvertObject_ShouldThrow_WhenTypeIsNotEnumerable()
+    {
+        // Arrange
+        IReadOnlyList<Token> tokens = Enumerable
+            .Range(1, 5)
+            .Select(i => new Token(i.ToString()))
+            .ToList()
+            .AsReadOnly<Token>();
+
+        // Act
+        Assert.Throws<InvalidCastException>(() => TokenConverter.ConvertObject(typeof(int), tokens));
+    }
+
+    [Fact]
+    public void ConvertObject_ShouldThrow_WhenItemConversionFails()
+    {
+        // Arrange
+        IReadOnlyList<Token> tokens = Enumerable
+            .Range(1, 5)
+            .Select(i => new Token(i.ToString()))
+            .ToList()
+            .AsReadOnly<Token>();
+
+        // Act
+        Assert.Throws<InvalidCastException>(() => TokenConverter.ConvertObject(typeof(Guid), tokens));
     }
 }
