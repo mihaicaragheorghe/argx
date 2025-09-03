@@ -5,13 +5,8 @@ namespace Argx.Tests.Actions;
 
 public class StoreActionTests
 {
-    private readonly ArgumentStore _store;
+    private readonly ArgumentStore _store = new();
     private readonly StoreAction _sut = new();
-
-    public StoreActionTests()
-    {
-        _store = new();
-    }
 
     [Fact]
     public void Execute_ShouldThrowInvalidOperationException_WhenArityIsZero()
@@ -47,7 +42,7 @@ public class StoreActionTests
     {
         var arg = new Argument("--foo", arity: 3, type: typeof(string[]));
         var span = TokenSpan(["--foo", "bar", "baz", "qux"]);
-        var expected = new string[] { "bar", "baz", "qux" };
+        var expected = new[] { "bar", "baz", "qux" };
 
         _sut.Execute(arg, _store, "foo", span);
 

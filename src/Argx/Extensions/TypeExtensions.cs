@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Argx.Binding;
+namespace Argx.Extensions;
 
 internal static class TypeExtensions
 {

@@ -5,7 +5,7 @@ internal static class ActionRegistry
     private static Dictionary<string?, ArgumentAction>? s_registry;
 
     private static Dictionary<string?, ArgumentAction> Registry
-        => s_registry ??= new()
+        => s_registry ??= new Dictionary<string?, ArgumentAction>
         {
             [ArgumentActions.Store] = new StoreAction(),
             [ArgumentActions.StoreConst] = new StoreConstAction(),

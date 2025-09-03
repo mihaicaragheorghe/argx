@@ -1,34 +1,12 @@
 using System.Collections;
+
+using Argx.Extensions;
 using Argx.Parsing;
 
 namespace Argx.Binding;
 
 internal static partial class TokenConverter
 {
-    internal static TokenConversionResult TryConvert(Type type, object? obj)
-    {
-        try
-        {
-            return ConvertObject(type, obj);
-        }
-        catch (Exception ex)
-        {
-            return TokenConversionResult.Failure(ex.Message);
-        }
-    }
-
-    internal static TokenConversionResult TryConvert(Type type, ReadOnlySpan<Token> tokens)
-    {
-        try
-        {
-            return ConvertTokens(type, tokens);
-        }
-        catch (Exception ex)
-        {
-            return TokenConversionResult.Failure(ex.Message);
-        }
-    }
-
     internal static TokenConversionResult ConvertTokens(Type type, ReadOnlySpan<Token> tokens)
         => tokens.Length switch
         {
@@ -61,7 +39,7 @@ internal static partial class TokenConverter
             return TokenConversionResult.Success(converted);
         }
 
-        return TokenConversionResult.Failure($"Failed to convert token '{token}' to type {type}");
+        return TokenConversionResult.Failure($"Parsing token '{token}' to type {type} failed");
     }
 
     private static TokenConversionResult ConvertSpan(Type type, ReadOnlySpan<Token> tokens)
@@ -75,8 +53,8 @@ internal static partial class TokenConverter
     {
         if (!type.IsEnumerable())
         {
-            throw new InvalidCastException(
-                $"Cannot convert {tokens} to type {type}, it has to be an enumerable type");
+            return TokenConversionResult.Failure(
+                $"Cannot convert {tokens.Count} tokens to type {type}, it has to be an enumerable type");
         }
 
         var itemType = type.GetElementTypeIfEnumerable() ?? typeof(string);

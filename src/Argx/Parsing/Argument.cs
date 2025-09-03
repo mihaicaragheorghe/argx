@@ -42,7 +42,7 @@ public class Argument
         Action = action ?? ArgumentActions.Store;
         Usage = usage;
         DefaultValue = defaultVal;
-        ConstValue = defaultVal;
+        ConstValue = constValue;
         Choices = choices;
         Arity = arity;
         IsRequired = isRequired;

@@ -9,7 +9,7 @@ internal static partial class TokenConverter
     private static Dictionary<Type, TryConvertString>? s_stringConverters;
 
     private static Dictionary<Type, TryConvertString> StringConverters
-        => s_stringConverters ??= new()
+        => s_stringConverters ??= new Dictionary<Type, TryConvertString>
         {
             [typeof(bool)] = (string token, out object? value) =>
             {
@@ -19,7 +19,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -37,7 +37,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -49,7 +49,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -61,7 +61,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -73,7 +73,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -85,7 +85,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -97,7 +97,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -109,7 +109,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -121,7 +121,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -133,7 +133,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -145,7 +145,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -157,19 +157,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
-                return false;
-            },
-
-            [typeof(DateTimeOffset)] = (string input, out object? value) =>
-            {
-                if (DateTimeOffset.TryParse(input, out var parsed))
-                {
-                    value = parsed;
-                    return true;
-                }
-
-                value = default;
+                value = null;
                 return false;
             },
 
@@ -181,7 +169,7 @@ internal static partial class TokenConverter
                     return true;
                 }
 
-                value = default;
+                value = null;
                 return false;
             },
         };

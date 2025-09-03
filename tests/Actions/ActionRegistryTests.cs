@@ -16,10 +16,8 @@ public class ActionRegistryTests
     [InlineData(ArgumentActions.Append, typeof(AppendAction))]
     public void Registry_ShouldContainBuiltinValues_WhenNotExplicitlySet(string? action, Type expectedType)
     {
-        // Act
         var success = ActionRegistry.TryGetHandler(action, out var handler);
 
-        // Assert
         Assert.True(success);
         Assert.IsType(expectedType, handler);
     }
@@ -27,25 +25,20 @@ public class ActionRegistryTests
     [Fact]
     public void TryGetHandler_ShouldReturnFalse_WhenActionNotRegistered()
     {
-        // Act
         var success = ActionRegistry.TryGetHandler("bad_name", out var handler);
 
-        // Assert
         Assert.False(success);
         Assert.Null(handler);
     }
 
     [Fact]
-    public void Add_ShouldAddActionToRegistry()
+    public void Add_ShouldAddActionToRegistry_WhenActionImplementsArgumentAction()
     {
-        // Arrange
-        var action = "custom";
+        const string action = "custom";
         ActionRegistry.Add(action, new CustomAction());
 
-        // Act
         var success = ActionRegistry.TryGetHandler(action, out var handler);
 
-        // Assert
         Assert.True(success);
         Assert.IsType<CustomAction>(handler);
     }

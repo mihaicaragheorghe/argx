@@ -4,8 +4,6 @@ namespace Argx.Actions;
 
 public abstract class ArgumentAction
 {
-    public ArgumentAction() { }
-
     public abstract void Execute(
         Argument argument,
         ArgumentStore store,
