@@ -16,6 +16,15 @@ internal static class ActionRegistry
             [ArgumentActions.Append] = new AppendAction(),
         };
 
+    public static int DefaultArity(string action)
+        => action switch
+        {
+            ArgumentActions.Store => 1,
+            ArgumentActions.Choice => 1,
+            ArgumentActions.Append => 1,
+            _ => 0
+        };
+
     internal static void Add(string name, ArgumentAction action)
     {
         Registry.Add(name, action);

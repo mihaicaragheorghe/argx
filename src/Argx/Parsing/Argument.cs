@@ -20,7 +20,7 @@ public class Argument
 
     public string[]? Choices { get; }
 
-    public int? Arity { get; }
+    public int Arity { get; }
 
     public bool IsRequired { get; }
 
@@ -44,7 +44,7 @@ public class Argument
         DefaultValue = defaultVal;
         ConstValue = constValue;
         Choices = choices;
-        Arity = arity;
+        Arity = arity ?? ActionRegistry.DefaultArity(action ?? ArgumentActions.Store);
         IsRequired = isRequired;
     }
 }

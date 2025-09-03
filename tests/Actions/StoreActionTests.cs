@@ -24,7 +24,8 @@ public class StoreActionTests
 
         _sut.Execute(arg, _store, "foo", TokenSpan(["--foo", "bar"]));
 
-        Assert.Equal("bar", _store.Get<string>("foo"));
+        Assert.True(_store.TryGetValue("foo", out var value));
+        Assert.Equal("bar", value);
     }
 
     [Fact]
@@ -34,7 +35,8 @@ public class StoreActionTests
 
         _sut.Execute(arg, _store, "foo", TokenSpan(["--foo", "123"]));
 
-        Assert.Equal(123, _store.Get<int>("foo"));
+        Assert.True(_store.TryGetValue<int>("foo", out var value));
+        Assert.Equal(123, value);
     }
 
     [Fact]
@@ -46,7 +48,8 @@ public class StoreActionTests
 
         _sut.Execute(arg, _store, "foo", span);
 
-        Assert.Equivalent(expected, _store.Get<string[]>("foo"));
+        Assert.True(_store.TryGetValue<string[]>("foo", out var value));
+        Assert.Equal(expected, value);
     }
 
     [Fact]

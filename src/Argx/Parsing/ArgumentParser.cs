@@ -1,11 +1,25 @@
 using Argx.Actions;
+using Argx.Extensions;
 
 namespace Argx.Parsing;
 
 public class ArgumentParser
 {
     private readonly List<Argument> _knownArgs = [];
+    private readonly Dictionary<string, Argument> _knowsArgsLookup = [];
     private readonly ArgumentStore _store = new();
+    private readonly IList<IArgumentProvider> _providers;
+
+    public ArgumentParser()
+    {
+        _providers = [_store];
+    }
+
+    public ArgumentParser(IList<IArgumentProvider> providers)
+    {
+        _providers = providers;
+        _providers.Add(_store);
+    }
 
     public ArgumentParser Add(
         string arg,
@@ -53,6 +67,36 @@ public class ArgumentParser
             type: typeof(T)));
 
         return this;
+    }
+
+    public Arguments Parse(string[] args)
+    {
+        var tokens = args.Tokenize();
+        var positionals = new List<Token>();
+
+        for (int i = 0; i < tokens.Length; i++)
+        {
+            if (IsPositional(tokens[i].Value))
+            {
+                positionals.Add(tokens[i]);
+                continue;
+            }
+
+            var token = tokens[i];
+            var arg = _knownArgs.FirstOrDefault(a => a.Name == token.Value || a.Alias == token.Value);
+
+            if (arg is null) continue;
+
+            if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))
+            {
+                throw new InvalidOperationException($"Unknown action for argument {arg}");
+            }
+
+            handler.Execute(arg, _store, arg.Name, tokens);
+            i += arg.Arity;
+        }
+
+        return new Arguments(_providers);
     }
 
     public ArgumentParser AddAction(string name, ArgumentAction action)

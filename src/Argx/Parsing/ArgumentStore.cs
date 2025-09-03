@@ -1,30 +1,25 @@
 namespace Argx.Parsing;
 
-public sealed class ArgumentStore
+public sealed class ArgumentStore : IArgumentProvider
 {
     private readonly Dictionary<string, object> _values = new();
 
-    public void Add(string arg, object val)
+    public void Add(string arg, object value)
     {
-        _values[arg] = val;
+        _values[arg] = value;
     }
 
-    public string? Get(string arg)
+    public bool TryGetValue<T>(string arg, out T value)
     {
-        if (!_values.TryGetValue(arg, out var val))
-            return null;
+        if (_values.TryGetValue(arg, out var obj) && obj is T t)
+        {
+            value = t;
+            return true;
+        }
 
-        if (val is string s)
-            return s;
-
-        return val.ToString();
+        value = default!;
+        return false;
     }
 
-    public T Get<T>(string arg)
-    {
-        if (_values.TryGetValue(arg, out var val) && val is T t)
-            return t;
-
-        return default!;
-    }
+    public bool TryGetValue(string arg, out string? value) => TryGetValue<string>(arg, out value);
 }

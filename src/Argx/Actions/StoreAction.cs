@@ -11,9 +11,7 @@ public class StoreAction : ArgumentAction
         string dest,
         ReadOnlySpan<Token> tokens)
     {
-        var arity = argument.Arity ?? 1; // default
-
-        if (arity == 0)
+        if (argument.Arity == 0)
             throw new InvalidOperationException(
                 $"Arity for 'store' must be != 0. Use 'store_true', 'store_false' or 'store_const' to store constant values. Argument: {argument.Name}");
 
