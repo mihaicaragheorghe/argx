@@ -5,7 +5,7 @@ namespace Argx.Tests.Actions;
 
 public class StoreActionTests
 {
-    private readonly ArgumentStore _store = new();
+    private readonly ArgumentRepository _repository = new();
     private readonly StoreAction _sut = new();
 
     [Fact]
@@ -14,7 +14,7 @@ public class StoreActionTests
         var arg = new Argument("--foo", arity: 0);
 
         Assert.Throws<InvalidOperationException>(() =>
-            _sut.Execute(arg, _store, "foo", TokenSpan(["--foo"])));
+            _sut.Execute(arg, _repository, "foo", TokenSpan(["--foo"])));
     }
 
     [Fact]
@@ -22,9 +22,9 @@ public class StoreActionTests
     {
         var arg = new Argument("--foo", arity: 1);
 
-        _sut.Execute(arg, _store, "foo", TokenSpan(["--foo", "bar"]));
+        _sut.Execute(arg, _repository, "foo", TokenSpan(["--foo", "bar"]));
 
-        Assert.True(_store.TryGetValue("foo", out var value));
+        Assert.True(_repository.TryGetValue("foo", out var value));
         Assert.Equal("bar", value);
     }
 
@@ -33,9 +33,9 @@ public class StoreActionTests
     {
         var arg = new Argument("--foo", type: typeof(int), arity: null);
 
-        _sut.Execute(arg, _store, "foo", TokenSpan(["--foo", "123"]));
+        _sut.Execute(arg, _repository, "foo", TokenSpan(["--foo", "123"]));
 
-        Assert.True(_store.TryGetValue<int>("foo", out var value));
+        Assert.True(_repository.TryGetValue<int>("foo", out var value));
         Assert.Equal(123, value);
     }
 
@@ -46,9 +46,9 @@ public class StoreActionTests
         var span = TokenSpan(["--foo", "bar", "baz", "qux"]);
         var expected = new[] { "bar", "baz", "qux" };
 
-        _sut.Execute(arg, _store, "foo", span);
+        _sut.Execute(arg, _repository, "foo", span);
 
-        Assert.True(_store.TryGetValue<string[]>("foo", out var value));
+        Assert.True(_repository.TryGetValue<string[]>("foo", out var value));
         Assert.Equal(expected, value);
     }
 
@@ -59,7 +59,7 @@ public class StoreActionTests
         {
             var arg = new Argument("--foo", type: typeof(int));
             var span = TokenSpan(["--foo", "bar"]);
-            _sut.Execute(arg, _store, "foo", span);
+            _sut.Execute(arg, _repository, "foo", span);
         });
     }
 

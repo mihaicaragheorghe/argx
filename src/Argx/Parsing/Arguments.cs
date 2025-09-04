@@ -2,23 +2,20 @@ namespace Argx.Parsing;
 
 public class Arguments
 {
-    private readonly IList<IArgumentProvider> _providers;
+    private readonly ArgumentRepository _repository;
 
-    public Arguments(IList<IArgumentProvider> providers)
+    public Arguments(ArgumentRepository repository)
     {
-        _providers = providers;
+        _repository = repository;
     }
 
     public string? this[string key] => GetValue(key);
 
     public string? GetValue(string arg)
     {
-        foreach (var provider in _providers)
+        if (_repository.TryGetValue(arg, out var value))
         {
-            if (provider.TryGetValue(arg, out var value))
-            {
-                return value;
-            }
+            return value;
         }
 
         return null;
@@ -26,17 +23,5 @@ public class Arguments
 
     public T GetValue<T>(string arg) => TryGetValue<T>(arg, out T value) ? value : default!;
 
-    public bool TryGetValue<T>(string arg, out T value)
-    {
-        foreach (var provider in _providers)
-        {
-            if (provider.TryGetValue<T>(arg, out value))
-            {
-                return true;
-            }
-        }
-
-        value = default!;
-        return false;
-    }
+    public bool TryGetValue<T>(string arg, out T value) => _repository.TryGetValue(arg, out value);
 }

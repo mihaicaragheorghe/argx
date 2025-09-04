@@ -6,7 +6,7 @@ public abstract class ArgumentAction
 {
     public abstract void Execute(
         Argument argument,
-        ArgumentStore store,
+        ArgumentRepository repository,
         string dest,
         ReadOnlySpan<Token> values);
 }

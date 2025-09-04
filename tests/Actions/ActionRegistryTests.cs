@@ -45,7 +45,7 @@ public class ActionRegistryTests
 
     private class CustomAction : ArgumentAction
     {
-        public override void Execute(Argument argument, ArgumentStore store, string dest, ReadOnlySpan<Token> values)
+        public override void Execute(Argument argument, ArgumentRepository repository, string dest, ReadOnlySpan<Token> values)
         {
             throw new NotImplementedException();
         }

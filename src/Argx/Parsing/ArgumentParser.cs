@@ -6,20 +6,7 @@ namespace Argx.Parsing;
 public class ArgumentParser
 {
     private readonly List<Argument> _knownArgs = [];
-    private readonly Dictionary<string, Argument> _knowsArgsLookup = [];
-    private readonly ArgumentStore _store = new();
-    private readonly IList<IArgumentProvider> _providers;
-
-    public ArgumentParser()
-    {
-        _providers = [_store];
-    }
-
-    public ArgumentParser(IList<IArgumentProvider> providers)
-    {
-        _providers = providers;
-        _providers.Add(_store);
-    }
+    private readonly ArgumentRepository _repository = new();
 
     public ArgumentParser Add(
         string arg,
@@ -92,11 +79,11 @@ public class ArgumentParser
                 throw new InvalidOperationException($"Unknown action for argument {arg}");
             }
 
-            handler.Execute(arg, _store, arg.Name, tokens);
+            handler.Execute(arg, _repository, arg.Name, tokens);
             i += arg.Arity;
         }
 
-        return new Arguments(_providers);
+        return new Arguments(_repository);
     }
 
     public ArgumentParser AddAction(string name, ArgumentAction action)

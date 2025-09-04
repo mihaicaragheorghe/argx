@@ -1,10 +1,10 @@
 namespace Argx.Parsing;
 
-public sealed class ArgumentStore : IArgumentProvider
+public sealed class ArgumentRepository
 {
     private readonly Dictionary<string, object> _values = new();
 
-    public void Add(string arg, object value)
+    public void Set(string arg, object value)
     {
         _values[arg] = value;
     }

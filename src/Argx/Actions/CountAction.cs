@@ -6,7 +6,7 @@ public class CountAction : ArgumentAction
 {
     public override void Execute(
         Argument argument,
-        ArgumentStore store,
+        ArgumentRepository repository,
         string dest,
         ReadOnlySpan<Token> tokens)
     {

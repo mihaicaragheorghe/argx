@@ -7,7 +7,7 @@ public class StoreAction : ArgumentAction
 {
     public override void Execute(
         Argument argument,
-        ArgumentStore store,
+        ArgumentRepository repository,
         string dest,
         ReadOnlySpan<Token> tokens)
     {
@@ -21,6 +21,6 @@ public class StoreAction : ArgumentAction
             throw new InvalidCastException(
                 $"Could not convert argument {argument.Name} to type {argument.Type} in order to store. {result.Error}");
 
-        store.Add(dest, result.Value!);
+        repository.Set(dest, result.Value!);
     }
 }
