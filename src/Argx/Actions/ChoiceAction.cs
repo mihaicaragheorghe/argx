@@ -6,7 +6,7 @@ public class ChoiceAction : ArgumentAction
 {
     public override void Execute(
         Argument argument,
-        ArgumentRepository repository,
+        IArgumentRepository repository,
         string dest,
         ReadOnlySpan<Token> tokens)
     {

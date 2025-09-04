@@ -6,7 +6,17 @@ namespace Argx.Parsing;
 public class ArgumentParser
 {
     private readonly List<Argument> _knownArgs = [];
-    private readonly ArgumentRepository _repository = new();
+    private readonly IArgumentRepository _repository;
+
+    public ArgumentParser()
+    {
+        _repository = new ArgumentRepository();
+    }
+
+    public ArgumentParser(IArgumentRepository repository)
+    {
+        _repository = repository;
+    }
 
     public ArgumentParser Add(
         string arg,

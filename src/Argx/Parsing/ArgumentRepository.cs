@@ -1,6 +1,6 @@
 namespace Argx.Parsing;
 
-public sealed class ArgumentRepository
+public sealed class ArgumentRepository : IArgumentRepository
 {
     private readonly Dictionary<string, object> _values = new();
 

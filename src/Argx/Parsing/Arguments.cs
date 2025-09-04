@@ -2,9 +2,9 @@ namespace Argx.Parsing;
 
 public class Arguments
 {
-    private readonly ArgumentRepository _repository;
+    private readonly IArgumentRepository _repository;
 
-    public Arguments(ArgumentRepository repository)
+    public Arguments(IArgumentRepository repository)
     {
         _repository = repository;
     }

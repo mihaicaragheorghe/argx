@@ -6,7 +6,7 @@ public abstract class ArgumentAction
 {
     public abstract void Execute(
         Argument argument,
-        ArgumentRepository repository,
+        IArgumentRepository repository,
         string dest,
         ReadOnlySpan<Token> values);
 }

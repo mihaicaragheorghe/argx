@@ -7,7 +7,7 @@ public class StoreAction : ArgumentAction
 {
     public override void Execute(
         Argument argument,
-        ArgumentRepository repository,
+        IArgumentRepository repository,
         string dest,
         ReadOnlySpan<Token> tokens)
     {

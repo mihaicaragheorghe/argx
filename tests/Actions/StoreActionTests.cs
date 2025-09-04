@@ -1,11 +1,13 @@
 using Argx.Actions;
 using Argx.Parsing;
 
+using Moq;
+
 namespace Argx.Tests.Actions;
 
 public class StoreActionTests
 {
-    private readonly ArgumentRepository _repository = new();
+    private readonly Mock<IArgumentRepository> _mockRepository = new();
     private readonly StoreAction _sut = new();
 
     [Fact]
@@ -14,42 +16,43 @@ public class StoreActionTests
         var arg = new Argument("--foo", arity: 0);
 
         Assert.Throws<InvalidOperationException>(() =>
-            _sut.Execute(arg, _repository, "foo", TokenSpan(["--foo"])));
+            _sut.Execute(arg, _mockRepository.Object, "foo", TokenSpan(["--foo"])));
     }
 
     [Fact]
     public void Execute_ShouldStoreArgumentValue_WhenConvertedSuccessfully()
     {
-        var arg = new Argument("--foo", arity: 1);
+        const string key = "foo";
+        const string value = "bar";
+        var arg = new Argument($"--{key}", arity: 1);
 
-        _sut.Execute(arg, _repository, "foo", TokenSpan(["--foo", "bar"]));
+        _sut.Execute(arg, _mockRepository.Object, key, TokenSpan(arg.Name, value));
 
-        Assert.True(_repository.TryGetValue("foo", out var value));
-        Assert.Equal("bar", value);
+        _mockRepository.Verify(x => x.Set(key, value));
     }
 
     [Fact]
     public void Execute_ShouldDefaultArityToOne_WhenNull()
     {
-        var arg = new Argument("--foo", type: typeof(int), arity: null);
+        const string key = "foo";
+        const string value = "bar";
+        var arg = new Argument($"--{key}", arity: null);
 
-        _sut.Execute(arg, _repository, "foo", TokenSpan(["--foo", "123"]));
+        _sut.Execute(arg, _mockRepository.Object, key, TokenSpan(arg.Name, value));
 
-        Assert.True(_repository.TryGetValue<int>("foo", out var value));
-        Assert.Equal(123, value);
+        _mockRepository.Verify(x => x.Set(key, value));
     }
 
     [Fact]
     public void Execute_ShouldStoreCollections_WhenTypeIsEnumerable()
     {
         var arg = new Argument("--foo", arity: 3, type: typeof(string[]));
-        var span = TokenSpan(["--foo", "bar", "baz", "qux"]);
-        var expected = new[] { "bar", "baz", "qux" };
+        var tokens = TokenSpan("--foo", "bar", "baz", "qux");
+        var value = new[] { "bar", "baz", "qux" };
 
-        _sut.Execute(arg, _repository, "foo", span);
+        _sut.Execute(arg, _mockRepository.Object, "foo", tokens);
 
-        Assert.True(_repository.TryGetValue<string[]>("foo", out var value));
-        Assert.Equal(expected, value);
+        _mockRepository.Verify(x => x.Set("foo", value));
     }
 
     [Fact]
@@ -59,10 +62,10 @@ public class StoreActionTests
         {
             var arg = new Argument("--foo", type: typeof(int));
             var span = TokenSpan(["--foo", "bar"]);
-            _sut.Execute(arg, _repository, "foo", span);
+            _sut.Execute(arg, _mockRepository.Object, "foo", span);
         });
     }
 
-    private ReadOnlySpan<Token> TokenSpan(params string[] tokens)
+    private static ReadOnlySpan<Token> TokenSpan(params string[] tokens)
         => tokens.Select(s => new Token(s)).ToArray().AsSpan();
 }
