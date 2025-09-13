@@ -21,5 +21,15 @@ public sealed class ArgumentRepository : IArgumentRepository
         return false;
     }
 
-    public bool TryGetValue(string arg, out string? value) => TryGetValue<string>(arg, out value);
+    public bool TryGetValue(string arg, out string? value)
+    {
+        if (_values.TryGetValue(arg, out var obj))
+        {
+            value = obj.ToString();
+            return true;
+        }
+
+        value = null;
+        return false;
+    }
 }
