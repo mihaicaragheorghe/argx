@@ -13,10 +13,10 @@ public class StoreActionTests
     [Fact]
     public void Execute_ShouldThrowInvalidOperationException_WhenArityIsZero()
     {
-        var arg = new Argument("--foo", arity: 0);
+        var arg = new Argument("--foo", arity: 0, dest: "foo");
 
         Assert.Throws<InvalidOperationException>(() =>
-            _sut.Execute(arg, _mockRepository.Object, "foo", TokenSpan(["--foo"])));
+            _sut.Execute(arg, _mockRepository.Object, TokenSpan(["--foo"])));
     }
 
     [Fact]
@@ -24,9 +24,9 @@ public class StoreActionTests
     {
         const string key = "foo";
         const string value = "bar";
-        var arg = new Argument($"--{key}", arity: 1);
+        var arg = new Argument($"--{key}", arity: 1, dest: key);
 
-        _sut.Execute(arg, _mockRepository.Object, key, TokenSpan(arg.Name, value));
+        _sut.Execute(arg, _mockRepository.Object, TokenSpan(arg.Name, value));
 
         _mockRepository.Verify(x => x.Set(key, value));
     }
@@ -36,9 +36,9 @@ public class StoreActionTests
     {
         const string key = "foo";
         const string value = "bar";
-        var arg = new Argument($"--{key}", arity: null);
+        var arg = new Argument($"--{key}", arity: null, dest: key);
 
-        _sut.Execute(arg, _mockRepository.Object, key, TokenSpan(arg.Name, value));
+        _sut.Execute(arg, _mockRepository.Object, TokenSpan(arg.Name, value));
 
         _mockRepository.Verify(x => x.Set(key, value));
     }
@@ -46,11 +46,11 @@ public class StoreActionTests
     [Fact]
     public void Execute_ShouldStoreCollections_WhenTypeIsEnumerable()
     {
-        var arg = new Argument("--foo", arity: 3, type: typeof(string[]));
+        var arg = new Argument("--foo", arity: 3, type: typeof(string[]), dest: "foo");
         var tokens = TokenSpan("--foo", "bar", "baz", "qux");
         var value = new[] { "bar", "baz", "qux" };
 
-        _sut.Execute(arg, _mockRepository.Object, "foo", tokens);
+        _sut.Execute(arg, _mockRepository.Object, tokens);
 
         _mockRepository.Verify(x => x.Set("foo", value));
     }
@@ -60,9 +60,9 @@ public class StoreActionTests
     {
         Assert.Throws<InvalidCastException>(() =>
         {
-            var arg = new Argument("--foo", type: typeof(int));
+            var arg = new Argument("--foo", type: typeof(int), dest: "foo");
             var span = TokenSpan(["--foo", "bar"]);
-            _sut.Execute(arg, _mockRepository.Object, "foo", span);
+            _sut.Execute(arg, _mockRepository.Object, span);
         });
     }
 

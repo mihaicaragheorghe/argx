@@ -5,11 +5,7 @@ namespace Argx.Actions;
 
 public class StoreAction : ArgumentAction
 {
-    public override void Execute(
-        Argument argument,
-        IArgumentRepository repository,
-        string dest,
-        ReadOnlySpan<Token> tokens)
+    public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
         if (argument.Arity == 0)
             throw new InvalidOperationException(
@@ -21,6 +17,6 @@ public class StoreAction : ArgumentAction
             throw new InvalidCastException(
                 $"Could not convert argument {argument.Name} to type {argument.Type} in order to store. {result.Error}");
 
-        repository.Set(dest, result.Value!);
+        repository.Set(argument.Dest, result.Value!);
     }
 }

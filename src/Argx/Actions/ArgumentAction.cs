@@ -4,9 +4,5 @@ namespace Argx.Actions;
 
 public abstract class ArgumentAction
 {
-    public abstract void Execute(
-        Argument argument,
-        IArgumentRepository repository,
-        string dest,
-        ReadOnlySpan<Token> values);
+    public abstract void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> values);
 }

@@ -12,6 +12,8 @@ public class Argument
 
     public Type Type { get; }
 
+    public string Dest { get; }
+
     public string? Usage { get; }
 
     public string? DefaultValue { get; }
@@ -28,6 +30,7 @@ public class Argument
         string name,
         string? alias = null,
         string? action = null,
+        string? dest = null,
         string? usage = null,
         string? defaultVal = null,
         string? constValue = null,
@@ -40,6 +43,7 @@ public class Argument
         Alias = alias;
         Type = type ?? typeof(string);
         Action = action ?? ArgumentActions.Store;
+        Dest = dest ?? name.Replace("--", string.Empty);
         Usage = usage;
         DefaultValue = defaultVal;
         ConstValue = constValue;

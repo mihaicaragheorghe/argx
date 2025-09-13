@@ -4,9 +4,12 @@ public class Arguments
 {
     private readonly IArgumentRepository _repository;
 
+    public List<string> Extras { get; }
+
     public Arguments(IArgumentRepository repository)
     {
         _repository = repository;
+        Extras = [];
     }
 
     public string? this[string key] => GetValue(key);

@@ -1,11 +1,13 @@
 using Argx.Actions;
+using Argx.Binding;
 using Argx.Extensions;
 
 namespace Argx.Parsing;
 
 public class ArgumentParser
 {
-    private readonly List<Argument> _knownArgs = [];
+    private readonly List<Argument> _knownOpts = [];
+    private readonly Queue<Argument> _knowsArgs = [];
     private readonly IArgumentRepository _repository;
 
     public ArgumentParser()
@@ -23,6 +25,7 @@ public class ArgumentParser
         string? alias = null,
         string? action = null,
         string? usage = null,
+        string? dest = null,
         string? defaultVal = null,
         string? constValue = null,
         string[]? choices = null,
@@ -33,6 +36,7 @@ public class ArgumentParser
             alias: alias,
             action: action,
             usage: usage,
+            dest: dest,
             defaultVal: defaultVal,
             constValue: constValue,
             choices: choices,
@@ -43,6 +47,7 @@ public class ArgumentParser
         string arg,
         string? alias = null,
         string? usage = null,
+        string? dest = null,
         string? defaultVal = null,
         string? constValue = null,
         string? action = null,
@@ -52,55 +57,96 @@ public class ArgumentParser
         if (string.IsNullOrWhiteSpace(arg))
             throw new ArgumentException("Argument name cannot be null or empty", nameof(arg));
 
-        _knownArgs.Add(new Argument(
+        var isPositional = IsPositional(arg);
+        var argument = new Argument(
             name: arg,
             alias: alias,
             action: action,
+            dest: dest,
             usage: usage,
             defaultVal: defaultVal,
             constValue: constValue,
             choices: choices,
-            isRequired: IsPositional(arg),
-            type: typeof(T)));
+            isRequired: isPositional,
+            type: typeof(T));
+
+        if (isPositional)
+            _knowsArgs.Enqueue(argument);
+        else
+            _knownOpts.Add(argument);
 
         return this;
     }
 
     public Arguments Parse(string[] args)
     {
+        var result = new Arguments(_repository);
         var tokens = args.Tokenize();
-        var positionals = new List<Token>();
+        var consumeOpts = true;
 
         for (int i = 0; i < tokens.Length; i++)
         {
-            if (IsPositional(tokens[i].Value))
+            if (IsSeparator(tokens[i]))
             {
-                positionals.Add(tokens[i]);
+                consumeOpts = false;
                 continue;
             }
 
-            var token = tokens[i];
-            var arg = _knownArgs.FirstOrDefault(a => a.Name == token.Value || a.Alias == token.Value);
-
-            if (arg is null) continue;
-
-            if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))
+            if (consumeOpts && IsOption(tokens[i]))
             {
-                throw new InvalidOperationException($"Unknown action for argument {arg}");
+                i += ConsumeOption(i, tokens, result);
+                continue;
             }
 
-            handler.Execute(arg, _repository, arg.Name, tokens);
-            i += arg.Arity;
+            ConsumePositional(tokens[i], result);
         }
 
-        return new Arguments(_repository);
+        return result;
     }
+
+    private void ConsumePositional(Token token, Arguments result)
+    {
+        if (_knowsArgs.Count == 0)
+        {
+            result.Extras.Add(token.Value);
+            return;
+        }
+
+        var arg = _knowsArgs.Dequeue();
+
+        TokenConversionResult conversionResult = TokenConverter.ConvertObject(arg.Type, token);
+
+        if (conversionResult.IsError)
+            throw new InvalidCastException(
+                $"Could not convert argument {arg.Name} to type {arg.Type} in order to store. {conversionResult.Error}");
+
+        _repository.Set(arg.Dest, conversionResult.Value!);
+    }
+
+    private int ConsumeOption(int idx, ReadOnlySpan<Token> tokens, Arguments result)
+    {
+        var token = tokens[idx];
+        var arg = _knownOpts.FirstOrDefault(a => a.Name == token.Value || a.Alias == token.Value);
+
+        if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))
+        {
+            throw new InvalidOperationException($"Unknown action for argument {arg}");
+        }
+
+        handler.Execute(arg, _repository, tokens);
+
+        return arg.Arity;
+    }
+
+    private bool IsPositional(string s) => !string.IsNullOrEmpty(s) && s[0] != '-';
+
+    private bool IsOption(string s) => s[0] == '-' && s != "--";
+
+    private bool IsSeparator(string s) => s == "--";
 
     public ArgumentParser AddAction(string name, ArgumentAction action)
     {
         ActionRegistry.Add(name, action);
         return this;
     }
-
-    private bool IsPositional(string arg) => arg[0] == '-';
 }

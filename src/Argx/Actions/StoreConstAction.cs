@@ -4,11 +4,7 @@ namespace Argx.Actions;
 
 public class StoreConstAction : ArgumentAction
 {
-    public override void Execute(
-        Argument argument,
-        IArgumentRepository repository,
-        string dest,
-        ReadOnlySpan<Token> tokens)
+    public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
     }
 }
