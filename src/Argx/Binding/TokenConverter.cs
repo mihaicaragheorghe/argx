@@ -11,7 +11,7 @@ internal static partial class TokenConverter
         => tokens.Length switch
         {
             1 when !type.IsEnumerable() => TokenConverter.ConvertToken(type, tokens[0]),
-            _ => TokenConverter.ConvertSpan(type, tokens),
+            _ => ConvertSpan(type, tokens),
         };
 
     internal static TokenConversionResult ConvertObject(Type type, object? obj)

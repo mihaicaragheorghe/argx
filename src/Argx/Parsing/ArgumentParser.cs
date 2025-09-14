@@ -86,13 +86,13 @@ public class ArgumentParser
 
         for (int i = 0; i < tokens.Length; i++)
         {
-            if (IsSeparator(tokens[i]))
+            if (IsSeparator(tokens[i].Value))
             {
                 consumeOpts = false;
                 continue;
             }
 
-            if (consumeOpts && IsOption(tokens[i]))
+            if (consumeOpts && IsOption(tokens[i].Value))
             {
                 i += ConsumeOption(i, tokens, result);
                 continue;
@@ -128,12 +128,17 @@ public class ArgumentParser
         var token = tokens[idx];
         var arg = _knownOpts.FirstOrDefault(a => a.Name == token.Value || a.Alias == token.Value);
 
+        if (arg is null)
+        {
+            return 0;
+        }
+
         if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))
         {
             throw new InvalidOperationException($"Unknown action for argument {arg}");
         }
 
-        handler.Execute(arg, _repository, tokens);
+        handler.Execute(arg, _repository, tokens.Slice(idx, arg.Arity + 1));
 
         return arg.Arity;
     }
