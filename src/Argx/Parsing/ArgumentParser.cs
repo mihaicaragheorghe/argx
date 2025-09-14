@@ -63,6 +63,7 @@ public class ArgumentParser
             alias: alias,
             action: action,
             dest: dest,
+            arity: arity,
             usage: usage,
             defaultVal: defaultVal,
             constValue: constValue,
@@ -130,6 +131,7 @@ public class ArgumentParser
 
         if (arg is null)
         {
+            result.Extras.Add(token);
             return 0;
         }
 
@@ -143,11 +145,11 @@ public class ArgumentParser
         return arg.Arity;
     }
 
-    private bool IsPositional(string s) => !string.IsNullOrEmpty(s) && s[0] != '-';
+    private static bool IsPositional(string s) => !string.IsNullOrEmpty(s) && s[0] != '-';
 
-    private bool IsOption(string s) => s[0] == '-' && s != "--";
+    private static bool IsOption(string s) => s[0] == '-' && s != "--";
 
-    private bool IsSeparator(string s) => s == "--";
+    private static bool IsSeparator(string s) => s == "--";
 
     public ArgumentParser AddAction(string name, ArgumentAction action)
     {
