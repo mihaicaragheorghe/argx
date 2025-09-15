@@ -2,10 +2,10 @@ namespace Argx.Actions;
 
 internal static class ActionRegistry
 {
-    private static Dictionary<string?, ArgumentAction>? s_registry;
+    private static Dictionary<string, ArgumentAction>? s_registry;
 
-    private static Dictionary<string?, ArgumentAction> Registry
-        => s_registry ??= new Dictionary<string?, ArgumentAction>
+    private static Dictionary<string, ArgumentAction> Registry
+        => s_registry ??= new Dictionary<string, ArgumentAction>
         {
             [ArgumentActions.Store] = new StoreAction(),
             [ArgumentActions.StoreConst] = new StoreConstAction(),
@@ -30,6 +30,6 @@ internal static class ActionRegistry
         Registry.Add(name, action);
     }
 
-    internal static bool TryGetHandler(string? name, out ArgumentAction action)
-        => Registry.TryGetValue(name ?? ArgumentActions.Store, out action);
+    internal static bool TryGetHandler(string name, out ArgumentAction? action)
+        => Registry.TryGetValue(name, out action);
 }

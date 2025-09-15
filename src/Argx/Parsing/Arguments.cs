@@ -24,7 +24,7 @@ public class Arguments
         return null;
     }
 
-    public T GetValue<T>(string arg) => TryGetValue<T>(arg, out T value) ? value : default!;
+    public T GetValue<T>(string arg) => TryGetValue(arg, out T value) ? value : default!;
 
     public bool TryGetValue<T>(string arg, out T value) => _repository.TryGetValue(arg, out value);
 }

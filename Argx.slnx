@@ -1,9 +1,6 @@
 <Solution>
   <Folder Name="/src/">
-    <Project Path="src/Argx.Console/Argx.Console.csproj" />
     <Project Path="src/Argx/Argx.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/Argx.Tests.csproj" />
-  </Folder>
+  <Project Path="tests/Argx.Tests.csproj" />
 </Solution>

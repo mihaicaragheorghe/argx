@@ -1,5 +1,4 @@
 using System.Collections;
-
 using Argx.Extensions;
 using Argx.Parsing;
 
@@ -44,24 +43,17 @@ internal static partial class TokenConverter
 
     private static TokenConversionResult ConvertSpan(Type type, ReadOnlySpan<Token> tokens)
     {
-        // TODO: remove extra allocation
-        var list = new List<Token>(tokens.ToArray()).AsReadOnly();
-        return ConvertList(type, list);
-    }
-
-    private static TokenConversionResult ConvertList(Type type, IReadOnlyList<Token> tokens)
-    {
         if (!type.IsEnumerable())
         {
             return TokenConversionResult.Failure(
-                $"Cannot convert {tokens.Count} tokens to type {type}, it has to be an enumerable type");
+                $"Cannot convert {tokens.Length} tokens to type {type}, it has to be an enumerable type");
         }
 
         var itemType = type.GetElementTypeIfEnumerable() ?? typeof(string);
-        var values = CreateCollection(type, itemType, tokens.Count);
+        var values = CreateCollection(type, itemType, tokens.Length);
         var isArray = values is Array;
 
-        for (var i = 0; i < tokens.Count; i++)
+        for (var i = 0; i < tokens.Length; i++)
         {
             var token = tokens[i];
             var result = ConvertToken(itemType, token);
@@ -83,6 +75,11 @@ internal static partial class TokenConverter
         }
 
         return TokenConversionResult.Success(values);
+    }
+
+    private static TokenConversionResult ConvertList(Type type, IReadOnlyList<Token> tokens)
+    {
+        return ConvertSpan(type, tokens.ToArray().AsSpan());
     }
 
     private static IList CreateCollection(Type type, Type itemType, int capacity = 0)
@@ -114,5 +111,5 @@ internal static partial class TokenConverter
 
     private static Array CreateArray(Type itemType, int capacity) => Array.CreateInstance(itemType, capacity);
 
-    private static IList CreateList(Type listType) => (IList)Activator.CreateInstance(listType);
+    private static IList CreateList(Type listType) => (IList)Activator.CreateInstance(listType)!;
 }

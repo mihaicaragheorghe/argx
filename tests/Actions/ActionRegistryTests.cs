@@ -6,7 +6,6 @@ namespace Argx.Tests.Actions;
 public class ActionRegistryTests
 {
     [Theory]
-    [InlineData(null, typeof(StoreAction))]
     [InlineData(ArgumentActions.Store, typeof(StoreAction))]
     [InlineData(ArgumentActions.StoreTrue, typeof(StoreTrueAction))]
     [InlineData(ArgumentActions.StoreFalse, typeof(StoreFalseAction))]
@@ -14,11 +13,12 @@ public class ActionRegistryTests
     [InlineData(ArgumentActions.Choice, typeof(ChoiceAction))]
     [InlineData(ArgumentActions.Count, typeof(CountAction))]
     [InlineData(ArgumentActions.Append, typeof(AppendAction))]
-    public void Registry_ShouldContainBuiltinValues_WhenNotExplicitlySet(string? action, Type expectedType)
+    public void Registry_ShouldContainBuiltinValues_WhenNotExplicitlySet(string action, Type expectedType)
     {
         var success = ActionRegistry.TryGetHandler(action, out var handler);
 
         Assert.True(success);
+        Assert.NotNull(handler);
         Assert.IsType(expectedType, handler);
     }
 

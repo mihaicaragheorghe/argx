@@ -140,7 +140,7 @@ public class ArgumentParser
             throw new InvalidOperationException($"Unknown action for argument {arg}");
         }
 
-        handler.Execute(arg, _repository, tokens.Slice(idx, arg.Arity + 1));
+        handler!.Execute(arg, _repository, tokens.Slice(idx, arg.Arity + 1));
 
         return arg.Arity;
     }
