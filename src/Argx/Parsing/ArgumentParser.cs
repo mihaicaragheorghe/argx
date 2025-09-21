@@ -21,51 +21,51 @@ public class ArgumentParser
     }
 
     public ArgumentParser Add(
-        string arg,
+        string name,
         string? alias = null,
         string? action = null,
         string? usage = null,
         string? dest = null,
-        string? defaultVal = null,
+        string? defaultValue = null,
         string? constValue = null,
         string[]? choices = null,
         int? arity = null)
     {
         return Add<string>(
-            arg: arg,
+            name: name,
             alias: alias,
             action: action,
             usage: usage,
             dest: dest,
-            defaultVal: defaultVal,
+            defaultValue: defaultValue,
             constValue: constValue,
             choices: choices,
             arity: arity);
     }
 
     public ArgumentParser Add<T>(
-        string arg,
+        string name,
         string? alias = null,
         string? usage = null,
         string? dest = null,
-        string? defaultVal = null,
+        string? defaultValue = null,
         string? constValue = null,
         string? action = null,
         string[]? choices = null,
         int? arity = null)
     {
-        if (string.IsNullOrWhiteSpace(arg))
-            throw new ArgumentException("Argument name cannot be null or empty", nameof(arg));
+        if (string.IsNullOrWhiteSpace(name))
+            throw new ArgumentException("Argument name cannot be null or empty", nameof(name));
 
-        var isPositional = IsPositional(arg);
+        var isPositional = IsPositional(name);
         var argument = new Argument(
-            name: arg,
+            name: name,
             alias: alias,
             action: action,
             dest: dest,
             arity: arity,
             usage: usage,
-            defaultVal: defaultVal,
+            defaultVal: defaultValue,
             constValue: constValue,
             choices: choices,
             isRequired: isPositional,
@@ -77,6 +77,91 @@ public class ArgumentParser
             _knownOpts.Add(argument);
 
         return this;
+    }
+
+    public ArgumentParser AddArgument<T>(string name, string? usage = null, string? dest = null)
+    {
+        if (IsOption(name))
+        {
+            throw new InvalidOperationException(
+                $"Positional arguments should not start with '-', consider options instead. Argument name: {name}");
+        }
+
+        return Add<T>(name: name, usage: usage, dest: dest);
+    }
+
+    public ArgumentParser AddArgument(string name, string? usage = null, string? dest = null)
+        => AddArgument<string>(name: name, usage: usage, dest: dest);
+
+    public ArgumentParser AddFlag(
+        string name,
+        string? alias = null,
+        string? usage = null,
+        string? dest = null,
+        bool value = true)
+    {
+        if (!IsOption(name))
+        {
+            throw new InvalidOperationException(
+                $"Flags should start with '-', since they are optional arguments, {name} should be --{name}");
+        }
+
+        return Add<bool>(
+            name: name,
+            alias: alias,
+            usage: usage,
+            dest: dest,
+            constValue: value.ToString(),
+            action: value ? ArgumentActions.StoreTrue : ArgumentActions.StoreFalse,
+            arity: 0);
+    }
+
+    public ArgumentParser AddOption<T>(
+        string name,
+        string? alias = null,
+        string? usage = null,
+        string? dest = null,
+        string? defaultValue = null,
+        string? constValue = null,
+        string? action = null,
+        int? arity = null)
+    {
+        if (!IsOption(name))
+        {
+            throw new InvalidOperationException(
+                $"Optional arguments should start with '-', {name} should be --{name}");
+        }
+
+        return Add<T>(
+            name: name,
+            alias: alias,
+            usage: usage,
+            dest: dest,
+            defaultValue: defaultValue,
+            constValue: constValue,
+            action: action,
+            arity: arity);
+    }
+
+    public ArgumentParser AddOption(
+        string name,
+        string? alias = null,
+        string? usage = null,
+        string? dest = null,
+        string? defaultValue = null,
+        string? constValue = null,
+        string? action = null,
+        int? arity = null)
+    {
+        return AddOption<string>(
+            name: name,
+            alias: alias,
+            usage: usage,
+            dest: dest,
+            defaultValue: defaultValue,
+            constValue: constValue,
+            action: action,
+            arity: arity);
     }
 
     public Arguments Parse(string[] args)
