@@ -1,5 +1,6 @@
 using Argx.Actions;
 using Argx.Parsing;
+using Argx.Errors;
 
 using Moq;
 
@@ -17,6 +18,15 @@ public class StoreActionTests
 
         Assert.Throws<InvalidOperationException>(() =>
             _sut.Execute(arg, _mockRepository.Object, TokenSpan(["--foo"])));
+    }
+
+    [Fact]
+    public void Execute_ShouldThrowBadArgumentException_WhenTokensLenLessThanTwo()
+    {
+        var arg = new Argument("--foo", arity: 1, dest: "foo");
+
+        var ex = Assert.Throws<BadArgumentException>(() => _sut.Execute(arg, _mockRepository.Object, TokenSpan(["--foo"])));
+        Assert.Equal("Error: argument --foo: expected one value", ex.Message);
     }
 
     [Fact]
@@ -55,15 +65,33 @@ public class StoreActionTests
         _mockRepository.Verify(x => x.Set("foo", value));
     }
 
-    [Fact]
-    public void Execute_ShouldThrow_WhenConversionFails()
+    [Theory]
+    [InlineData(typeof(bool), "bool")]
+    [InlineData(typeof(int), "int")]
+    [InlineData(typeof(uint), "uint")]
+    [InlineData(typeof(short), "short")]
+    [InlineData(typeof(ushort), "ushort")]
+    [InlineData(typeof(long), "long")]
+    [InlineData(typeof(ulong), "ulong")]
+    [InlineData(typeof(float), "float")]
+    [InlineData(typeof(decimal), "decimal")]
+    [InlineData(typeof(double), "double")]
+    [InlineData(typeof(Guid), "guid")]
+    [InlineData(typeof(DateTime), "DateTime")]
+    [InlineData(typeof(TimeSpan), "TimeSpan")]
+    [InlineData(typeof(int[]), "int[]")]
+    [InlineData(typeof(List<int>), "int[]")]
+    [InlineData(typeof(IList<int>), "int[]")]
+    [InlineData(typeof(ICollection<int>), "int[]")]
+    public void Execute_ShouldThrowBadArgumentException_WhenConversionFails(Type type, string typeStr)
     {
-        Assert.Throws<InvalidCastException>(() =>
+        var ex = Assert.Throws<BadArgumentException>(() =>
         {
-            var arg = new Argument("--foo", type: typeof(int), dest: "foo");
+            var arg = new Argument("--foo", type: type, dest: "foo");
             var span = TokenSpan(["--foo", "bar"]);
             _sut.Execute(arg, _mockRepository.Object, span);
         });
+        Assert.Equal($"Error: argument --foo: expected type {typeStr}", ex.Message);
     }
 
     private static ReadOnlySpan<Token> TokenSpan(params string[] tokens)

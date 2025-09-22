@@ -27,7 +27,7 @@ public class ArgumentParser
         string? usage = null,
         string? dest = null,
         string? defaultValue = null,
-        string? constValue = null,
+        object? constValue = null,
         string[]? choices = null,
         int? arity = null)
     {
@@ -49,7 +49,7 @@ public class ArgumentParser
         string? usage = null,
         string? dest = null,
         string? defaultValue = null,
-        string? constValue = null,
+        object? constValue = null,
         string? action = null,
         string[]? choices = null,
         int? arity = null)
@@ -111,7 +111,7 @@ public class ArgumentParser
             alias: alias,
             usage: usage,
             dest: dest,
-            constValue: value.ToString(),
+            constValue: value,
             action: value ? ArgumentActions.StoreTrue : ArgumentActions.StoreFalse,
             arity: 0);
     }
@@ -122,7 +122,7 @@ public class ArgumentParser
         string? usage = null,
         string? dest = null,
         string? defaultValue = null,
-        string? constValue = null,
+        object? constValue = null,
         string? action = null,
         int? arity = null)
     {
@@ -149,7 +149,7 @@ public class ArgumentParser
         string? usage = null,
         string? dest = null,
         string? defaultValue = null,
-        string? constValue = null,
+        object? constValue = null,
         string? action = null,
         int? arity = null)
     {
