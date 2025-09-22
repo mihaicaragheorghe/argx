@@ -57,7 +57,15 @@ public class ArgumentParser
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Argument name cannot be null or empty", nameof(name));
 
+        if (!IsValidAlias(alias))
+            throw new ArgumentException(
+                $"Invalid alias {alias}: it must start with '-' and the second character must be a letter, e.g. '-h', '-v'");
+
         var isPositional = IsPositional(name);
+
+        if (isPositional && alias != null)
+            throw new InvalidOperationException("Positional arguments cannot have an alias");
+
         var argument = new Argument(
             name: name,
             alias: alias,
@@ -235,6 +243,10 @@ public class ArgumentParser
     private static bool IsOption(string s) => s[0] == '-' && s != "--";
 
     private static bool IsSeparator(string s) => s == "--";
+
+    private bool IsValidAlias(string? s) => s is null
+        || (s.Length == 2 && s[0] == '-' && char.IsLetter(s[1]))
+        || (s.Length == 3 && s[0] == '-' && char.IsLetter(s[1]) && char.IsDigit(s[2]));
 
     public ArgumentParser AddAction(string name, ArgumentAction action)
     {
