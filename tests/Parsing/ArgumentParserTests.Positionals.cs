@@ -1,3 +1,4 @@
+using Argx.Errors;
 using Argx.Parsing;
 using Moq;
 
@@ -53,15 +54,6 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldThrowInvalidCastException_WhenPositionalConversionFails()
-    {
-        var parser = new ArgumentParser();
-        parser.Add<int>("foo");
-
-        Assert.Throws<InvalidCastException>(() => parser.Parse(["bar"]));
-    }
-
-    [Fact]
     public void Parse_ShouldStoreValues_WhenTypedPositionalArguments()
     {
         var parser = new ArgumentParser();
@@ -89,5 +81,17 @@ public partial class ArgumentParserTests
         Assert.True(result.TryGetValue<int>("y", out var y));
         Assert.Equal(21, x);
         Assert.Equal(22, y);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(2)]
+    public void Parse_ShouldThrowInvalidOperationException_WhenArityNotOne(int arity)
+    {
+        var parser = new ArgumentParser();
+        string[] args = ["foo"];
+        parser.Add<int>("echo", arity: arity);
+
+        Assert.Throws<InvalidOperationException>(() => parser.Parse(args));
     }
 }

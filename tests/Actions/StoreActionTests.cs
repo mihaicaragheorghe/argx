@@ -91,7 +91,7 @@ public class StoreActionTests
             var span = TokenSpan(["--foo", "bar"]);
             _sut.Execute(arg, _mockRepository.Object, span);
         });
-        Assert.Equal($"Error: argument --foo: expected type {typeStr}", ex.Message);
+        Assert.StartsWith($"Error: argument --foo: expected type {typeStr}", ex.Message);
     }
 
     private static ReadOnlySpan<Token> TokenSpan(params string[] tokens)

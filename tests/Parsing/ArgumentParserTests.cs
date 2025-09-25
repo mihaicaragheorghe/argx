@@ -17,13 +17,19 @@ public partial class ArgumentParserTests
 
     [Theory]
     [InlineData("")]
-    [InlineData("-1")]
-    [InlineData("-foo")]
-    [InlineData("--bar")]
-    public void Add_ShouldThrowArgumentException_WhenAliasIsInvalid(string alias)
+    [InlineData(" ")]
+    [InlineData("   ")]
+    public void Add_ShouldThrowArgumentException_WhenAliasIsEmptyOrWhitespace(string alias)
     {
         var parser = new ArgumentParser();
         Assert.Throws<ArgumentException>(() => parser.Add("--foo", alias));
+    }
+
+    [Fact]
+    public void Add_ShouldThrowInvalidOperationException_WhenInvalidAlias()
+    {
+        var parser = new ArgumentParser();
+        Assert.Throws<ArgumentException>(() => parser.Add("--foo", "f"));
     }
 
     [Fact]

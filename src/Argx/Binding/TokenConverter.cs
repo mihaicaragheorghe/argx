@@ -38,15 +38,15 @@ internal static partial class TokenConverter
             return TokenConversionResult.Success(converted);
         }
 
-        return TokenConversionResult.Failure($"Parsing token '{token}' to type {type} failed");
+        return TokenConversionResult.Failure($"Failed to convert '{token}' to type {type.GetFriendlyName()}");
     }
 
     private static TokenConversionResult ConvertSpan(Type type, ReadOnlySpan<Token> tokens)
     {
         if (!type.IsEnumerable())
         {
-            return TokenConversionResult.Failure(
-                $"Cannot convert {tokens.Length} tokens to type {type}, it has to be an enumerable type");
+            throw new InvalidOperationException(
+                $"Invalid type {type.GetFriendlyName()} for {tokens.Length} tokens: it has to be an enumerable type");
         }
 
         var itemType = type.GetElementTypeIfEnumerable() ?? typeof(string);
@@ -61,7 +61,7 @@ internal static partial class TokenConverter
             if (result.IsError)
             {
                 return TokenConversionResult.Failure(
-                    $"Cannot convert token '{token}' in collection of type {itemType} to type {type}. {result.Error}");
+                    $"Failed to convert token '{token}' in collection type {itemType.GetFriendlyName()} to type {type.GetFriendlyName()}: {result.Error}");
             }
 
             if (isArray)

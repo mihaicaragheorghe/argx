@@ -1,5 +1,6 @@
 using Argx.Actions;
 using Argx.Binding;
+using Argx.Errors;
 using Argx.Extensions;
 
 namespace Argx.Parsing;
@@ -57,12 +58,18 @@ public class ArgumentParser
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Argument name cannot be null or empty", nameof(name));
 
+        if (alias?.Trim() == string.Empty)
+            throw new ArgumentException("Argument alias cannot be empty, use null instead", nameof(alias));
+
+        if (!IsValidAlias(alias))
+            throw new ArgumentException("Argument alias must start with '-'", nameof(alias));
+
         var isPositional = IsPositional(name);
 
         if (isPositional && alias != null)
             throw new InvalidOperationException("Positional arguments cannot have an alias");
 
-        var argument = new Argument(
+        var arg = new Argument(
             name: name,
             alias: alias,
             action: action,
@@ -76,9 +83,9 @@ public class ArgumentParser
             type: typeof(T));
 
         if (isPositional)
-            _knowsArgs.Enqueue(argument);
+            _knowsArgs.Enqueue(arg);
         else
-            _knownOpts.Add(argument);
+            _knownOpts.Add(arg);
 
         return this;
     }
@@ -86,10 +93,7 @@ public class ArgumentParser
     public ArgumentParser AddArgument<T>(string name, string? usage = null, string? dest = null)
     {
         if (IsOption(name))
-        {
-            throw new InvalidOperationException(
-                $"Positional arguments should not start with '-', consider options instead. Argument name: {name}");
-        }
+            throw new InvalidOperationException($"Invalid positional argument {name}: cannot start with '-'");
 
         return Add<T>(name: name, usage: usage, dest: dest);
     }
@@ -105,10 +109,7 @@ public class ArgumentParser
         bool value = true)
     {
         if (!IsOption(name))
-        {
-            throw new InvalidOperationException(
-                $"Flags should start with '-', since they are optional arguments, {name} should be --{name}");
-        }
+            throw new InvalidOperationException($"Invalid flag {name}: should start with '-'");
 
         return Add<bool>(
             name: name,
@@ -131,10 +132,7 @@ public class ArgumentParser
         int? arity = null)
     {
         if (!IsOption(name))
-        {
-            throw new InvalidOperationException(
-                $"Optional arguments should start with '-', {name} should be --{name}");
-        }
+            throw new InvalidOperationException($"Invalid option {name}: should start with '-'");
 
         return Add<T>(
             name: name,
@@ -204,13 +202,13 @@ public class ArgumentParser
 
         var arg = _knowsArgs.Dequeue();
 
-        TokenConversionResult conversionResult = TokenConverter.ConvertObject(arg.Type, token);
+        // TODO: add support for arity?
+        if (arg.Arity != 1)
+            throw new InvalidOperationException($"Invalid arity for positional argument {arg.Name}: should be 1");
 
-        if (conversionResult.IsError)
-            throw new InvalidCastException(
-                $"Could not convert argument {arg.Name} to type {arg.Type} in order to store. {conversionResult.Error}");
+        var handler = new StoreAction();
 
-        _repository.Set(arg.Dest, conversionResult.Value!);
+        handler.Execute(arg, _repository, [new Token(arg.Name), token]);
     }
 
     private int ConsumeOption(int idx, ReadOnlySpan<Token> tokens, Arguments result)
@@ -234,11 +232,13 @@ public class ArgumentParser
         return arg.Arity;
     }
 
-    private static bool IsPositional(string s) => !string.IsNullOrEmpty(s) && s[0] != '-';
+    private static bool IsPositional(string s) => s.Length > 0 && s[0] != '-';
 
-    private static bool IsOption(string s) => s[0] == '-' && s != "--";
+    private static bool IsOption(string s) => s.Length > 0 && s[0] == '-' && s != "--";
 
     private static bool IsSeparator(string s) => s == "--";
+
+    private static bool IsValidAlias(string? s) => s is null || s.Length > 0 && s[0] == '-';
 
     public ArgumentParser AddAction(string name, ArgumentAction action)
     {

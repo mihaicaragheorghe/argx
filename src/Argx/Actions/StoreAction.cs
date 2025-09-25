@@ -21,7 +21,7 @@ public class StoreAction : ArgumentAction
         TokenConversionResult result = TokenConverter.ConvertTokens(argument.Type, tokens[1..]);
 
         if (result.IsError)
-            throw new BadArgumentException(name, $"expected type {argument.Type.GetFriendlyName()}");
+            throw new BadArgumentException(name, $"expected type {argument.Type.GetFriendlyName()}. {result.Error}");
 
         repository.Set(argument.Dest, result.Value!);
     }
