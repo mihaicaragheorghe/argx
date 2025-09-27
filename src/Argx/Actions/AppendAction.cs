@@ -18,11 +18,13 @@ public class AppendAction : ArgumentAction
     {
         var name = tokens[0].Value;
 
-        // TODO: arity = optional + const
         if (argument.Arity == 0)
             throw new InvalidOperationException($"Arity for 'append' must be != 0. Argument: {name}");
 
-        if (tokens.Length < 2)
+        if (argument.ConstValue != null && argument.Arity != Arity.Optional)
+            throw new InvalidOperationException($"Arity must be {Arity.Optional} to supply a const value");
+
+        if (argument.ConstValue == null && tokens.Length < 2)
             throw new ArgumentValueException(name, $"expected value");
 
         if (!argument.Type.IsEnumerable())
@@ -53,6 +55,11 @@ public class AppendAction : ArgumentAction
 
         var isArray = list is Array;
 
+        if (tokens.Length == 1)
+        {
+            Append(list, argument.ConstValue, isArray, ref idx);
+        }
+
         for (int i = 1; i < tokens.Length; i++)
         {
             TokenConversionResult result = TokenConverter.ConvertObject(itemType, tokens[i]);
@@ -63,18 +70,23 @@ public class AppendAction : ArgumentAction
                     $"invalid value '{tokens[i]}', expected type {argument.Type.GetFriendlyName()}. {result.Error}");
             }
 
-            if (isArray)
-            {
-                list[idx] = result.Value;
-                idx++;
-            }
-            else
-            {
-                list.Add(result.Value);
-            }
+            Append(list, result.Value, isArray, ref idx);
         }
 
         repository.Set(argument.Dest, list);
+    }
+
+    private static void Append(IList list, object? value, bool isArray, ref int idx)
+    {
+        if (isArray)
+        {
+            list[idx] = value;
+            idx++;
+        }
+        else
+        {
+            list.Add(value);
+        }
     }
 
     private static void CopyItems(IList src, IList dest)
