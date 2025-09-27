@@ -7,7 +7,7 @@ public class ChoiceAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
-        var name = tokens[0];
+        var name = tokens[0].Value;
 
         if (argument.Arity != 1)
             throw new InvalidOperationException($"Arity for 'choice' must be 1. Use 'store', to store collections");

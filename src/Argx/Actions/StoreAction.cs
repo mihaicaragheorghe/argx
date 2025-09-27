@@ -9,7 +9,7 @@ public class StoreAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
-        var name = tokens[0];
+        var name = tokens[0].Value;
 
         if (argument.Arity == 0)
             throw new InvalidOperationException(

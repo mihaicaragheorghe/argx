@@ -38,6 +38,11 @@ internal static class TypeExtensions
             return false;
         }
 
+        if (type == typeof(IDictionary<,>))
+        {
+            return false;
+        }
+
         return type.IsArray || typeof(IEnumerable).IsAssignableFrom(type);
     }
 

@@ -54,9 +54,21 @@ public class StoreActionTests
     }
 
     [Fact]
-    public void Execute_ShouldStoreCollections_WhenTypeIsEnumerable()
+    public void Execute_ShouldStoreCollections_WhenTypeIsArray()
     {
         var arg = new Argument("--foo", arity: 3, type: typeof(string[]), dest: "foo");
+        var tokens = TokenSpan("--foo", "bar", "baz", "qux");
+        var value = new[] { "bar", "baz", "qux" };
+
+        _sut.Execute(arg, _mockRepository.Object, tokens);
+
+        _mockRepository.Verify(x => x.Set("foo", value));
+    }
+
+    [Fact]
+    public void Execute_ShouldStoreCollections_WhenTypeIsList()
+    {
+        var arg = new Argument("--foo", arity: 3, type: typeof(List<string>), dest: "foo");
         var tokens = TokenSpan("--foo", "bar", "baz", "qux");
         var value = new[] { "bar", "baz", "qux" };
 

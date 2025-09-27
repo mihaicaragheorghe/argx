@@ -1,6 +1,6 @@
-using System.Collections;
 using Argx.Extensions;
 using Argx.Parsing;
+using Argx.Utils;
 
 namespace Argx.Binding;
 
@@ -50,7 +50,7 @@ internal static partial class TokenConverter
         }
 
         var itemType = type.GetElementTypeIfEnumerable() ?? typeof(string);
-        var values = CreateCollection(type, itemType, tokens.Length);
+        var values = CollectionUtils.CreateCollection(type, itemType, tokens.Length);
         var isArray = values is Array;
 
         for (var i = 0; i < tokens.Length; i++)
@@ -81,35 +81,4 @@ internal static partial class TokenConverter
     {
         return ConvertSpan(type, tokens.ToArray().AsSpan());
     }
-
-    private static IList CreateCollection(Type type, Type itemType, int capacity = 0)
-    {
-        if (type.IsArray)
-        {
-            return CreateArray(itemType, capacity);
-        }
-
-        if (type.IsGenericType)
-        {
-            var genericType = type.GetGenericTypeDefinition();
-
-            if (genericType == typeof(IEnumerable<>) ||
-                genericType == typeof(IList<>) ||
-                genericType == typeof(ICollection<>))
-            {
-                return CreateArray(itemType, capacity);
-            }
-
-            if (genericType == typeof(List<>))
-            {
-                return CreateList(type);
-            }
-        }
-
-        throw new ArgumentException($"Type {type} cannot be created.");
-    }
-
-    private static Array CreateArray(Type itemType, int capacity) => Array.CreateInstance(itemType, capacity);
-
-    private static IList CreateList(Type listType) => (IList)Activator.CreateInstance(listType)!;
 }
