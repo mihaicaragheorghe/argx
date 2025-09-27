@@ -23,7 +23,7 @@ public class CountActionTests
         var arg = new Argument("--foo", "-f", action: ArgumentActions.Count, arity: 0);
         var value = 0;
         _repositoryMock
-            .Setup(x => x.TryGetValue<int>("foo", out value))
+            .Setup(x => x.TryGetValue("foo", out value))
             .Returns(false);
 
         _sut.Execute(arg, _repositoryMock.Object, [new Token("--foo"), new Token("bar")]);
@@ -37,7 +37,7 @@ public class CountActionTests
         var arg = new Argument("--foo", "-f", action: ArgumentActions.Count, arity: 0);
         var value = 3;
         _repositoryMock
-            .Setup(x => x.TryGetValue<int>("foo", out value))
+            .Setup(x => x.TryGetValue("foo", out value))
             .Returns(true);
 
         _sut.Execute(arg, _repositoryMock.Object, [new Token("--foo"), new Token("bar")]);

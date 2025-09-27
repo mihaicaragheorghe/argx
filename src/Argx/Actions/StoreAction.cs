@@ -16,12 +16,12 @@ public class StoreAction : ArgumentAction
                 $"Arity for 'store' must be != 0. Use 'store_true', 'store_false' or 'store_const' to store constant values. Argument: {name}");
 
         if (tokens.Length < 2)
-            throw new BadArgumentException(name, $"expected {(argument.Arity > 1 ? "at least " : "")}one value");
+            throw new ArgumentValueException(name, $"expected {(argument.Arity > 1 ? "at least " : "")}one value");
 
         TokenConversionResult result = TokenConverter.ConvertTokens(argument.Type, tokens[1..]);
 
         if (result.IsError)
-            throw new BadArgumentException(name, $"expected type {argument.Type.GetFriendlyName()}. {result.Error}");
+            throw new ArgumentValueException(name, $"expected type {argument.Type.GetFriendlyName()}. {result.Error}");
 
         repository.Set(argument.Dest, result.Value!);
     }

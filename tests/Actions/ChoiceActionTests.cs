@@ -31,7 +31,7 @@ public class ChoiceActionTests
     {
         var arg = new Argument("--foo", arity: 1, dest: "foo");
 
-        var ex = Assert.Throws<BadArgumentException>(
+        var ex = Assert.Throws<ArgumentValueException>(
             () => _sut.Execute(arg, _repositoryMock.Object, [new Token("--foo")]));
         Assert.Equal("Error: argument --foo: expected one value", ex.Message);
     }
@@ -40,7 +40,7 @@ public class ChoiceActionTests
     public void Execute_ShouldThrowBadArgumentException_WhenInvalidChoice()
     {
         var arg = new Argument("--color", dest: "color", arity: 1, choices: ["white", "gray", "black"]);
-        var ex = Assert.Throws<BadArgumentException>(
+        var ex = Assert.Throws<ArgumentValueException>(
             () => _sut.Execute(arg, _repositoryMock.Object, [new Token("--color"), new Token("blue")]));
         Assert.Equal("Error: argument --color: invalid choice: blue, chose from white, gray, black", ex.Message);
     }

@@ -10,7 +10,7 @@ namespace Argx.Actions;
 
 public class AppendAction : ArgumentAction
 {
-    private static readonly MethodInfo s_tryGetValueGeneric = typeof(IArgumentRepository)
+    private static readonly MethodInfo TryGetValueMethod = typeof(IArgumentRepository)
         .GetMethods()
         .First(m => m.Name == "TryGetValue" && m.IsGenericMethodDefinition);
 
@@ -23,15 +23,15 @@ public class AppendAction : ArgumentAction
             throw new InvalidOperationException($"Arity for 'append' must be != 0. Argument: {name}");
 
         if (tokens.Length < 2)
-            throw new BadArgumentException(name, $"expected {(argument.Arity > 1 ? "at least " : "")}one value");
+            throw new ArgumentValueException(name, $"expected {(argument.Arity > 1 ? "at least " : "")}one value");
 
         if (!argument.Type.IsEnumerable())
             throw new InvalidOperationException($"Type for 'append' must be an enumerable. Argument: {name}");
 
-        var genericMethod = s_tryGetValueGeneric.MakeGenericMethod(argument.Type);
+        var genericMethod = TryGetValueMethod.MakeGenericMethod(argument.Type);
         var itemType = argument.Type.GetElementTypeIfEnumerable()!;
         object[] parameters = [argument.Dest, null!];
-        var found = (bool)genericMethod.Invoke(repository, parameters);
+        var found = (bool)genericMethod.Invoke(repository, parameters)!;
         var obj = found ? parameters[1] : null;
 
         IList list;
@@ -59,7 +59,7 @@ public class AppendAction : ArgumentAction
 
             if (result.IsError)
             {
-                throw new BadArgumentException(name,
+                throw new ArgumentValueException(name,
                     $"invalid value '{tokens[i]}', expected type {argument.Type.GetFriendlyName()}. {result.Error}");
             }
 
@@ -77,7 +77,7 @@ public class AppendAction : ArgumentAction
         repository.Set(argument.Dest, list);
     }
 
-    private void CopyItems(IList src, IList dest)
+    private static void CopyItems(IList src, IList dest)
     {
         var idx = 0;
         var isArray = dest is Array;

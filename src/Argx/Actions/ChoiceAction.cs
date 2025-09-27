@@ -17,13 +17,13 @@ public class ChoiceAction : ArgumentAction
                 $"Action 'choice' requires a list of choices to be set, but was empty for argument {name}");
 
         if (tokens.Length < 2)
-            throw new BadArgumentException(name, "expected one value");
+            throw new ArgumentValueException(name, "expected one value");
 
         var value = tokens[1].Value;
-        var allowed = string.Join(", ", argument.Choices);
+        var allowed = string.Join(", ", argument.Choices!);
 
         if (!allowed.Contains(value))
-            throw new BadArgumentException(name, $"invalid choice: {value}, chose from {allowed}");
+            throw new ArgumentValueException(name, $"invalid choice: {value}, chose from {allowed}");
 
         repository.Set(argument.Dest, value);
     }

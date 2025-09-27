@@ -57,35 +57,35 @@ internal static class TypeExtensions
         // TODO: add formats?
         if (type == typeof(bool))
             return "bool";
-        else if (type == typeof(string))
+        if (type == typeof(string))
             return "string";
-        else if (type == typeof(int))
+        if (type == typeof(int))
             return "int";
-        else if (type == typeof(long))
+        if (type == typeof(long))
             return "long";
-        else if (type == typeof(short))
+        if (type == typeof(short))
             return "short";
-        else if (type == typeof(uint))
+        if (type == typeof(uint))
             return "uint";
-        else if (type == typeof(ulong))
+        if (type == typeof(ulong))
             return "ulong";
-        else if (type == typeof(ushort))
+        if (type == typeof(ushort))
             return "ushort";
-        else if (type == typeof(float))
+        if (type == typeof(float))
             return "float";
-        else if (type == typeof(double))
+        if (type == typeof(double))
             return "double";
-        else if (type == typeof(decimal))
+        if (type == typeof(decimal))
             return "decimal";
-        else if (type == typeof(Guid))
+        if (type == typeof(Guid))
             return "guid";
-        else if (type == typeof(DateTime))
+        if (type == typeof(DateTime))
             return "DateTime";
-        else if (type == typeof(TimeSpan))
+        if (type == typeof(TimeSpan))
             return "TimeSpan";
-        else if (type.IsEnumerable())
+        if (type.IsEnumerable())
             return $"{type.GetElementTypeIfEnumerable()!.GetFriendlyName()}[]";
-        else
-            return type.Name;
+
+        return type.Name;
     }
 }

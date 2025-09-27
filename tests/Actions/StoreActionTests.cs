@@ -25,7 +25,7 @@ public class StoreActionTests
     {
         var arg = new Argument("--foo", arity: 1, dest: "foo");
 
-        var ex = Assert.Throws<BadArgumentException>(() => _sut.Execute(arg, _mockRepository.Object, TokenSpan(["--foo"])));
+        var ex = Assert.Throws<ArgumentValueException>(() => _sut.Execute(arg, _mockRepository.Object, TokenSpan(["--foo"])));
         Assert.Equal("Error: argument --foo: expected one value", ex.Message);
     }
 
@@ -97,7 +97,7 @@ public class StoreActionTests
     [InlineData(typeof(ICollection<int>), "int[]")]
     public void Execute_ShouldThrowBadArgumentException_WhenConversionFails(Type type, string typeStr)
     {
-        var ex = Assert.Throws<BadArgumentException>(() =>
+        var ex = Assert.Throws<ArgumentValueException>(() =>
         {
             var arg = new Argument("--foo", type: type, dest: "foo");
             var span = TokenSpan(["--foo", "bar"]);

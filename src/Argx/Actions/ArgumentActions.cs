@@ -1,6 +1,6 @@
 namespace Argx.Actions;
 
-public class ArgumentActions
+public static class ArgumentActions
 {
     public const string Store = "store";
 

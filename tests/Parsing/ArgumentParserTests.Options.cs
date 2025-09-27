@@ -60,7 +60,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add<int>("--foo");
 
-        Assert.Throws<BadArgumentException>(() => parser.Parse(["--foo", "bar"]));
+        Assert.Throws<ArgumentValueException>(() => parser.Parse(["--foo", "bar"]));
     }
 
     [Fact]

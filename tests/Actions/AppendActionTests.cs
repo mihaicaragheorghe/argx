@@ -1,10 +1,15 @@
+using System.Diagnostics.CodeAnalysis;
+
 using Argx.Actions;
 using Argx.Errors;
 using Argx.Parsing;
+
 using Moq;
 
 namespace Argx.Tests.Actions;
 
+// ReSharper disable ConvertTypeCheckToNullCheck
+[SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments")]
 public class AppendActionTests
 {
     private readonly Mock<IArgumentRepository> _mockRepository = new();
@@ -24,7 +29,7 @@ public class AppendActionTests
     {
         var arg = new Argument("--foo", arity: 1, dest: "foo");
 
-        var ex = Assert.Throws<BadArgumentException>(() => _sut.Execute(arg, _mockRepository.Object, Tokens("--foo")));
+        var ex = Assert.Throws<ArgumentValueException>(() => _sut.Execute(arg, _mockRepository.Object, Tokens("--foo")));
         Assert.Equal("Error: argument --foo: expected one value", ex.Message);
     }
 
@@ -47,7 +52,7 @@ public class AppendActionTests
 
         _sut.Execute(arg, _mockRepository.Object, Tokens("--foo", "bar"));
 
-        _mockRepository.Verify(x => x.Set("foo", new string[] { "bar" }));
+        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }));
     }
 
     [Fact]
@@ -67,7 +72,7 @@ public class AppendActionTests
 
         _sut.Execute(arg, _mockRepository.Object, Tokens("--foo", "bar"));
 
-        _mockRepository.Verify(x => x.Set("foo", new string[] { "bar" }));
+        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }));
     }
 
     [Fact]
@@ -77,7 +82,7 @@ public class AppendActionTests
 
         _sut.Execute(arg, _mockRepository.Object, Tokens("--foo", "bar"));
 
-        _mockRepository.Verify(x => x.Set("foo", new string[] { "bar" }));
+        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }));
     }
 
     [Fact]
@@ -100,7 +105,7 @@ public class AppendActionTests
         _sut.Execute(arg, repository, Tokens("--foo", "qux", "quux"));
 
         Assert.True(repository.TryGetValue<string[]>(arg.Dest, out var actual));
-        Assert.Equal(new string[] { "bar", "baz", "qux", "quux" }, actual);
+        Assert.Equal(["bar", "baz", "qux", "quux"], actual);
     }
 
     [Fact]
@@ -114,7 +119,7 @@ public class AppendActionTests
 
         Assert.True(repository.TryGetValue<IList<string>>(arg.Dest, out var actual));
         Assert.True(actual is string[]);
-        Assert.Equal(new string[] { "bar", "baz", "qux", "quux" }, actual);
+        Assert.Equal(["bar", "baz", "qux", "quux"], actual);
     }
 
     [Fact]
@@ -128,7 +133,7 @@ public class AppendActionTests
 
         Assert.True(repository.TryGetValue<List<string>>(arg.Dest, out var actual));
         Assert.True(actual is List<string>);
-        Assert.Equal(new List<string> { "bar", "baz", "qux", "quux" }, actual);
+        Assert.Equal(["bar", "baz", "qux", "quux"], actual);
     }
 
     [Fact]
@@ -142,7 +147,7 @@ public class AppendActionTests
 
         Assert.True(repository.TryGetValue<IEnumerable<string>>(arg.Dest, out var actual));
         Assert.True(actual is IEnumerable<string>);
-        Assert.Equal(new string[] { "bar", "baz", "qux", "quux" }, actual);
+        Assert.Equal(["bar", "baz", "qux", "quux"], actual);
     }
 
     [Fact]
@@ -156,7 +161,7 @@ public class AppendActionTests
 
         Assert.True(repository.TryGetValue<ICollection<string>>(arg.Dest, out var actual));
         Assert.True(actual is ICollection<string>);
-        Assert.Equal(new string[] { "bar", "baz", "qux", "quux" }, actual);
+        Assert.Equal(["bar", "baz", "qux", "quux"], actual);
     }
 
     private static ReadOnlySpan<Token> Tokens(params string[] tokens)
