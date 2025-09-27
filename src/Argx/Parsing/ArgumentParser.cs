@@ -200,7 +200,6 @@ public class ArgumentParser
 
         var arg = _knowsArgs.Dequeue();
 
-        // TODO: add support for arity?
         if (arg.Arity != 1)
             throw new InvalidOperationException($"Invalid arity for positional argument {arg.Name}: should be 1");
 
@@ -225,9 +224,9 @@ public class ArgumentParser
             throw new InvalidOperationException($"Unknown action for argument {arg}");
         }
 
-        handler!.Execute(arg, _repository, tokens.Slice(idx, arg.Arity + 1));
+        handler!.Execute(arg, _repository, tokens.Slice(idx, arg.Arity.ToInt() + 1));
 
-        return arg.Arity;
+        return arg.Arity.ToInt();
     }
 
     private static bool IsPositional(string s) => s.Length > 0 && s[0] != '-';

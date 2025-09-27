@@ -16,7 +16,7 @@ public class StoreAction : ArgumentAction
                 $"Arity for 'store' must be != 0. Use 'store_true', 'store_false' or 'store_const' to store constant values. Argument: {name}");
 
         if (tokens.Length < 2)
-            throw new ArgumentValueException(name, $"expected {(argument.Arity > 1 ? "at least " : "")}one value");
+            throw new ArgumentValueException(name, $"expected value");
 
         TokenConversionResult result = TokenConverter.ConvertTokens(argument.Type, tokens[1..]);
 

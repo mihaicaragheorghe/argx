@@ -23,7 +23,7 @@ public class AppendAction : ArgumentAction
             throw new InvalidOperationException($"Arity for 'append' must be != 0. Argument: {name}");
 
         if (tokens.Length < 2)
-            throw new ArgumentValueException(name, $"expected {(argument.Arity > 1 ? "at least " : "")}one value");
+            throw new ArgumentValueException(name, $"expected value");
 
         if (!argument.Type.IsEnumerable())
             throw new InvalidOperationException($"Type for 'append' must be an enumerable. Argument: {name}");
@@ -39,14 +39,14 @@ public class AppendAction : ArgumentAction
 
         if (obj is IList existing)
         {
-            list = CollectionUtils.CreateCollection(argument.Type, itemType, existing.Count + argument.Arity);
+            list = CollectionUtils.CreateCollection(argument.Type, itemType, existing.Count + argument.Arity.ToInt());
             CopyItems(existing, list);
             idx = existing.Count;
         }
         else
         {
             list = obj is null
-                ? CollectionUtils.CreateCollection(argument.Type, itemType, argument.Arity)
+                ? CollectionUtils.CreateCollection(argument.Type, itemType, argument.Arity.ToInt())
                 : throw new InvalidOperationException(
                     $"Invalid state: appending to value of argument '{name}' not possible, its type is not IList");
         }

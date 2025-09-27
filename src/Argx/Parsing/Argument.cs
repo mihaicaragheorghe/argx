@@ -22,7 +22,7 @@ public class Argument
 
     public string[]? Choices { get; }
 
-    public int Arity { get; }
+    public Arity Arity { get; }
 
     public bool IsRequired { get; }
 
@@ -36,7 +36,7 @@ public class Argument
         object? constValue = null,
         string[]? choices = null,
         bool isRequired = false,
-        int? arity = null,
+        Arity? arity = null,
         Type? type = null)
     {
         Name = name;

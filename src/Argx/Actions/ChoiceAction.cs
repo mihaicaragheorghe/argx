@@ -17,7 +17,7 @@ public class ChoiceAction : ArgumentAction
                 $"Action 'choice' requires a list of choices to be set, but was empty for argument {name}");
 
         if (tokens.Length < 2)
-            throw new ArgumentValueException(name, "expected one value");
+            throw new ArgumentValueException(name, "expected value");
 
         var value = tokens[1].Value;
         var allowed = string.Join(", ", argument.Choices!);

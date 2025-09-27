@@ -30,7 +30,7 @@ public class AppendActionTests
         var arg = new Argument("--foo", arity: 1, dest: "foo");
 
         var ex = Assert.Throws<ArgumentValueException>(() => _sut.Execute(arg, _mockRepository.Object, Tokens("--foo")));
-        Assert.Equal("Error: argument --foo: expected one value", ex.Message);
+        Assert.Equal("Error: argument --foo: expected value", ex.Message);
     }
 
     [Theory]

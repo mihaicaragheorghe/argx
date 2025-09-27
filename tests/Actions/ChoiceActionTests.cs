@@ -33,7 +33,7 @@ public class ChoiceActionTests
 
         var ex = Assert.Throws<ArgumentValueException>(
             () => _sut.Execute(arg, _repositoryMock.Object, [new Token("--foo")]));
-        Assert.Equal("Error: argument --foo: expected one value", ex.Message);
+        Assert.Equal("Error: argument --foo: expected value", ex.Message);
     }
 
     [Fact]
