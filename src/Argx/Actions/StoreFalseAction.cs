@@ -2,7 +2,7 @@ using Argx.Parsing;
 
 namespace Argx.Actions;
 
-public class StoreFalseAction : ArgumentAction
+internal class StoreFalseAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {

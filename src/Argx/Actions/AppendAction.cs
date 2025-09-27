@@ -8,7 +8,7 @@ using Argx.Utils;
 
 namespace Argx.Actions;
 
-public class AppendAction : ArgumentAction
+internal class AppendAction : ArgumentAction
 {
     private static readonly MethodInfo TryGetValueMethod = typeof(IArgumentRepository)
         .GetMethods()
@@ -20,9 +20,6 @@ public class AppendAction : ArgumentAction
 
         if (argument.Arity == 0)
             throw new InvalidOperationException($"Arity for 'append' must be != 0. Argument: {name}");
-
-        if (argument.ConstValue != null && argument.Arity != Arity.Optional)
-            throw new InvalidOperationException($"Arity must be {Arity.Optional} to supply a const value");
 
         if (argument.ConstValue == null && tokens.Length < 2)
             throw new ArgumentValueException(name, $"expected value");
@@ -57,7 +54,7 @@ public class AppendAction : ArgumentAction
 
         if (tokens.Length == 1)
         {
-            Append(list, argument.ConstValue, isArray, ref idx);
+            Append(list, argument.ConstValue, isArray, idx);
         }
 
         for (int i = 1; i < tokens.Length; i++)
@@ -70,23 +67,19 @@ public class AppendAction : ArgumentAction
                     $"invalid value '{tokens[i]}', expected type {argument.Type.GetFriendlyName()}. {result.Error}");
             }
 
-            Append(list, result.Value, isArray, ref idx);
+            Append(list, result.Value, isArray, idx);
+            idx++;
         }
 
         repository.Set(argument.Dest, list);
     }
 
-    private static void Append(IList list, object? value, bool isArray, ref int idx)
+    private static void Append(IList list, object? value, bool isArray, int idx)
     {
         if (isArray)
-        {
             list[idx] = value;
-            idx++;
-        }
         else
-        {
             list.Add(value);
-        }
     }
 
     private static void CopyItems(IList src, IList dest)

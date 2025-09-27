@@ -5,7 +5,7 @@ using Argx.Parsing;
 
 namespace Argx.Actions;
 
-public class StoreAction : ArgumentAction
+internal class StoreAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
