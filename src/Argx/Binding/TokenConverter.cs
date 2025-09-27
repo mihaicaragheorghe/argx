@@ -1,6 +1,6 @@
-using System.Collections;
 using Argx.Extensions;
 using Argx.Parsing;
+using Argx.Utils;
 
 namespace Argx.Binding;
 
@@ -38,19 +38,19 @@ internal static partial class TokenConverter
             return TokenConversionResult.Success(converted);
         }
 
-        return TokenConversionResult.Failure($"Parsing token '{token}' to type {type} failed");
+        return TokenConversionResult.Failure($"Failed to convert '{token}' to type {type.GetFriendlyName()}");
     }
 
     private static TokenConversionResult ConvertSpan(Type type, ReadOnlySpan<Token> tokens)
     {
         if (!type.IsEnumerable())
         {
-            return TokenConversionResult.Failure(
-                $"Cannot convert {tokens.Length} tokens to type {type}, it has to be an enumerable type");
+            throw new InvalidOperationException(
+                $"Invalid type {type.GetFriendlyName()} for {tokens.Length} tokens: it has to be an enumerable type");
         }
 
         var itemType = type.GetElementTypeIfEnumerable() ?? typeof(string);
-        var values = CreateCollection(type, itemType, tokens.Length);
+        var values = CollectionUtils.CreateCollection(type, itemType, tokens.Length);
         var isArray = values is Array;
 
         for (var i = 0; i < tokens.Length; i++)
@@ -61,7 +61,7 @@ internal static partial class TokenConverter
             if (result.IsError)
             {
                 return TokenConversionResult.Failure(
-                    $"Cannot convert token '{token}' in collection of type {itemType} to type {type}. {result.Error}");
+                    $"Failed to convert token '{token}' in collection type {itemType.GetFriendlyName()} to type {type.GetFriendlyName()}: {result.Error}");
             }
 
             if (isArray)
@@ -81,35 +81,4 @@ internal static partial class TokenConverter
     {
         return ConvertSpan(type, tokens.ToArray().AsSpan());
     }
-
-    private static IList CreateCollection(Type type, Type itemType, int capacity = 0)
-    {
-        if (type.IsArray)
-        {
-            return CreateArray(itemType, capacity);
-        }
-
-        if (type.IsGenericType)
-        {
-            var genericType = type.GetGenericTypeDefinition();
-
-            if (genericType == typeof(IEnumerable<>) ||
-                genericType == typeof(IList<>) ||
-                genericType == typeof(ICollection<>))
-            {
-                return CreateArray(itemType, capacity);
-            }
-
-            if (genericType == typeof(List<>))
-            {
-                return CreateList(type);
-            }
-        }
-
-        throw new ArgumentException($"Type {type} cannot be created.");
-    }
-
-    private static Array CreateArray(Type itemType, int capacity) => Array.CreateInstance(itemType, capacity);
-
-    private static IList CreateList(Type listType) => (IList)Activator.CreateInstance(listType)!;
 }

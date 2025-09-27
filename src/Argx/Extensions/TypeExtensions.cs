@@ -38,6 +38,11 @@ internal static class TypeExtensions
             return false;
         }
 
+        if (type == typeof(IDictionary<,>))
+        {
+            return false;
+        }
+
         return type.IsArray || typeof(IEnumerable).IsAssignableFrom(type);
     }
 
@@ -45,5 +50,42 @@ internal static class TypeExtensions
     {
         nullableType = Nullable.GetUnderlyingType(type);
         return nullableType is not null;
+    }
+
+    internal static string GetFriendlyName(this Type type)
+    {
+        // TODO: add formats?
+        if (type == typeof(bool))
+            return "bool";
+        else if (type == typeof(string))
+            return "string";
+        else if (type == typeof(int))
+            return "int";
+        else if (type == typeof(long))
+            return "long";
+        else if (type == typeof(short))
+            return "short";
+        else if (type == typeof(uint))
+            return "uint";
+        else if (type == typeof(ulong))
+            return "ulong";
+        else if (type == typeof(ushort))
+            return "ushort";
+        else if (type == typeof(float))
+            return "float";
+        else if (type == typeof(double))
+            return "double";
+        else if (type == typeof(decimal))
+            return "decimal";
+        else if (type == typeof(Guid))
+            return "guid";
+        else if (type == typeof(DateTime))
+            return "DateTime";
+        else if (type == typeof(TimeSpan))
+            return "TimeSpan";
+        else if (type.IsEnumerable())
+            return $"{type.GetElementTypeIfEnumerable()!.GetFriendlyName()}[]";
+        else
+            return type.Name;
     }
 }

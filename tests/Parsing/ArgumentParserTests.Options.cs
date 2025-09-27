@@ -1,4 +1,5 @@
 using Argx.Actions;
+using Argx.Errors;
 using Argx.Parsing;
 using Moq;
 
@@ -59,7 +60,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add<int>("--foo");
 
-        Assert.Throws<InvalidCastException>(() => parser.Parse(["--foo", "bar"]));
+        Assert.Throws<BadArgumentException>(() => parser.Parse(["--foo", "bar"]));
     }
 
     [Fact]

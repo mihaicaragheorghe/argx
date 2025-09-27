@@ -18,7 +18,7 @@ public class Argument
 
     public string? DefaultValue { get; }
 
-    public string? ConstValue { get; }
+    public object? ConstValue { get; }
 
     public string[]? Choices { get; }
 
@@ -33,7 +33,7 @@ public class Argument
         string? dest = null,
         string? usage = null,
         string? defaultVal = null,
-        string? constValue = null,
+        object? constValue = null,
         string[]? choices = null,
         bool isRequired = false,
         int? arity = null,

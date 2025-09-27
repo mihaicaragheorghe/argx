@@ -20,14 +20,12 @@ public class TokenConverterTests
     }
 
     [Fact]
-    public void ConvertTokens_ShouldReturnError_WhenMultipleTokensAndTypeNotEnumerable()
+    public void ConvertTokens_ShouldThrowInvalidOperationException_WhenMultipleTokensAndTypeNotEnumerable()
     {
         var tokens = new[] { new Token("123"), new Token("456"), new Token("789") };
-        var span = tokens.AsSpan();
 
-        var result = TokenConverter.ConvertTokens(type: typeof(int), tokens: span);
-
-        Assert.True(result.IsError);
+        Assert.Throws<InvalidOperationException>(
+            () => TokenConverter.ConvertTokens(type: typeof(int), tokens: tokens.AsSpan()));
     }
 
     [Fact]
