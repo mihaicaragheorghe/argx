@@ -76,7 +76,21 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldSendCorrectTokensToAction_WhenAritySet()
+    public void Parse_ShouldSendCorrectTokensToAction_WhenArityIsFixed()
+    {
+        var parser = new ArgumentParser();
+        string[] expected = ["bar", "baz", "qux"];
+        parser.Add<string[]>("--foo", arity: 3, action: ArgumentActions.Store);
+
+        var result = parser.Parse(["--foo", "bar", "baz", "qux", "--extra"]);
+
+        Assert.True(result.TryGetValue<string[]>("foo", out var actual));
+        Assert.Equivalent(expected, actual);
+        Assert.Contains("--extra", result.Extras);
+    }
+
+    [Fact]
+    public void Parse_ShouldCalculateArity_WhenArityAtLeastOne()
     {
         var parser = new ArgumentParser();
         string[] expected = ["bar", "baz", "qux"];

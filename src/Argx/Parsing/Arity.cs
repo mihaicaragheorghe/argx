@@ -4,9 +4,11 @@ public class Arity
 {
     public string Value { get; }
 
-    public const char Any = '+';
-    public const char Optional = '?';
-    public const char AtLeastOne = '*';
+    public const string Any = "*";
+
+    public const string Optional = "?";
+
+    public const string AtLeastOne = "+";
 
     public Arity(string value)
     {

@@ -241,9 +241,46 @@ public class ArgumentParser
             throw new InvalidOperationException($"Unknown action for argument {arg.Name}");
         }
 
-        handler!.Execute(arg, _repository, tokens.Slice(idx, arg.Arity.ToInt() + 1));
+        var count = CalculateArity(arg, tokens, idx);
 
-        return arg.Arity.ToInt();
+        handler!.Execute(arg, _repository, tokens.Slice(idx, count + 1));
+
+        return count;
+    }
+
+    private static int CalculateArity(Argument arg, ReadOnlySpan<Token> tokens, int from)
+    {
+        if (arg.Arity.IsFixed)
+        {
+            return int.Parse(arg.Arity.Value);
+        }
+
+        var count = 0;
+        var idx = from + 1;
+
+        switch (arg.Arity.Value)
+        {
+            case Arity.Optional:
+                if (idx < tokens.Length && !tokens[idx].Value.StartsWith("-"))
+                {
+                    return 1;
+                }
+                return 0;
+            case Arity.Any:
+            case Arity.AtLeastOne:
+                while (idx < tokens.Length && !tokens[idx].Value.StartsWith("-"))
+                {
+                    count++;
+                    idx++;
+                }
+                if (arg.Arity.Value == Arity.AtLeastOne && count == 0)
+                {
+                    throw new InvalidOperationException($"Argument '{arg.Name}' requires at least one value.");
+                }
+                return count;
+            default:
+                throw new InvalidOperationException($"Unknown arity value: {arg.Arity.Value}");
+        }
     }
 
     private static bool IsPositional(string s) => s.Length > 0 && s[0] != '-';
