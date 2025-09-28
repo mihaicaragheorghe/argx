@@ -4,14 +4,16 @@ public class Arity
 {
     public string Value { get; }
 
-    public const string Any = "+";
-    public const string Optional = "?";
-    public const string AtLeastOne = "*";
+    public const char Any = '+';
+    public const char Optional = '?';
+    public const char AtLeastOne = '*';
 
     public Arity(string value)
     {
         Value = value;
     }
+
+    public bool IsFixed => int.TryParse(Value, out _);
 
     public int ToInt() => int.Parse(Value);
 
@@ -21,8 +23,8 @@ public class Arity
 
     public static implicit operator Arity(char value) => new(value.ToString());
 
-    public static bool operator ==(Arity left, string right) => left.Value == right;
-    public static bool operator !=(Arity left, string right) => left.Value != right;
+    public static bool operator ==(Arity left, char right) => left.Value == right.ToString();
+    public static bool operator !=(Arity left, char right) => left.Value != right.ToString();
 
     public static bool operator ==(Arity left, int right) => int.TryParse(left.Value, out var num) && num == right;
     public static bool operator !=(Arity left, int right) => !int.TryParse(left.Value, out var num) || num != right;

@@ -6,10 +6,15 @@ internal class StoreFalseAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
-        if (argument.Arity != 0)
-            throw new InvalidOperationException(
-                $"Arity for 'store_false' must be 0. Use 'store', to store values. Argument: {argument.Name}");
-
         repository.Set(argument.Dest, false);
+    }
+
+    public override void Validate(Argument argument)
+    {
+        if (argument.Arity != 0)
+        {
+            throw new ArgumentException(
+                $"Argument: {argument.Name}: arity for 'store_false' must be 0. Use 'store', to store values.");
+        }
     }
 }

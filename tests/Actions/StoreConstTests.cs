@@ -10,17 +10,17 @@ public class StoreConstTests
     private readonly StoreConstAction _sut = new();
 
     [Fact]
-    public void Execute_ShouldThrowInvalidOperationException_WhenArityNotZero()
+    public void Validate_ShouldThrowArgumentException_WhenArityNotZero()
     {
         var arg = new Argument("--foo", constValue: "bar", arity: 1);
-        Assert.Throws<InvalidOperationException>(() => _sut.Execute(arg, _mockRepository.Object, []));
+        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]
-    public void Execute_ShouldThrowArgumentException_WhenArgumentConstValueIsNull()
+    public void Validate_ShouldThrowArgumentException_WhenArgumentConstValueIsNull()
     {
         var arg = new Argument("--foo", constValue: null, arity: 0);
-        Assert.Throws<ArgumentException>(() => _sut.Execute(arg, _mockRepository.Object, []));
+        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]

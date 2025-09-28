@@ -10,10 +10,10 @@ public class StoreTrueActionTests
     private readonly StoreTrueAction _sut = new();
 
     [Fact]
-    public void Execute_ShouldThrowInvalidOperationException_WhenArityNotZero()
+    public void Validate_ShouldThrowArgumentException_WhenArityNotZero()
     {
         var arg = new Argument("--foo", arity: 1);
-        Assert.Throws<InvalidOperationException>(() => _sut.Execute(arg, _mockRepository.Object, []));
+        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]

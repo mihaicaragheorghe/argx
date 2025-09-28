@@ -16,12 +16,22 @@ public class AppendActionTests
     private readonly AppendAction _sut = new();
 
     [Fact]
-    public void Execute_ShouldThrowInvalidOperationException_WhenArityIsZero()
+    public void Validate_ShouldThrowArgumentException_WhenArityIsZero()
     {
         var arg = new Argument("--foo", arity: 0, dest: "foo", type: typeof(string[]));
 
-        Assert.Throws<InvalidOperationException>(() =>
-            _sut.Execute(arg, _mockRepository.Object, Tokens("--foo")));
+        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
+    }
+
+    [Theory]
+    [InlineData(typeof(int))]
+    [InlineData(typeof(string))]
+    [InlineData(typeof(Guid))]
+    public void Validate_ShouldThroArgumentException_WhenTypeNotEnumerable(Type type)
+    {
+        var arg = new Argument("--foo", arity: 1, dest: "foo", type: type);
+
+        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]
@@ -31,18 +41,6 @@ public class AppendActionTests
 
         var ex = Assert.Throws<ArgumentValueException>(() => _sut.Execute(arg, _mockRepository.Object, Tokens("--foo")));
         Assert.Equal("Error: argument --foo: expected value", ex.Message);
-    }
-
-    [Theory]
-    [InlineData(typeof(int))]
-    [InlineData(typeof(string))]
-    [InlineData(typeof(Guid))]
-    public void Execute_ShouldThrowBadArgumentException_WhenTypeNotEnumerable(Type type)
-    {
-        var arg = new Argument("--foo", arity: 1, dest: "foo", type: type);
-
-        Assert.Throws<InvalidOperationException>(() =>
-            _sut.Execute(arg, _mockRepository.Object, Tokens("--foo", "bar")));
     }
 
     [Fact]

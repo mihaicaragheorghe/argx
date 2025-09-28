@@ -76,15 +76,6 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldThrow_WhenActionNotFound()
-    {
-        var parser = new ArgumentParser();
-        parser.Add("--foo", "-f", action: "void");
-
-        Assert.Throws<InvalidOperationException>(() => parser.Parse(["--foo", "bar"]));
-    }
-
-    [Fact]
     public void Parse_ShouldSendCorrectTokensToAction_WhenAritySet()
     {
         var parser = new ArgumentParser();

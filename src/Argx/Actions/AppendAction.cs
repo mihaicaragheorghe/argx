@@ -18,14 +18,8 @@ internal class AppendAction : ArgumentAction
     {
         var name = tokens[0].Value;
 
-        if (argument.Arity == 0)
-            throw new InvalidOperationException($"Arity for 'append' must be != 0. Argument: {name}");
-
         if (argument.ConstValue == null && tokens.Length < 2)
             throw new ArgumentValueException(name, $"expected value");
-
-        if (!argument.Type.IsEnumerable())
-            throw new InvalidOperationException($"Type for 'append' must be an enumerable. Argument: {name}");
 
         var genericMethod = TryGetValueMethod.MakeGenericMethod(argument.Type);
         var itemType = argument.Type.GetElementTypeIfEnumerable()!;
@@ -97,6 +91,19 @@ internal class AppendAction : ArgumentAction
             {
                 dest.Add(item);
             }
+        }
+    }
+
+    public override void Validate(Argument argument)
+    {
+        if (argument.Arity == 0)
+        {
+            throw new ArgumentException($"Argument: {argument.Name}: arity for 'append' must be != 0.");
+        }
+
+        if (!argument.Type.IsEnumerable())
+        {
+            throw new ArgumentException($"Argument: {argument.Name}: Type for 'append' must be an enumerable.");
         }
     }
 }

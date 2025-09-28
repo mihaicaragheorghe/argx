@@ -49,5 +49,10 @@ public class ActionRegistryTests
         {
             throw new NotImplementedException();
         }
+
+        public override void Validate(Argument argument)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

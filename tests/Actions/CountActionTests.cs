@@ -10,11 +10,10 @@ public class CountActionTests
     private readonly CountAction _sut = new();
 
     [Fact]
-    public void Execute_ShouldThrowInvalidOperationException_WhenArityNotZero()
+    public void Validate_ShouldThrowArgumentException_WhenArityNotZero()
     {
         var arg = new Argument("--foo", "-f", action: ArgumentActions.Count, arity: 1);
-        Assert.Throws<InvalidOperationException>(
-            () => _sut.Execute(arg, _repositoryMock.Object, [new Token("--foo"), new Token("bar")]));
+        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]

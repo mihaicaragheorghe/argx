@@ -11,19 +11,17 @@ public class ChoiceActionTests
     private readonly ChoiceAction _sut = new();
 
     [Fact]
-    public void Execute_ShouldThrowInvalidOperationException_WhenArityIsZero()
+    public void Validate_ShouldThrowArgumentException_WhenArityIsZero()
     {
         var arg = new Argument("--foo", arity: 0);
-        Assert.Throws<InvalidOperationException>(
-            () => _sut.Execute(arg, _repositoryMock.Object, [new Token("--foo")]));
+        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]
-    public void Execute_ShouldThrowInvalidOperationException_WhenGreaterThanOne()
+    public void Validate_ShouldThrowArgumentException_WhenArityGreaterThanOne()
     {
         var arg = new Argument("--foo", arity: 2);
-        Assert.Throws<InvalidOperationException>(
-            () => _sut.Execute(arg, _repositoryMock.Object, [new Token("--foo"), new Token("bar"), new Token("baz")]));
+        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]

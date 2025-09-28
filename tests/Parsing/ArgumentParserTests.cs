@@ -15,6 +15,20 @@ public partial class ArgumentParserTests
         Assert.Throws<ArgumentException>(() => parser.Add(arg!));
     }
 
+    [Fact]
+    public void Add_ShouldThrowArgumentException_WhenActionValidationFails()
+    {
+        var parser = new ArgumentParser();
+        Assert.Throws<ArgumentException>(() => parser.Add("foo", arity: 0));
+    }
+
+    [Fact]
+    public void Add_ShouldThrowArgumentException_WhenActionNotFound()
+    {
+        var parser = new ArgumentParser();
+        Assert.Throws<ArgumentException>(() => parser.Add("--foo", "-f", action: "void"));
+    }
+
     [Theory]
     [InlineData("")]
     [InlineData(" ")]

@@ -54,18 +54,26 @@ public class ArgumentParser
         int? arity = null)
     {
         if (string.IsNullOrWhiteSpace(name))
+        {
             throw new ArgumentException("Argument name cannot be null or empty", nameof(name));
+        }
 
         if (alias?.Trim() == string.Empty)
-            throw new ArgumentException("Argument alias cannot be empty, use null instead", nameof(alias));
+        {
+            throw new ArgumentException($"Argument {name}: alias cannot be empty, use null instead", nameof(alias));
+        }
 
         if (!IsValidAlias(alias))
-            throw new ArgumentException("Argument alias must start with '-'", nameof(alias));
+        {
+            throw new ArgumentException($"Argument {name}: alias must start with '-'");
+        }
 
         var isPositional = IsPositional(name);
 
         if (isPositional && alias != null)
+        {
             throw new InvalidOperationException("Positional arguments cannot have an alias");
+        }
 
         var arg = new Argument(
             name: name,
@@ -79,6 +87,13 @@ public class ArgumentParser
             choices: choices,
             isRequired: isPositional,
             type: typeof(T));
+
+        if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))
+        {
+            throw new ArgumentException($"Argument {arg.Name}: Unknown action '{action}'");
+        }
+
+        handler!.Validate(arg);
 
         if (isPositional)
             _knowsArgs.Enqueue(arg);
@@ -201,7 +216,9 @@ public class ArgumentParser
         var arg = _knowsArgs.Dequeue();
 
         if (arg.Arity != 1)
+        {
             throw new InvalidOperationException($"Invalid arity for positional argument {arg.Name}: should be 1");
+        }
 
         var handler = new StoreAction();
 
@@ -221,7 +238,7 @@ public class ArgumentParser
 
         if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))
         {
-            throw new InvalidOperationException($"Unknown action for argument {arg}");
+            throw new InvalidOperationException($"Unknown action for argument {arg.Name}");
         }
 
         handler!.Execute(arg, _repository, tokens.Slice(idx, arg.Arity.ToInt() + 1));

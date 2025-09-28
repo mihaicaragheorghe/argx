@@ -12,12 +12,11 @@ public class StoreActionTests
     private readonly StoreAction _sut = new();
 
     [Fact]
-    public void Execute_ShouldThrowInvalidOperationException_WhenArityIsZero()
+    public void Validate_ShouldThrowArgumentException_WhenArityIsZero()
     {
         var arg = new Argument("--foo", arity: 0, dest: "foo");
 
-        Assert.Throws<InvalidOperationException>(() =>
-            _sut.Execute(arg, _mockRepository.Object, TokenSpan(["--foo"])));
+        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]
