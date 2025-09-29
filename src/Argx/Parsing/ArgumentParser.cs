@@ -27,8 +27,8 @@ public class ArgumentParser
         string? dest = null,
         string? defaultValue = null,
         object? constValue = null,
-        string[]? choices = null,
-        int? arity = null)
+        string? arity = null,
+        string[]? choices = null)
     {
         return Add<string>(
             name: name,
@@ -50,8 +50,8 @@ public class ArgumentParser
         string? defaultValue = null,
         object? constValue = null,
         string? action = null,
-        string[]? choices = null,
-        int? arity = null)
+        string? arity = null,
+        string[]? choices = null)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
@@ -131,7 +131,7 @@ public class ArgumentParser
             dest: dest,
             constValue: value,
             action: value ? ArgumentActions.StoreTrue : ArgumentActions.StoreFalse,
-            arity: 0);
+            arity: "0");
     }
 
     public ArgumentParser AddOption<T>(
@@ -142,7 +142,7 @@ public class ArgumentParser
         string? defaultValue = null,
         object? constValue = null,
         string? action = null,
-        int? arity = null)
+        string? arity = null)
     {
         if (!IsOption(name))
             throw new InvalidOperationException($"Invalid option {name}: should start with '-'");
@@ -166,7 +166,7 @@ public class ArgumentParser
         string? defaultValue = null,
         object? constValue = null,
         string? action = null,
-        int? arity = null)
+        string? arity = null)
     {
         return AddOption<string>(
             name: name,
@@ -241,11 +241,11 @@ public class ArgumentParser
             throw new InvalidOperationException($"Unknown action for argument {arg.Name}");
         }
 
-        var count = CalculateArity(arg, tokens, idx);
+        var len = CalculateArity(arg, tokens, idx);
 
-        handler!.Execute(arg, _repository, tokens.Slice(idx, count + 1));
+        handler!.Execute(arg, _repository, tokens.Slice(idx, len + 1));
 
-        return count;
+        return len;
     }
 
     private static int CalculateArity(Argument arg, ReadOnlySpan<Token> tokens, int from)

@@ -12,21 +12,21 @@ public class StoreConstTests
     [Fact]
     public void Validate_ShouldThrowArgumentException_WhenArityNotZero()
     {
-        var arg = new Argument("--foo", constValue: "bar", arity: 1);
+        var arg = new Argument("--foo", constValue: "bar", arity: "1");
         Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]
     public void Validate_ShouldThrowArgumentException_WhenArgumentConstValueIsNull()
     {
-        var arg = new Argument("--foo", constValue: null, arity: 0);
+        var arg = new Argument("--foo", constValue: null, arity: "0");
         Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]
     public void Execute_ShouldStoreConst_WhenValid()
     {
-        var arg = new Argument("--foo", constValue: true, dest: "foo", arity: 0);
+        var arg = new Argument("--foo", constValue: true, dest: "foo", arity: "0");
 
         _sut.Execute(arg, _mockRepository.Object, [new Token("bar")]);
 

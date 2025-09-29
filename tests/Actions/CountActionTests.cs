@@ -12,14 +12,14 @@ public class CountActionTests
     [Fact]
     public void Validate_ShouldThrowArgumentException_WhenArityNotZero()
     {
-        var arg = new Argument("--foo", "-f", action: ArgumentActions.Count, arity: 1);
+        var arg = new Argument("--foo", "-f", action: ArgumentActions.Count, arity: "1");
         Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]
     public void Execute_ShouldStoreOne_WhenNotStored()
     {
-        var arg = new Argument("--foo", "-f", action: ArgumentActions.Count, arity: 0);
+        var arg = new Argument("--foo", "-f", action: ArgumentActions.Count, arity: "0");
         var value = 0;
         _repositoryMock
             .Setup(x => x.TryGetValue("foo", out value))
@@ -33,7 +33,7 @@ public class CountActionTests
     [Fact]
     public void Execute_ShouldIncrement_WhenStored()
     {
-        var arg = new Argument("--foo", "-f", action: ArgumentActions.Count, arity: 0);
+        var arg = new Argument("--foo", "-f", action: ArgumentActions.Count, arity: "0");
         var value = 3;
         _repositoryMock
             .Setup(x => x.TryGetValue("foo", out value))

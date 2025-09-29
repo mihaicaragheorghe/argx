@@ -12,14 +12,14 @@ public class StoreFalseActionTests
     [Fact]
     public void Validate_ShouldThrowArgumentException_WhenArityNotZero()
     {
-        var arg = new Argument("--foo", arity: 1);
+        var arg = new Argument("--foo", arity: "1");
         Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]
     public void Execute_ShouldStoreConst_WhenValid()
     {
-        var arg = new Argument("--foo", dest: "foo", arity: 0);
+        var arg = new Argument("--foo", dest: "foo", arity: "0");
 
         _sut.Execute(arg, _mockRepository.Object, [new Token("bar")]);
 

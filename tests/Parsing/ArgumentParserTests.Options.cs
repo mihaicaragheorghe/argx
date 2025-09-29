@@ -80,26 +80,83 @@ public partial class ArgumentParserTests
     {
         var parser = new ArgumentParser();
         string[] expected = ["bar", "baz", "qux"];
-        parser.Add<string[]>("--foo", arity: 3, action: ArgumentActions.Store);
+        parser.Add<string[]>("--foo", arity: "3", action: ArgumentActions.Store);
 
         var result = parser.Parse(["--foo", "bar", "baz", "qux", "--extra"]);
 
         Assert.True(result.TryGetValue<string[]>("foo", out var actual));
-        Assert.Equivalent(expected, actual);
+        Assert.Equal(expected, actual);
         Assert.Contains("--extra", result.Extras);
     }
 
     [Fact]
-    public void Parse_ShouldCalculateArity_WhenArityAtLeastOne()
+    public void Parse_ShouldParseValue_WhenArityOptional()
     {
         var parser = new ArgumentParser();
-        string[] expected = ["bar", "baz", "qux"];
-        parser.Add<string[]>("--foo", arity: 3, action: ArgumentActions.Store);
+        parser.Add<string>("--foo", arity: Arity.Optional, action: ArgumentActions.Store);
 
-        var result = parser.Parse(["--foo", "bar", "baz", "qux", "--extra"]);
+        var result = parser.Parse(["--foo", "bar", "baz", "qux"]);
+
+        Assert.True(result.TryGetValue<string>("foo", out var actual));
+        Assert.Equal("bar", actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldNotParseValue_WhenArityOptionalAndNoValue()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<string>("--foo", arity: Arity.Optional, action: ArgumentActions.Store, constValue: "bar");
+
+        var result = parser.Parse(["--foo", "--bar", "baz"]);
+
+        Assert.True(result.TryGetValue<string>("foo", out var actual));
+        Assert.Equal("bar", actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldParseAllValues_WhenArityAny()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<string[]>("--foo", arity: Arity.Any, action: ArgumentActions.Store);
+
+        var result = parser.Parse(["--foo", "bar", "baz", "--qux", "quux"]);
 
         Assert.True(result.TryGetValue<string[]>("foo", out var actual));
-        Assert.Equivalent(expected, actual);
-        Assert.Contains("--extra", result.Extras);
+        Assert.Equal(["bar", "baz"], actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldNotParseValues_WhenArityAnyAndNoValues()
+    {
+        var parser = new ArgumentParser();
+        var expected = new string[] { "barbar" };
+        parser.Add<string[]>("--foo", arity: Arity.Any, action: ArgumentActions.Store, constValue: expected);
+
+        var result = parser.Parse(["--foo", "--bar", "baz", "qux"]);
+
+        Assert.True(result.TryGetValue<string[]>("foo", out var actual));
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldParseAllValues_WhenArityAtLeastOne()
+    {
+        var parser = new ArgumentParser();
+        string[] expected = ["bar", "baz"];
+        parser.Add<string[]>("--foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
+
+        var result = parser.Parse(["--foo", "bar", "baz", "--qux", "quux"]);
+
+        Assert.True(result.TryGetValue<string[]>("foo", out var actual));
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldThrowInvalidOperationException_WhenArityAtLeastOneAndNoValueProvided()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<string[]>("--foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
+
+        Assert.Throws<InvalidOperationException>(() => parser.Parse(["--foo", "--bar", "baz", "qux", "quux"]));
     }
 }

@@ -15,7 +15,16 @@ public class Arity
         Value = value;
     }
 
+    public Arity(int n)
+    {
+        Value = n.ToString();
+    }
+
     public bool IsFixed => int.TryParse(Value, out _);
+
+    public bool IsOptional => Value == Any || Value == Optional;
+
+    public bool AcceptsMultipleValues => Value == Any || Value == AtLeastOne || int.TryParse(Value, out var n) && n > 1;
 
     public int ToInt() => int.Parse(Value);
 
@@ -24,6 +33,9 @@ public class Arity
     public static implicit operator Arity(int value) => new(value.ToString());
 
     public static implicit operator Arity(char value) => new(value.ToString());
+
+    public static bool operator ==(Arity left, string right) => left.Value == right;
+    public static bool operator !=(Arity left, string right) => left.Value != right;
 
     public static bool operator ==(Arity left, char right) => left.Value == right.ToString();
     public static bool operator !=(Arity left, char right) => left.Value != right.ToString();

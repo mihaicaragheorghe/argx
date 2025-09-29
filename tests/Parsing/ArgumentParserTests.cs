@@ -19,7 +19,7 @@ public partial class ArgumentParserTests
     public void Add_ShouldThrowArgumentException_WhenActionValidationFails()
     {
         var parser = new ArgumentParser();
-        Assert.Throws<ArgumentException>(() => parser.Add("foo", arity: 0));
+        Assert.Throws<ArgumentException>(() => parser.Add("foo", arity: "0"));
     }
 
     [Fact]

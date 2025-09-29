@@ -18,7 +18,7 @@ public class AppendActionTests
     [Fact]
     public void Validate_ShouldThrowArgumentException_WhenArityIsZero()
     {
-        var arg = new Argument("--foo", arity: 0, dest: "foo", type: typeof(string[]));
+        var arg = new Argument("--foo", arity: "0", dest: "foo", type: typeof(string[]));
 
         Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
@@ -29,7 +29,7 @@ public class AppendActionTests
     [InlineData(typeof(Guid))]
     public void Validate_ShouldThroArgumentException_WhenTypeNotEnumerable(Type type)
     {
-        var arg = new Argument("--foo", arity: 1, dest: "foo", type: type);
+        var arg = new Argument("--foo", arity: "1", dest: "foo", type: type);
 
         Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
@@ -37,7 +37,7 @@ public class AppendActionTests
     [Fact]
     public void Execute_ShouldThrowBadArgumentException_WhenTokensLenLessThanTwo()
     {
-        var arg = new Argument("--foo", arity: 1, dest: "foo");
+        var arg = new Argument("--foo", arity: "1", dest: "foo");
 
         var ex = Assert.Throws<ArgumentValueException>(() => _sut.Execute(arg, _mockRepository.Object, Tokens("--foo")));
         Assert.Equal("Error: argument --foo: expected value", ex.Message);
@@ -46,7 +46,7 @@ public class AppendActionTests
     [Fact]
     public void Execute_ShouldCreateArray_WhenNotAlreadyStored()
     {
-        var arg = new Argument("--foo", arity: 1, dest: "foo", type: typeof(string[]));
+        var arg = new Argument("--foo", arity: "1", dest: "foo", type: typeof(string[]));
 
         _sut.Execute(arg, _mockRepository.Object, Tokens("--foo", "bar"));
 
@@ -56,7 +56,7 @@ public class AppendActionTests
     [Fact]
     public void Execute_ShouldCreateList_WhenNotAlreadyStored()
     {
-        var arg = new Argument("--foo", arity: 1, dest: "foo", type: typeof(List<string>));
+        var arg = new Argument("--foo", arity: "1", dest: "foo", type: typeof(List<string>));
 
         _sut.Execute(arg, _mockRepository.Object, Tokens("--foo", "bar"));
 
@@ -66,7 +66,7 @@ public class AppendActionTests
     [Fact]
     public void Execute_ShouldCreateIEnumerable_WhenNotAlreadyStored()
     {
-        var arg = new Argument("--foo", arity: 1, dest: "foo", type: typeof(IEnumerable<string>));
+        var arg = new Argument("--foo", arity: "1", dest: "foo", type: typeof(IEnumerable<string>));
 
         _sut.Execute(arg, _mockRepository.Object, Tokens("--foo", "bar"));
 
@@ -76,7 +76,7 @@ public class AppendActionTests
     [Fact]
     public void Execute_ShouldCreateICollection_WhenNotAlreadyStored()
     {
-        var arg = new Argument("--foo", arity: 1, dest: "foo", type: typeof(ICollection<string>));
+        var arg = new Argument("--foo", arity: "1", dest: "foo", type: typeof(ICollection<string>));
 
         _sut.Execute(arg, _mockRepository.Object, Tokens("--foo", "bar"));
 
@@ -86,7 +86,7 @@ public class AppendActionTests
     [Fact]
     public void Execute_ShouldStoreMultipleValues_WhenArityGreaterThanOne()
     {
-        var arg = new Argument("--foo", arity: 3, dest: "foo", type: typeof(List<string>));
+        var arg = new Argument("--foo", arity: "3", dest: "foo", type: typeof(List<string>));
 
         _sut.Execute(arg, _mockRepository.Object, Tokens("--foo", "bar", "baz", "qux"));
 
@@ -97,7 +97,7 @@ public class AppendActionTests
     public void Execute_ShouldAppendToArray_WhenExists()
     {
         var repository = new ArgumentRepository();
-        var arg = new Argument("--foo", arity: 2, dest: "foo", type: typeof(string[]));
+        var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(string[]));
 
         _sut.Execute(arg, repository, Tokens("--foo", "bar", "baz"));
         _sut.Execute(arg, repository, Tokens("--foo", "qux", "quux"));
@@ -110,7 +110,7 @@ public class AppendActionTests
     public void Execute_ShouldAppendToIList_WhenExists()
     {
         var repository = new ArgumentRepository();
-        var arg = new Argument("--foo", arity: 2, dest: "foo", type: typeof(IList<string>));
+        var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(IList<string>));
 
         _sut.Execute(arg, repository, Tokens("--foo", "bar", "baz"));
         _sut.Execute(arg, repository, Tokens("--foo", "qux", "quux"));
@@ -124,7 +124,7 @@ public class AppendActionTests
     public void Execute_ShouldAppendToList_WhenExists()
     {
         var repository = new ArgumentRepository();
-        var arg = new Argument("--foo", arity: 2, dest: "foo", type: typeof(List<string>));
+        var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(List<string>));
 
         _sut.Execute(arg, repository, Tokens("--foo", "bar", "baz"));
         _sut.Execute(arg, repository, Tokens("--foo", "qux", "quux"));
@@ -138,7 +138,7 @@ public class AppendActionTests
     public void Execute_ShouldAppendToIEnumerable_WhenExists()
     {
         var repository = new ArgumentRepository();
-        var arg = new Argument("--foo", arity: 2, dest: "foo", type: typeof(IEnumerable<string>));
+        var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(IEnumerable<string>));
 
         _sut.Execute(arg, repository, Tokens("--foo", "bar", "baz"));
         _sut.Execute(arg, repository, Tokens("--foo", "qux", "quux"));
@@ -152,7 +152,7 @@ public class AppendActionTests
     public void Execute_ShouldAppendToICollection_WhenExists()
     {
         var repository = new ArgumentRepository();
-        var arg = new Argument("--foo", arity: 2, dest: "foo", type: typeof(ICollection<string>));
+        var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(ICollection<string>));
 
         _sut.Execute(arg, repository, Tokens("--foo", "bar", "baz"));
         _sut.Execute(arg, repository, Tokens("--foo", "qux", "quux"));

@@ -33,10 +33,10 @@ public class Argument
         string? dest = null,
         string? usage = null,
         string? defaultVal = null,
+        string? arity = null,
         object? constValue = null,
         string[]? choices = null,
         bool isRequired = false,
-        Arity? arity = null,
         Type? type = null)
     {
         Name = name;
@@ -48,7 +48,9 @@ public class Argument
         DefaultValue = defaultVal;
         ConstValue = constValue;
         Choices = choices;
-        Arity = arity ?? ActionRegistry.DefaultArity(action ?? ArgumentActions.Store);
         IsRequired = isRequired;
+        Arity = arity is null
+            ? new Arity(ActionRegistry.DefaultArity(action ?? ArgumentActions.Store))
+            : new Arity(arity);
     }
 }

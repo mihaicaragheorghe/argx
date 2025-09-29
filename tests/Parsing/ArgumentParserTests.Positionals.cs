@@ -87,7 +87,7 @@ public partial class ArgumentParserTests
     {
         var parser = new ArgumentParser();
         string[] args = ["foo"];
-        parser.Add<int>("echo", arity: 2);
+        parser.Add<int[]>("echo", arity: "2");
 
         Assert.Throws<InvalidOperationException>(() => parser.Parse(args));
     }

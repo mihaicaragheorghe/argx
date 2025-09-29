@@ -13,21 +13,21 @@ public class ChoiceActionTests
     [Fact]
     public void Validate_ShouldThrowArgumentException_WhenArityIsZero()
     {
-        var arg = new Argument("--foo", arity: 0);
+        var arg = new Argument("--foo", arity: "0");
         Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]
     public void Validate_ShouldThrowArgumentException_WhenArityGreaterThanOne()
     {
-        var arg = new Argument("--foo", arity: 2);
+        var arg = new Argument("--foo", arity: "2");
         Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]
     public void Execute_ShouldThrowBadArgumentException_WhenTokensLenLessThanTwo()
     {
-        var arg = new Argument("--foo", arity: 1, dest: "foo");
+        var arg = new Argument("--foo", arity: "1", dest: "foo");
 
         var ex = Assert.Throws<ArgumentValueException>(
             () => _sut.Execute(arg, _repositoryMock.Object, [new Token("--foo")]));
@@ -37,7 +37,7 @@ public class ChoiceActionTests
     [Fact]
     public void Execute_ShouldThrowBadArgumentException_WhenInvalidChoice()
     {
-        var arg = new Argument("--color", dest: "color", arity: 1, choices: ["white", "gray", "black"]);
+        var arg = new Argument("--color", dest: "color", arity: "1", choices: ["white", "gray", "black"]);
         var ex = Assert.Throws<ArgumentValueException>(
             () => _sut.Execute(arg, _repositoryMock.Object, [new Token("--color"), new Token("blue")]));
         Assert.Equal("Error: argument --color: invalid choice: blue, chose from white, gray, black", ex.Message);
@@ -46,7 +46,7 @@ public class ChoiceActionTests
     [Fact]
     public void Execute_ShouldStoreValue_WhenValidChoice()
     {
-        var arg = new Argument("--color", dest: "color", arity: 1, choices: ["white", "gray", "black"]);
+        var arg = new Argument("--color", dest: "color", arity: "1", choices: ["white", "gray", "black"]);
 
         _sut.Execute(arg, _repositoryMock.Object, [new Token("--color"), new Token("white")]);
 
