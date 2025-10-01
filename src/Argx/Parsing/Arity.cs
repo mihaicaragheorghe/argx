@@ -22,7 +22,7 @@ public class Arity
 
     public bool IsFixed => int.TryParse(Value, out _);
 
-    public bool IsOptional => Value == Any || Value == Optional;
+    public bool IsOptional => Value is Any or Optional;
 
     public bool AcceptsMultipleValues => Value == Any || Value == AtLeastOne || int.TryParse(Value, out var n) && n > 1;
 
@@ -49,9 +49,9 @@ public class Arity
     public static bool operator >(Arity left, int right) => int.TryParse(left.Value, out var num) && num > right;
     public static bool operator <(Arity left, int right) => int.TryParse(left.Value, out var num) && num < right;
 
-    /// <inheritdoc />
-    public override bool Equals(object? obj) => obj is Arity arity && Equals(arity);
+    public bool Equals(Arity other) => Value == other.Value;
 
-    /// <inheritdoc />
-    public override int GetHashCode() => base.GetHashCode();
+    public override int GetHashCode() => Value.GetHashCode();
+
+    public override bool Equals(object? obj) => obj is Arity other && Equals(other);
 }

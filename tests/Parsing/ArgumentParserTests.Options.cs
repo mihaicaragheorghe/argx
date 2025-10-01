@@ -129,7 +129,7 @@ public partial class ArgumentParserTests
     public void Parse_ShouldNotParseValues_WhenArityAnyAndNoValues()
     {
         var parser = new ArgumentParser();
-        var expected = new string[] { "barbar" };
+        string[] expected = ["barbar"];
         parser.Add<string[]>("--foo", arity: Arity.Any, action: ArgumentActions.Store, constValue: expected);
 
         var result = parser.Parse(["--foo", "--bar", "baz", "qux"]);
