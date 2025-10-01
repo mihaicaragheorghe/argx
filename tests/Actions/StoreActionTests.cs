@@ -1,6 +1,7 @@
 using Argx.Actions;
 using Argx.Parsing;
 using Argx.Errors;
+using Argx.Tests.TestUtils;
 
 using Moq;
 
@@ -27,7 +28,8 @@ public class StoreActionTests
         var arg = new Argument("--foo", arity: arity, dest: "foo", constValue: "bar");
 
         var ex = Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
-        Assert.Equal($"Argument --foo: arity must be {Arity.Optional} or {Arity.Any} to supply a const value", ex.Message);
+        Assert.Equal($"Argument --foo: arity must be {Arity.Optional} or {Arity.Any} to supply a const value",
+            ex.Message);
     }
 
     [Theory]
@@ -39,7 +41,9 @@ public class StoreActionTests
         var arg = new Argument("--foo", arity: arity, dest: "foo", type: typeof(string));
 
         var ex = Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
-        Assert.Equal($"Argument --foo: type must be enumerable for arity > 1, {Arity.Any} or {Arity.AtLeastOne}, consider {Arity.Optional}", ex.Message);
+        Assert.Equal(
+            $"Argument --foo: type must be enumerable for arity > 1, {Arity.Any} or {Arity.AtLeastOne}, consider {Arity.Optional}",
+            ex.Message);
     }
 
     [Fact]
@@ -47,7 +51,8 @@ public class StoreActionTests
     {
         var arg = new Argument("--foo", arity: "1", dest: "foo");
 
-        var ex = Assert.Throws<ArgumentValueException>(() => _sut.Execute(arg, _mockRepository.Object, TokenSpan(["--foo"])));
+        var ex = Assert.Throws<ArgumentValueException>(() =>
+            _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo")));
         Assert.Equal("Error: argument --foo: expected value", ex.Message);
     }
 
@@ -58,7 +63,7 @@ public class StoreActionTests
         const string value = "bar";
         var arg = new Argument($"--{key}", arity: "1", dest: key);
 
-        _sut.Execute(arg, _mockRepository.Object, TokenSpan(arg.Name, value));
+        _sut.Execute(arg, _mockRepository.Object, Create.Tokens(arg.Name, value));
 
         _mockRepository.Verify(x => x.Set(key, value));
     }
@@ -70,7 +75,7 @@ public class StoreActionTests
         const string value = "bar";
         var arg = new Argument($"--{key}", arity: null, dest: key);
 
-        _sut.Execute(arg, _mockRepository.Object, TokenSpan(arg.Name, value));
+        _sut.Execute(arg, _mockRepository.Object, Create.Tokens(arg.Name, value));
 
         _mockRepository.Verify(x => x.Set(key, value));
     }
@@ -79,7 +84,7 @@ public class StoreActionTests
     public void Execute_ShouldStoreCollections_WhenTypeIsArray()
     {
         var arg = new Argument("--foo", arity: "3", type: typeof(string[]), dest: "foo");
-        var tokens = TokenSpan("--foo", "bar", "baz", "qux");
+        var tokens = Create.Tokens("--foo", "bar", "baz", "qux");
         var value = new[] { "bar", "baz", "qux" };
 
         _sut.Execute(arg, _mockRepository.Object, tokens);
@@ -91,7 +96,7 @@ public class StoreActionTests
     public void Execute_ShouldStoreCollections_WhenTypeIsList()
     {
         var arg = new Argument("--foo", arity: "3", type: typeof(List<string>), dest: "foo");
-        var tokens = TokenSpan("--foo", "bar", "baz", "qux");
+        var tokens = Create.Tokens("--foo", "bar", "baz", "qux");
         var value = new[] { "bar", "baz", "qux" };
 
         _sut.Execute(arg, _mockRepository.Object, tokens);
@@ -122,12 +127,9 @@ public class StoreActionTests
         var ex = Assert.Throws<ArgumentValueException>(() =>
         {
             var arg = new Argument("--foo", type: type, dest: "foo");
-            var span = TokenSpan(["--foo", "bar"]);
+            var span = Create.Tokens("--foo", "bar");
             _sut.Execute(arg, _mockRepository.Object, span);
         });
         Assert.StartsWith($"Error: argument --foo: expected type {typeStr}", ex.Message);
     }
-
-    private static ReadOnlySpan<Token> TokenSpan(params string[] tokens)
-        => tokens.Select(s => new Token(s)).ToArray().AsSpan();
 }

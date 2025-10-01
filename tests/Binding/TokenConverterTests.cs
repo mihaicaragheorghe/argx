@@ -8,7 +8,7 @@ public class TokenConverterTests
     [Fact]
     public void ConvertTokens_ShouldConvertToSingleValueType_WhenNotEnumerable()
     {
-        var tokens = new[] { new Token("123") };
+        var tokens = new[] { new Token("123", TokenType.Argument, 1) };
         var span = tokens.AsSpan();
 
         var result = TokenConverter.ConvertTokens(type: typeof(int), tokens: span);
@@ -22,17 +22,17 @@ public class TokenConverterTests
     [Fact]
     public void ConvertTokens_ShouldThrowInvalidOperationException_WhenMultipleTokensAndTypeNotEnumerable()
     {
-        var tokens = new[] { new Token("123"), new Token("456"), new Token("789") };
+        var tokens = new[] { new Token("123", TokenType.Argument, 1), new Token("456", TokenType.Argument, 2), };
 
-        Assert.Throws<InvalidOperationException>(
-            () => TokenConverter.ConvertTokens(type: typeof(int), tokens: tokens.AsSpan()));
+        Assert.Throws<InvalidOperationException>(() =>
+            TokenConverter.ConvertTokens(type: typeof(int), tokens: tokens.AsSpan()));
     }
 
     [Fact]
     public void ConvertTokens_ShouldConvertCollection_WhenSingleTokenAndTypeEnumerable()
     {
         var expected = new[] { 123 };
-        var tokens = new[] { new Token("123") };
+        var tokens = new[] { new Token("123", TokenType.Argument, 1) };
         var span = tokens.AsSpan();
 
         var result = TokenConverter.ConvertTokens(type: typeof(int[]), tokens: span);
@@ -46,8 +46,8 @@ public class TokenConverterTests
     [Fact]
     public void ConvertTokens_ShouldConvertToCollection_WhenSpanLengthNotOne()
     {
-        var expected = new[] { 123, 456, 789 };
-        var tokens = new[] { new Token("123"), new Token("456"), new Token("789") };
+        var expected = new[] { 123, 456 };
+        var tokens = new[] { new Token("123", TokenType.Argument, 1), new Token("456", TokenType.Argument, 2), };
         var span = tokens.AsSpan();
 
         var result = TokenConverter.ConvertTokens(type: typeof(int[]), tokens: span);
@@ -79,13 +79,14 @@ public class TokenConverterTests
     [Fact]
     public void ConvertObject_ShouldThrow_WhenTypeIsNotSupported()
     {
-        Assert.Throws<NotSupportedException>(() => TokenConverter.ConvertObject(typeof(void), new Token("")));
+        Assert.Throws<NotSupportedException>(() =>
+            TokenConverter.ConvertObject(typeof(void), new Token("", TokenType.Argument, 1)));
     }
 
     [Fact]
     public void ConvertObject_ShouldConvertToString_WhenTokenIsValid()
     {
-        var token = new Token("str");
+        var token = new Token("str", TokenType.Argument, 1);
 
         var result = TokenConverter.ConvertObject(typeof(string), token);
 
@@ -104,7 +105,7 @@ public class TokenConverterTests
     [InlineData("FALSE", false)]
     public void ConvertObject_ShouldConvertToBool_WhenTokenIsValid(string val, bool expected)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
 
         var actual = TokenConverter.ConvertObject(typeof(bool), token);
 
@@ -120,7 +121,7 @@ public class TokenConverterTests
     [InlineData("-2147483648", int.MinValue)]
     public void ConvertObject_ShouldConvertToInt_WhenTokenIsValid(string val, int expected)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
 
         var actual = TokenConverter.ConvertObject(typeof(int), token);
 
@@ -137,7 +138,7 @@ public class TokenConverterTests
     [InlineData("-9223372036854775808", long.MinValue)]
     public void ConvertObject_ShouldConvertToLong_WhenTokenIsValid(string val, long expected)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
 
         var actual = TokenConverter.ConvertObject(typeof(long), token);
 
@@ -155,7 +156,7 @@ public class TokenConverterTests
     [InlineData("-32768", short.MinValue)]
     public void ConvertObject_ShouldConvertToShort_WhenTokenIsValid(string val, short expected)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
 
         var actual = TokenConverter.ConvertObject(typeof(short), token);
 
@@ -169,7 +170,7 @@ public class TokenConverterTests
     [InlineData("4294967295", uint.MaxValue)]
     public void ConvertObject_ShouldConvertToUint_WhenTokenIsValid(string val, uint expected)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
 
         var actual = TokenConverter.ConvertObject(typeof(uint), token);
 
@@ -184,7 +185,7 @@ public class TokenConverterTests
     [InlineData("0", ulong.MinValue)]
     public void ConvertObject_ShouldConvertToUlong_WhenTokenIsValid(string val, ulong expected)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
 
         var actual = TokenConverter.ConvertObject(typeof(ulong), token);
 
@@ -199,7 +200,7 @@ public class TokenConverterTests
     [InlineData("65535", ushort.MaxValue)]
     public void ConvertObject_ShouldConvertToUshort_WhenTokenIsValid(string val, ushort expected)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
 
         var actual = TokenConverter.ConvertObject(typeof(ushort), token);
 
@@ -228,7 +229,7 @@ public class TokenConverterTests
     [MemberData(nameof(DecimalTheory))]
     public void ConvertObject_ShouldConvertToDecimal_WhenTokenIsValid(string val, decimal expected)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
 
         var actual = TokenConverter.ConvertObject(typeof(decimal), token);
 
@@ -256,7 +257,7 @@ public class TokenConverterTests
     [InlineData("-Infinity", float.NegativeInfinity)]
     public void ConvertObject_ShouldConvertToFloat_WhenTokenIsValid(string val, float expected)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
 
         var actual = TokenConverter.ConvertObject(typeof(float), token);
 
@@ -285,7 +286,7 @@ public class TokenConverterTests
     [InlineData("1.234E-5", 0.00001234)]
     public void ConvertObject_ShouldConvertToDouble_WhenTokenIsValid(string val, double expected)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
 
         var actual = TokenConverter.ConvertObject(typeof(double), token);
 
@@ -296,7 +297,7 @@ public class TokenConverterTests
     public void ConvertObject_ShouldConvertToGuid_WhenTokenIsValid()
     {
         var expected = Guid.NewGuid();
-        var token = new Token(expected.ToString());
+        var token = new Token(expected.ToString(), TokenType.Argument, 1);
 
         var actual = TokenConverter.ConvertObject(typeof(Guid), token);
 
@@ -312,7 +313,7 @@ public class TokenConverterTests
     public void ConvertObject_ShouldConvertToDateTime_WhenTokenIsValid(string val, int y, int m, int d, int h, int min,
         int s)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
         var expected = new DateTime(y, m, d, h, min, s);
 
         var actual = TokenConverter.ConvertObject(typeof(DateTime), token);
@@ -332,7 +333,7 @@ public class TokenConverterTests
     [InlineData("12.23:59:59", 12, 23, 59, 59)] // 12 days, etc.
     public void ConvertObject_ShouldConvertToTimeSpan_WhenTokenIsValid(string val, int d, int h, int m, int s)
     {
-        var token = new Token(val);
+        var token = new Token(val, TokenType.Argument, 1);
         var expected = new TimeSpan(d, h, m, s);
 
         var actual = TokenConverter.ConvertObject(typeof(TimeSpan), token);
@@ -345,7 +346,7 @@ public class TokenConverterTests
     {
         int[] expected = [1, 2, 3, 4, 5];
         IReadOnlyList<Token> tokens = expected
-            .Select(x => new Token(x.ToString()))
+            .Select((v, i) => new Token(v.ToString(), TokenType.Argument, i))
             .ToList()
             .AsReadOnly<Token>();
 
@@ -359,7 +360,7 @@ public class TokenConverterTests
     {
         int[] expected = [];
         IReadOnlyList<Token> tokens = expected
-            .Select(x => new Token(x.ToString()))
+            .Select((v, i) => new Token(v.ToString(), TokenType.Argument, i))
             .ToList()
             .AsReadOnly<Token>();
 
@@ -373,7 +374,7 @@ public class TokenConverterTests
     {
         List<int> expected = [1, 2, 3, 4, 5];
         IReadOnlyList<Token> tokens = expected
-            .Select(x => new Token(x.ToString()))
+            .Select((v, i) => new Token(v.ToString(), TokenType.Argument, i))
             .ToList()
             .AsReadOnly<Token>();
 
@@ -387,7 +388,7 @@ public class TokenConverterTests
     {
         List<int> expected = [];
         IReadOnlyList<Token> tokens = expected
-            .Select(x => new Token(x.ToString()))
+            .Select((v, i) => new Token(v.ToString(), TokenType.Argument, i))
             .ToList()
             .AsReadOnly<Token>();
 
@@ -401,7 +402,7 @@ public class TokenConverterTests
     {
         int[] expected = [1, 2, 3, 4, 5];
         IReadOnlyList<Token> tokens = expected
-            .Select(x => new Token(x.ToString()))
+            .Select((v, i) => new Token(v.ToString(), TokenType.Argument, i))
             .ToList()
             .AsReadOnly<Token>();
 
@@ -415,7 +416,7 @@ public class TokenConverterTests
     {
         int[] expected = [1, 2, 3, 4, 5];
         IReadOnlyList<Token> tokens = expected
-            .Select(x => new Token(x.ToString()))
+            .Select((v, i) => new Token(v.ToString(), TokenType.Argument, i))
             .ToList()
             .AsReadOnly<Token>();
 
@@ -429,7 +430,7 @@ public class TokenConverterTests
     {
         int[] expected = [1, 2, 3, 4, 5];
         IReadOnlyList<Token> tokens = expected
-            .Select(x => new Token(x.ToString()))
+            .Select((v, i) => new Token(v.ToString(), TokenType.Argument, i))
             .ToList()
             .AsReadOnly<Token>();
 
@@ -443,7 +444,7 @@ public class TokenConverterTests
     {
         IReadOnlyList<Token> tokens = Enumerable
             .Range(1, 5)
-            .Select(i => new Token(i.ToString()))
+            .Select((v, i) => new Token(v.ToString(), TokenType.Argument, i))
             .ToList()
             .AsReadOnly<Token>();
 
@@ -457,7 +458,7 @@ public class TokenConverterTests
     {
         IReadOnlyList<Token> tokens = Enumerable
             .Range(1, 5)
-            .Select(i => new Token(i.ToString()))
+            .Select((v, i) => new Token(v.ToString(), TokenType.Argument, i))
             .ToList()
             .AsReadOnly<Token>();
 

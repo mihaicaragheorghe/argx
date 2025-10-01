@@ -2,12 +2,22 @@ namespace Argx.Parsing;
 
 public sealed class Token
 {
+    internal const int ImplicitPosition = -1;
+
+    public TokenType Type { get; }
+
     public string Value { get; }
 
-    public Token(string value)
+    internal int Position { get; }
+
+    public Token(string value, TokenType type, int position)
     {
         Value = value;
+        Type = type;
+        Position = position;
     }
+
+    public bool IsImplicit => Position == ImplicitPosition;
 
     public override string ToString() => Value;
 

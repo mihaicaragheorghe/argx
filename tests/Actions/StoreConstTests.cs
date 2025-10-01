@@ -1,5 +1,7 @@
 using Argx.Actions;
 using Argx.Parsing;
+using Argx.Tests.TestUtils;
+
 using Moq;
 
 namespace Argx.Tests.Actions;
@@ -28,7 +30,7 @@ public class StoreConstTests
     {
         var arg = new Argument("--foo", constValue: true, dest: "foo", arity: "0");
 
-        _sut.Execute(arg, _mockRepository.Object, [new Token("bar")]);
+        _sut.Execute(arg, _mockRepository.Object, Create.Tokens("bar"));
 
         _mockRepository.Verify(x => x.Set("foo", true), Times.Once());
     }

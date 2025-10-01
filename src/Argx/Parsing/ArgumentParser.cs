@@ -96,17 +96,23 @@ public class ArgumentParser
         handler!.Validate(arg);
 
         if (isPositional)
+        {
             _knowsArgs.Enqueue(arg);
+        }
         else
+        {
             _knownOpts.Add(arg);
+        }
 
         return this;
     }
 
     public ArgumentParser AddArgument<T>(string name, string? usage = null, string? dest = null)
     {
-        if (IsOption(name))
+        if (name.IsOption())
+        {
             throw new InvalidOperationException($"Invalid positional argument {name}: cannot start with '-'");
+        }
 
         return Add<T>(name: name, usage: usage, dest: dest);
     }
@@ -121,8 +127,10 @@ public class ArgumentParser
         string? dest = null,
         bool value = true)
     {
-        if (!IsOption(name))
+        if (!name.IsOption())
+        {
             throw new InvalidOperationException($"Invalid flag {name}: should start with '-'");
+        }
 
         return Add<bool>(
             name: name,
@@ -144,8 +152,10 @@ public class ArgumentParser
         string? action = null,
         string? arity = null)
     {
-        if (!IsOption(name))
+        if (!name.IsOption())
+        {
             throw new InvalidOperationException($"Invalid option {name}: should start with '-'");
+        }
 
         return Add<T>(
             name: name,
@@ -187,19 +197,22 @@ public class ArgumentParser
 
         for (int i = 0; i < tokens.Length; i++)
         {
-            if (IsSeparator(tokens[i].Value))
+            if (tokens[i].Type == TokenType.Separator)
             {
                 consumeOpts = false;
                 continue;
             }
 
-            if (consumeOpts && IsOption(tokens[i].Value))
+            if (consumeOpts && tokens[i].Type == TokenType.Option)
             {
                 i += ConsumeOption(i, tokens, result);
                 continue;
             }
 
-            ConsumePositional(tokens[i], result);
+            if (tokens[i].Type == TokenType.Argument || !consumeOpts)
+            {
+                ConsumePositional(tokens[i], result);
+            }
         }
 
         return result;
@@ -215,14 +228,18 @@ public class ArgumentParser
 
         var arg = _knowsArgs.Dequeue();
 
+        // TODO: arity for positionals
         if (arg.Arity != 1)
         {
-            throw new InvalidOperationException($"Invalid arity for positional argument {arg.Name}: should be 1");
+            throw new InvalidOperationException($"Argument {arg.Name}: arity for positional arguments should be 1");
         }
 
         var handler = new StoreAction();
 
-        handler.Execute(arg, _repository, [new Token(arg.Name), token]);
+        handler.Execute(
+            argument: arg,
+            repository: _repository,
+            tokens: [new Token(arg.Name, TokenType.Argument, Token.ImplicitPosition), token]);
     }
 
     private int ConsumeOption(int idx, ReadOnlySpan<Token> tokens, Arguments result)
@@ -241,14 +258,14 @@ public class ArgumentParser
             throw new InvalidOperationException($"Unknown action for argument {arg.Name}");
         }
 
-        var len = CalculateArity(arg, tokens, idx);
+        var len = ParseArity(arg, tokens, idx);
 
         handler!.Execute(arg, _repository, tokens.Slice(idx, len + 1));
 
         return len;
     }
 
-    private static int CalculateArity(Argument arg, ReadOnlySpan<Token> tokens, int from)
+    private static int ParseArity(Argument arg, ReadOnlySpan<Token> tokens, int from)
     {
         if (arg.Arity.IsFixed)
         {
@@ -261,33 +278,34 @@ public class ArgumentParser
         switch (arg.Arity.Value)
         {
             case Arity.Optional:
-                if (idx < tokens.Length && !tokens[idx].Value.StartsWith("-"))
+                if (idx < tokens.Length && tokens[idx].Type == TokenType.Argument)
                 {
                     return 1;
                 }
+
                 return 0;
+
             case Arity.Any:
             case Arity.AtLeastOne:
-                while (idx < tokens.Length && !tokens[idx].Value.StartsWith("-"))
+                while (idx < tokens.Length && tokens[idx].Type == TokenType.Argument)
                 {
                     count++;
                     idx++;
                 }
+
                 if (arg.Arity.Value == Arity.AtLeastOne && count == 0)
                 {
                     throw new InvalidOperationException($"Argument '{arg.Name}' requires at least one value.");
                 }
+
                 return count;
+
             default:
                 throw new InvalidOperationException($"Unknown arity value: {arg.Arity.Value}");
         }
     }
 
     private static bool IsPositional(string s) => s.Length > 0 && s[0] != '-';
-
-    private static bool IsOption(string s) => s.Length > 0 && s[0] == '-' && s != "--";
-
-    private static bool IsSeparator(string s) => s == "--";
 
     private static bool IsValidAlias(string? s) => s is null || s.Length > 0 && s[0] == '-';
 
