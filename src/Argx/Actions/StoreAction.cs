@@ -2,6 +2,7 @@ using Argx.Binding;
 using Argx.Errors;
 using Argx.Extensions;
 using Argx.Parsing;
+using Argx.Store;
 
 namespace Argx.Actions;
 

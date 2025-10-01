@@ -1,5 +1,6 @@
 using Argx.Actions;
 using Argx.Extensions;
+using Argx.Store;
 
 namespace Argx.Parsing;
 
@@ -21,7 +22,7 @@ public class ArgumentParser
 
     public ArgumentParser Add(
         string name,
-        string? alias = null,
+        string[]? alias = null,
         string? action = null,
         string? usage = null,
         string? dest = null,
@@ -44,7 +45,7 @@ public class ArgumentParser
 
     public ArgumentParser Add<T>(
         string name,
-        string? alias = null,
+        string[]? alias = null,
         string? usage = null,
         string? dest = null,
         string? defaultValue = null,
@@ -58,14 +59,9 @@ public class ArgumentParser
             throw new ArgumentException("Argument name cannot be null or empty", nameof(name));
         }
 
-        if (alias?.Trim() == string.Empty)
+        if (alias?.Length == 0)
         {
             throw new ArgumentException($"Argument {name}: alias cannot be empty, use null instead", nameof(alias));
-        }
-
-        if (!IsValidAlias(alias))
-        {
-            throw new ArgumentException($"Argument {name}: alias must start with '-'");
         }
 
         var isPositional = IsPositional(name);
@@ -122,7 +118,7 @@ public class ArgumentParser
 
     public ArgumentParser AddFlag(
         string name,
-        string? alias = null,
+        string[]? alias = null,
         string? usage = null,
         string? dest = null,
         bool value = true)
@@ -144,7 +140,7 @@ public class ArgumentParser
 
     public ArgumentParser AddOption<T>(
         string name,
-        string? alias = null,
+        string[]? alias = null,
         string? usage = null,
         string? dest = null,
         string? defaultValue = null,
@@ -170,7 +166,7 @@ public class ArgumentParser
 
     public ArgumentParser AddOption(
         string name,
-        string? alias = null,
+        string[]? alias = null,
         string? usage = null,
         string? dest = null,
         string? defaultValue = null,
@@ -228,7 +224,6 @@ public class ArgumentParser
 
         var arg = _knowsArgs.Dequeue();
 
-        // TODO: arity for positionals
         if (arg.Arity != 1)
         {
             throw new InvalidOperationException($"Argument {arg.Name}: arity for positional arguments should be 1");
@@ -245,7 +240,7 @@ public class ArgumentParser
     private int ConsumeOption(int idx, ReadOnlySpan<Token> tokens, Arguments result)
     {
         var token = tokens[idx];
-        var arg = _knownOpts.FirstOrDefault(a => a.Name == token.Value || a.Alias == token.Value);
+        var arg = _knownOpts.FirstOrDefault(a => a.Name == token.Value || a.Aliases?.Contains(token.Value) == true);
 
         if (arg is null)
         {
@@ -306,8 +301,6 @@ public class ArgumentParser
     }
 
     private static bool IsPositional(string s) => s.Length > 0 && s[0] != '-';
-
-    private static bool IsValidAlias(string? s) => s is null || s.Length > 0 && s[0] == '-';
 
     public ArgumentParser AddAction(string name, ArgumentAction action)
     {

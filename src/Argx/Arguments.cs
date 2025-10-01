@@ -1,4 +1,7 @@
-namespace Argx.Parsing;
+using Argx.Parsing;
+using Argx.Store;
+
+namespace Argx;
 
 public class Arguments
 {

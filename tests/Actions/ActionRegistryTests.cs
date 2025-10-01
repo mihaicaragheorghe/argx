@@ -1,5 +1,6 @@
 using Argx.Actions;
 using Argx.Parsing;
+using Argx.Store;
 
 namespace Argx.Tests.Actions;
 

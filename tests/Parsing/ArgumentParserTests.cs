@@ -1,4 +1,6 @@
 using Argx.Parsing;
+using Argx.Store;
+
 using Moq;
 
 namespace Argx.Tests.Parsing;
@@ -26,7 +28,7 @@ public partial class ArgumentParserTests
     public void Add_ShouldThrowArgumentException_WhenActionNotFound()
     {
         var parser = new ArgumentParser();
-        Assert.Throws<ArgumentException>(() => parser.Add("--foo", "-f", action: "void"));
+        Assert.Throws<ArgumentException>(() => parser.Add("--foo", ["-f"], action: "void"));
     }
 
     [Theory]
@@ -36,21 +38,21 @@ public partial class ArgumentParserTests
     public void Add_ShouldThrowArgumentException_WhenAliasIsEmptyOrWhitespace(string alias)
     {
         var parser = new ArgumentParser();
-        Assert.Throws<ArgumentException>(() => parser.Add("--foo", alias));
+        Assert.Throws<ArgumentException>(() => parser.Add("--foo", [alias]));
     }
 
     [Fact]
     public void Add_ShouldThrowInvalidOperationException_WhenInvalidAlias()
     {
         var parser = new ArgumentParser();
-        Assert.Throws<ArgumentException>(() => parser.Add("--foo", "f"));
+        Assert.Throws<ArgumentException>(() => parser.Add("--foo", ["f"]));
     }
 
     [Fact]
     public void Add_ShouldThrowInvalidOperationException_WhenPositionalArgWithAlias()
     {
         var parser = new ArgumentParser();
-        Assert.Throws<InvalidOperationException>(() => parser.Add("foo", "-f"));
+        Assert.Throws<InvalidOperationException>(() => parser.Add("foo", ["-f"]));
     }
 
     [Fact]
@@ -116,7 +118,7 @@ public partial class ArgumentParserTests
     {
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
-        parser.AddFlag("--foo", "-f");
+        parser.AddFlag("--foo", ["-f"]);
         _ = parser.Parse(["--foo"]);
 
         repository.Verify(x => x.Set("foo", true));
@@ -127,7 +129,7 @@ public partial class ArgumentParserTests
     {
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
-        parser.AddFlag("--foo", "-f", value: false);
+        parser.AddFlag("--foo", ["-f"], value: false);
         _ = parser.Parse(["--foo"]);
 
         repository.Verify(x => x.Set("foo", false));
@@ -190,13 +192,13 @@ public partial class ArgumentParserTests
         Assert.Equal("qux", result["arg2"]);
     }
 
-    public static TheoryData<string[]> UnorderedArgsData => new()
-    {
-        {["--foo", "bar", "--bax", "qux", "123", "456"]},
-        {["123", "456", "--foo", "bar", "--bax", "qux"]},
-        {["--foo", "bar", "123", "456", "--bax", "qux"]},
-        {["--bax", "qux", "123", "456", "--foo", "bar"]},
-    };
+    public static TheoryData<string[]> UnorderedArgsData =>
+    [
+        ["--foo", "bar", "--bax", "qux", "123", "456"],
+        ["123", "456", "--foo", "bar", "--bax", "qux"],
+        ["--foo", "bar", "123", "456", "--bax", "qux"],
+        ["--bax", "qux", "123", "456", "--foo", "bar"]
+    ];
 
     [Theory]
     [MemberData(nameof(UnorderedArgsData))]

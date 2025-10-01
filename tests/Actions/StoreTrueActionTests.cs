@@ -1,5 +1,6 @@
 using Argx.Actions;
 using Argx.Parsing;
+using Argx.Store;
 using Argx.Tests.TestUtils;
 
 using Moq;

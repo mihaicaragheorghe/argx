@@ -1,6 +1,8 @@
 using Argx.Actions;
 using Argx.Errors;
 using Argx.Parsing;
+using Argx.Store;
+
 using Moq;
 
 namespace Argx.Tests.Parsing;
@@ -67,7 +69,7 @@ public partial class ArgumentParserTests
     public void Parse_ShouldAddToExtras_WhenOptionNotRegistered()
     {
         var parser = new ArgumentParser();
-        parser.Add("--foo", "-f");
+        parser.Add("--foo", ["-f"]);
 
         var result = parser.Parse(["--foo", "bar", "--baz", "qux"]);
 

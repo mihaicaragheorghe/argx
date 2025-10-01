@@ -1,4 +1,6 @@
 using Argx.Parsing;
+using Argx.Store;
+
 using Moq;
 
 namespace Argx.Tests.Parsing;
