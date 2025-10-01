@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Reflection;
+
 using Argx.Binding;
 using Argx.Errors;
 using Argx.Extensions;
@@ -20,27 +21,30 @@ internal class AppendAction : ArgumentAction
         var name = tokens[0].Value;
 
         if (argument.ConstValue == null && tokens.Length < 2)
+        {
             throw new ArgumentValueException(name, $"expected value");
+        }
 
         var genericMethod = TryGetValueMethod.MakeGenericMethod(argument.Type);
         var itemType = argument.Type.GetElementTypeIfEnumerable()!;
         object[] parameters = [argument.Dest, null!];
         var found = (bool)genericMethod.Invoke(repository, parameters)!;
         var obj = found ? parameters[1] : null;
+        var len = tokens.Length == 1 ? GetConstValueLength(argument.ConstValue!) : tokens.Length - 1;
 
         IList list;
         var idx = 0;
 
         if (obj is IList existing)
         {
-            list = CollectionUtils.CreateCollection(argument.Type, itemType, existing.Count + argument.Arity.ToInt());
+            list = CollectionUtils.CreateCollection(argument.Type, itemType, existing.Count + len);
             CopyItems(existing, list);
             idx = existing.Count;
         }
         else
         {
             list = obj is null
-                ? CollectionUtils.CreateCollection(argument.Type, itemType, argument.Arity.ToInt())
+                ? CollectionUtils.CreateCollection(argument.Type, itemType, len)
                 : throw new InvalidOperationException(
                     $"Invalid state: appending to value of argument '{name}' not possible, its type is not IList");
         }
@@ -49,7 +53,32 @@ internal class AppendAction : ArgumentAction
 
         if (tokens.Length == 1)
         {
-            Append(list, argument.ConstValue, isArray, idx);
+            if (itemType.IsInstanceOfType(argument.ConstValue))
+            {
+                Append(list, argument.ConstValue, isArray, idx);
+                idx++;
+            }
+            else if (argument.ConstValue is IList constEnumerable)
+            {
+                foreach (var item in constEnumerable)
+                {
+                    if (!itemType.IsInstanceOfType(item))
+                    {
+                        var itemTypeName = itemType.GetFriendlyName();
+                        throw new ArgumentValueException(name,
+                            $"const value for argument '{name}' must be either an enumerable of type {itemTypeName} or an instance of type {itemTypeName}");
+                    }
+
+                    Append(list, item, isArray, idx);
+                    idx++;
+                }
+            }
+            else
+            {
+                var itemTypeName = itemType.GetFriendlyName();
+                throw new ArgumentValueException(name,
+                    $"const value for argument '{name}' must be either an enumerable of type {itemTypeName} or an instance of type {itemTypeName}");
+            }
         }
 
         for (int i = 1; i < tokens.Length; i++)
@@ -72,9 +101,13 @@ internal class AppendAction : ArgumentAction
     private static void Append(IList list, object? value, bool isArray, int idx)
     {
         if (isArray)
+        {
             list[idx] = value;
+        }
         else
+        {
             list.Add(value);
+        }
     }
 
     private static void CopyItems(IList src, IList dest)
@@ -106,5 +139,13 @@ internal class AppendAction : ArgumentAction
         {
             throw new ArgumentException($"Argument: {argument.Name}: Type for 'append' must be an enumerable.");
         }
+
+        if (argument.ConstValue != null && !argument.Arity.IsOptional)
+        {
+            throw new ArgumentException(
+                $"Argument {argument.Name}: arity must be {Arity.Optional} or {Arity.Any} to supply a const value");
+        }
     }
+
+    private static int GetConstValueLength(object value) => value is IList list ? list.Count : 1;
 }

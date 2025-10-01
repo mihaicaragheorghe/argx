@@ -82,6 +82,16 @@ public class StoreActionTests
     }
 
     [Fact]
+    public void Execute_ShouldStoreConstValue_WhenArityIsOptionalAndNoValue()
+    {
+        var arg = new Argument($"--foo", arity: Arity.Optional, dest: "foo", constValue: "bar");
+
+        _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo"));
+
+        _mockRepository.Verify(x => x.Set("foo", "bar"));
+    }
+
+    [Fact]
     public void Execute_ShouldStoreCollections_WhenTypeIsArray()
     {
         var arg = new Argument("--foo", arity: "3", type: typeof(string[]), dest: "foo");

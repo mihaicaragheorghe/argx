@@ -2,7 +2,6 @@ using System.Diagnostics.CodeAnalysis;
 
 using Argx.Actions;
 using Argx.Errors;
-using Argx.Parsing;
 using Argx.Store;
 using Argx.Tests.TestUtils;
 
@@ -23,6 +22,18 @@ public class AppendActionTests
         var arg = new Argument("--foo", arity: "0", dest: "foo", type: typeof(string[]));
 
         Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
+    }
+
+    [Theory]
+    [InlineData("2")]
+    [InlineData(Arity.AtLeastOne)]
+    public void Validate_ShouldThrowArgumentException_WhenNoConstValueAndArityNotOptional(string arity)
+    {
+        var arg = new Argument("--foo", arity: arity, dest: "foo", type: typeof(string[]), constValue: new[] { "bar" });
+
+        var ex = Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
+        Assert.Equal($"Argument --foo: arity must be {Arity.Optional} or {Arity.Any} to supply a const value",
+            ex.Message);
     }
 
     [Theory]
@@ -53,7 +64,7 @@ public class AppendActionTests
 
         _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo", "bar"));
 
-        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }));
+        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
     }
 
     [Fact]
@@ -63,7 +74,7 @@ public class AppendActionTests
 
         _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo", "bar"));
 
-        _mockRepository.Verify(x => x.Set("foo", new List<string> { "bar" }));
+        _mockRepository.Verify(x => x.Set("foo", new List<string> { "bar" }), Times.Once);
     }
 
     [Fact]
@@ -73,7 +84,7 @@ public class AppendActionTests
 
         _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo", "bar"));
 
-        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }));
+        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
     }
 
     [Fact]
@@ -83,7 +94,7 @@ public class AppendActionTests
 
         _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo", "bar"));
 
-        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }));
+        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
     }
 
     [Fact]
@@ -93,7 +104,7 @@ public class AppendActionTests
 
         _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo", "bar", "baz", "qux"));
 
-        _mockRepository.Verify(x => x.Set("foo", new List<string> { "bar", "baz", "qux" }));
+        _mockRepository.Verify(x => x.Set("foo", new List<string> { "bar", "baz", "qux" }), Times.Once);
     }
 
     [Fact]
@@ -163,5 +174,70 @@ public class AppendActionTests
         Assert.True(repository.TryGetValue<ICollection<string>>(arg.Dest, out var actual));
         Assert.True(actual is ICollection<string>);
         Assert.Equal(["bar", "baz", "qux", "quux"], actual);
+    }
+
+    [Fact]
+    public void Execute_ShouldStoreConstSingleValue_WhenArityIsOptionalAndNoValueProvided()
+    {
+        var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]), constValue: "bar");
+
+        _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo"));
+
+        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
+    }
+
+    [Fact]
+    public void Execute_ShouldAppendConstSingleValue_WhenArityIsOptionalAndKeyAlreadyStored()
+    {
+        var repository = new ArgumentRepository();
+        var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]), constValue: "baz");
+
+        _sut.Execute(arg, repository, Create.Tokens("--foo", "bar"));
+        _sut.Execute(arg, repository, Create.Tokens("--foo"));
+
+        Assert.True(repository.TryGetValue<string[]>(arg.Dest, out var actual));
+        Assert.Equal(["bar", "baz"], actual);
+    }
+
+    [Fact]
+    public void Execute_ShouldStoreEnumerableConstValue_WhenArityIsOptionalAndNoValueProvided()
+    {
+        var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]),
+            constValue: new[] { "bar" });
+
+        _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo"));
+
+        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
+    }
+
+    [Fact]
+    public void Execute_ShouldAppendEnumerableConstValue_WhenArityIsOptionalAndKeyAlreadyStored()
+    {
+        var repository = new ArgumentRepository();
+        var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]),
+            constValue: new[] { "baz", "qux" });
+
+        _sut.Execute(arg, repository, Create.Tokens("--foo", "bar"));
+        _sut.Execute(arg, repository, Create.Tokens("--foo"));
+
+        Assert.True(repository.TryGetValue<string[]>(arg.Dest, out var actual));
+        Assert.Equal(["bar", "baz", "qux"], actual);
+    }
+
+    [Fact]
+    public void Execute_ShouldThrowArgumentValueException_WhenArityIsOptionalAndDifferentSingleConstValueType()
+    {
+        var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]), constValue: 123);
+
+        Assert.Throws<ArgumentValueException>(() => _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo")));
+    }
+
+    [Fact]
+    public void Execute_ShouldThrowArgumentValueException_WhenArityIsOptionalAndDifferentEnumerableConstValueType()
+    {
+        var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]),
+            constValue: new[] { 123 });
+        
+        Assert.Throws<ArgumentValueException>(() => _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo")));
     }
 }
