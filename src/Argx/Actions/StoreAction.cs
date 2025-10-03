@@ -10,6 +10,8 @@ internal class StoreAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
+        base.Execute(argument, repository, tokens);
+
         var name = tokens[0].Value;
 
         if (argument.ConstValue == null && tokens.Length < 2)

@@ -7,6 +7,8 @@ internal class StoreConstAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
+        base.Execute(argument, repository, tokens);
+
         repository.Set(argument.Dest, argument.ConstValue!);
     }
 
@@ -15,13 +17,13 @@ internal class StoreConstAction : ArgumentAction
         if (argument.Arity != 0)
         {
             throw new ArgumentException(
-                $"Argument: {argument.Name}: arity for 'store_const' must be 0. Use 'store', to store values.");
+                $"Argument {argument.Name}: arity for 'store_const' must be 0. Use 'store', to store values.");
         }
 
         if (argument.ConstValue is null)
         {
             throw new ArgumentException(
-                $"Argument: {argument.Name}: action 'store_const' requires 'ConstValue' to be set.");
+                $"Argument {argument.Name}: action 'store_const' requires 'ConstValue' to be set.");
         }
     }
 }

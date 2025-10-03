@@ -21,7 +21,8 @@ public class AppendActionTests
     {
         var arg = new Argument("--foo", arity: "0", dest: "foo", type: typeof(string[]));
 
-        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
+        var ex = Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
+        Assert.Equal("Argument --foo: arity for 'append' must be != 0", ex.Message);
     }
 
     [Theory]
@@ -44,7 +45,43 @@ public class AppendActionTests
     {
         var arg = new Argument("--foo", arity: "1", dest: "foo", type: type);
 
-        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
+        var ex = Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
+        Assert.Equal("Argument --foo: type for 'append' must be an enumerable", ex.Message);
+    }
+
+    [Fact]
+    public void Validate_ShouldThrowArgumentException_WhenInvalidConstValueType()
+    {
+        var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]), constValue: 3);
+
+        var ex = Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
+        Assert.Equal(
+            "Argument --foo: const value must be either an enumerable of type string or an instance of type string",
+            ex.Message);
+    }
+
+    [Fact]
+    public void Validate_ShouldThrowArgumentException_WhenInvalidConstValueItemType()
+    {
+        var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]),
+            constValue: new[] { 3 });
+
+        var ex = Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
+        Assert.Equal(
+            "Argument --foo: const value must be either an enumerable of type string or an instance of type string",
+            ex.Message);
+    }
+
+    [Theory]
+    [InlineData(typeof(int[]), 3)]
+    [InlineData(typeof(int[]), new[] { 3 })]
+    [InlineData(typeof(string[]), "bar")]
+    [InlineData(typeof(string[]), new[] { "bar" })]
+    public void Validate_ShouldNotThrow_WhenValid(Type type, object value)
+    {
+        var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: type, constValue: value);
+
+        _sut.Validate(arg);
     }
 
     [Fact]
@@ -225,19 +262,20 @@ public class AppendActionTests
     }
 
     [Fact]
-    public void Execute_ShouldThrowArgumentValueException_WhenArityIsOptionalAndDifferentSingleConstValueType()
+    public void Execute_ShouldThrowInvalidOperationException_WhenDifferentSingleConstValueType()
     {
         var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]), constValue: 123);
 
-        Assert.Throws<ArgumentValueException>(() => _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo")));
+        Assert.Throws<InvalidOperationException>(() =>
+            _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo")));
     }
 
     [Fact]
-    public void Execute_ShouldThrowArgumentValueException_WhenArityIsOptionalAndDifferentEnumerableConstValueType()
+    public void Execute_ShouldThrowInvalidCastException_WhenDifferentEnumerableConstValueType()
     {
         var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]),
             constValue: new[] { 123 });
-        
-        Assert.Throws<ArgumentValueException>(() => _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo")));
+
+        Assert.Throws<InvalidCastException>(() => _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo")));
     }
 }
