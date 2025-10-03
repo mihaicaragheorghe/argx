@@ -1,4 +1,4 @@
-namespace Argx.Parsing;
+namespace Argx.Store;
 
 public sealed class ArgumentRepository : IArgumentRepository
 {

@@ -1,15 +1,21 @@
 using Argx.Parsing;
+using Argx.Store;
 
 namespace Argx.Actions;
 
-public class StoreTrueAction : ArgumentAction
+internal class StoreTrueAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
-        if (argument.Arity != 0)
-            throw new InvalidOperationException(
-                $"Arity for 'store_true' must be 0. Use 'store', to store values. Argument: {argument.Name}");
-
         repository.Set(argument.Dest, true);
+    }
+
+    public override void Validate(Argument argument)
+    {
+        if (argument.Arity != 0)
+        {
+            throw new ArgumentException(
+                $"Argument {argument.Name}: arity for 'store_true' must be 0. Use 'store', to store values.");
+        }
     }
 }

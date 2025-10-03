@@ -1,5 +1,8 @@
 using Argx.Actions;
 using Argx.Parsing;
+using Argx.Store;
+using Argx.Tests.TestUtils;
+
 using Moq;
 
 namespace Argx.Tests.Actions;
@@ -10,18 +13,18 @@ public class StoreTrueActionTests
     private readonly StoreTrueAction _sut = new();
 
     [Fact]
-    public void Execute_ShouldThrowInvalidOperationException_WhenArityNotZero()
+    public void Validate_ShouldThrowArgumentException_WhenArityNotZero()
     {
-        var arg = new Argument("--foo", arity: 1);
-        Assert.Throws<InvalidOperationException>(() => _sut.Execute(arg, _mockRepository.Object, []));
+        var arg = new Argument("--foo", arity: "1");
+        Assert.Throws<ArgumentException>(() => _sut.Validate(arg));
     }
 
     [Fact]
     public void Execute_ShouldStoreConst_WhenValid()
     {
-        var arg = new Argument("--foo", dest: "foo", arity: 0);
+        var arg = new Argument("--foo", dest: "foo", arity: "0");
 
-        _sut.Execute(arg, _mockRepository.Object, [new Token("bar")]);
+        _sut.Execute(arg, _mockRepository.Object, Create.Tokens("bar"));
 
         _mockRepository.Verify(x => x.Set("foo", true), Times.Once());
     }

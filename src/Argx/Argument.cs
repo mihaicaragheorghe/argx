@@ -1,12 +1,12 @@
 using Argx.Actions;
 
-namespace Argx.Parsing;
+namespace Argx;
 
 public class Argument
 {
     public string Name { get; }
 
-    public string? Alias { get; }
+    public AliasSet? Aliases { get; }
 
     public string Action { get; }
 
@@ -22,25 +22,25 @@ public class Argument
 
     public string[]? Choices { get; }
 
-    public int Arity { get; }
+    public Arity Arity { get; }
 
     public bool IsRequired { get; }
 
     public Argument(
         string name,
-        string? alias = null,
         string? action = null,
         string? dest = null,
         string? usage = null,
         string? defaultVal = null,
+        string? arity = null,
         object? constValue = null,
         string[]? choices = null,
         bool isRequired = false,
-        int? arity = null,
-        Type? type = null)
+        Type? type = null,
+        params string[]? alias)
     {
         Name = name;
-        Alias = alias;
+        Aliases = alias == null ? null : new AliasSet(alias);
         Type = type ?? typeof(string);
         Action = action ?? ArgumentActions.Store;
         Dest = dest ?? name.Replace("--", string.Empty);
@@ -48,7 +48,9 @@ public class Argument
         DefaultValue = defaultVal;
         ConstValue = constValue;
         Choices = choices;
-        Arity = arity ?? ActionRegistry.DefaultArity(action ?? ArgumentActions.Store);
         IsRequired = isRequired;
+        Arity = arity is null
+            ? new Arity(ActionRegistry.DefaultArity(action ?? ArgumentActions.Store))
+            : new Arity(arity);
     }
 }

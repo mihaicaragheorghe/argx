@@ -1,4 +1,6 @@
 using Argx.Parsing;
+using Argx.Store;
+
 using Moq;
 
 namespace Argx.Tests.Parsing;
@@ -82,14 +84,12 @@ public partial class ArgumentParserTests
         Assert.Equal(22, y);
     }
 
-    [Theory]
-    [InlineData(0)]
-    [InlineData(2)]
-    public void Parse_ShouldThrowInvalidOperationException_WhenArityNotOne(int arity)
+    [Fact]
+    public void Parse_ShouldThrowInvalidOperationException_WhenArityNotOne()
     {
         var parser = new ArgumentParser();
         string[] args = ["foo"];
-        parser.Add<int>("echo", arity: arity);
+        parser.Add<int[]>("echo", arity: "2");
 
         Assert.Throws<InvalidOperationException>(() => parser.Parse(args));
     }

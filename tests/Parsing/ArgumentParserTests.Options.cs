@@ -1,6 +1,8 @@
 using Argx.Actions;
 using Argx.Errors;
 using Argx.Parsing;
+using Argx.Store;
+
 using Moq;
 
 namespace Argx.Tests.Parsing;
@@ -67,7 +69,7 @@ public partial class ArgumentParserTests
     public void Parse_ShouldAddToExtras_WhenOptionNotRegistered()
     {
         var parser = new ArgumentParser();
-        parser.Add("--foo", "-f");
+        parser.Add("--foo", ["-f"]);
 
         var result = parser.Parse(["--foo", "bar", "--baz", "qux"]);
 
@@ -76,25 +78,87 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldThrow_WhenActionNotFound()
-    {
-        var parser = new ArgumentParser();
-        parser.Add("--foo", "-f", action: "void");
-
-        Assert.Throws<InvalidOperationException>(() => parser.Parse(["--foo", "bar"]));
-    }
-
-    [Fact]
-    public void Parse_ShouldSendCorrectTokensToAction_WhenAritySet()
+    public void Parse_ShouldSendCorrectTokensToAction_WhenArityIsFixed()
     {
         var parser = new ArgumentParser();
         string[] expected = ["bar", "baz", "qux"];
-        parser.Add<string[]>("--foo", arity: 3, action: ArgumentActions.Store);
+        parser.Add<string[]>("--foo", arity: "3", action: ArgumentActions.Store);
 
         var result = parser.Parse(["--foo", "bar", "baz", "qux", "--extra"]);
 
         Assert.True(result.TryGetValue<string[]>("foo", out var actual));
-        Assert.Equivalent(expected, actual);
+        Assert.Equal(expected, actual);
         Assert.Contains("--extra", result.Extras);
+    }
+
+    [Fact]
+    public void Parse_ShouldParseValue_WhenArityOptional()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<string>("--foo", arity: Arity.Optional, action: ArgumentActions.Store);
+
+        var result = parser.Parse(["--foo", "bar", "baz", "qux"]);
+
+        Assert.True(result.TryGetValue<string>("foo", out var actual));
+        Assert.Equal("bar", actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldNotParseValue_WhenArityOptionalAndNoValue()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<string>("--foo", arity: Arity.Optional, action: ArgumentActions.Store, constValue: "bar");
+
+        var result = parser.Parse(["--foo", "--bar", "baz"]);
+
+        Assert.True(result.TryGetValue<string>("foo", out var actual));
+        Assert.Equal("bar", actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldParseAllValues_WhenArityAny()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<string[]>("--foo", arity: Arity.Any, action: ArgumentActions.Store);
+
+        var result = parser.Parse(["--foo", "bar", "baz", "--qux", "quux"]);
+
+        Assert.True(result.TryGetValue<string[]>("foo", out var actual));
+        Assert.Equal(["bar", "baz"], actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldNotParseValues_WhenArityAnyAndNoValues()
+    {
+        var parser = new ArgumentParser();
+        string[] expected = ["barbar"];
+        parser.Add<string[]>("--foo", arity: Arity.Any, action: ArgumentActions.Store, constValue: expected);
+
+        var result = parser.Parse(["--foo", "--bar", "baz", "qux"]);
+
+        Assert.True(result.TryGetValue<string[]>("foo", out var actual));
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldParseAllValues_WhenArityAtLeastOne()
+    {
+        var parser = new ArgumentParser();
+        string[] expected = ["bar", "baz"];
+        parser.Add<string[]>("--foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
+
+        var result = parser.Parse(["--foo", "bar", "baz", "--qux", "quux"]);
+
+        Assert.True(result.TryGetValue<string[]>("foo", out var actual));
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldThrowInvalidOperationException_WhenArityAtLeastOneAndNoValueProvided()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<string[]>("--foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
+
+        Assert.Throws<InvalidOperationException>(() => parser.Parse(["--foo", "--bar", "baz", "qux", "quux"]));
     }
 }

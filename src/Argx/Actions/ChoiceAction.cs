@@ -1,23 +1,17 @@
 using Argx.Errors;
 using Argx.Parsing;
+using Argx.Store;
 
 namespace Argx.Actions;
 
-public class ChoiceAction : ArgumentAction
+internal class ChoiceAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
         var name = tokens[0].Value;
 
-        if (argument.Arity != 1)
-            throw new InvalidOperationException($"Arity for 'choice' must be 1. Use 'store', to store collections");
-
-        if (argument.Choices?.Length == 0)
-            throw new InvalidOperationException(
-                $"Action 'choice' requires a list of choices to be set, but was empty for argument {name}");
-
         if (tokens.Length < 2)
-            throw new ArgumentValueException(name, "expected one value");
+            throw new ArgumentValueException(name, "expected value");
 
         var value = tokens[1].Value;
         var allowed = string.Join(", ", argument.Choices!);
@@ -26,5 +20,18 @@ public class ChoiceAction : ArgumentAction
             throw new ArgumentValueException(name, $"invalid choice: {value}, chose from {allowed}");
 
         repository.Set(argument.Dest, value);
+    }
+
+    public override void Validate(Argument argument)
+    {
+        if (argument.Arity != 1)
+        {
+            throw new ArgumentException($"Argument {argument.Name}: arity for 'choice' must be 1, use 'store' to store collections");
+        }
+
+        if (argument.Choices?.Length == 0)
+        {
+            throw new ArgumentException($"Argument {argument.Name}: choises required for action 'choice'");
+        }
     }
 }

@@ -1,5 +1,6 @@
 using Argx.Actions;
 using Argx.Parsing;
+using Argx.Store;
 
 namespace Argx.Tests.Actions;
 
@@ -46,6 +47,11 @@ public class ActionRegistryTests
     private class CustomAction : ArgumentAction
     {
         public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> values)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Validate(Argument argument)
         {
             throw new NotImplementedException();
         }
