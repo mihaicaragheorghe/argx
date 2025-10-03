@@ -8,16 +8,22 @@ internal class ChoiceAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
+        base.Execute(argument, repository, tokens);
+        
         var name = tokens[0].Value;
 
         if (tokens.Length < 2)
+        {
             throw new ArgumentValueException(name, "expected value");
+        }
 
         var value = tokens[1].Value;
         var allowed = string.Join(", ", argument.Choices!);
 
         if (!allowed.Contains(value))
+        {
             throw new ArgumentValueException(name, $"invalid choice: {value}, chose from {allowed}");
+        }
 
         repository.Set(argument.Dest, value);
     }
@@ -31,7 +37,7 @@ internal class ChoiceAction : ArgumentAction
 
         if (argument.Choices?.Length == 0)
         {
-            throw new ArgumentException($"Argument {argument.Name}: choises required for action 'choice'");
+            throw new ArgumentException($"Argument {argument.Name}: choices required for action 'choice'");
         }
     }
 }

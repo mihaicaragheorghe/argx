@@ -18,11 +18,13 @@ internal class AppendAction : ArgumentAction
 
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
+        base.Execute(argument, repository, tokens);
+
         var name = tokens[0].Value;
 
         if (argument.ConstValue == null && tokens.Length < 2)
         {
-            throw new ArgumentValueException(name, $"expected value");
+            throw new ArgumentValueException(name, "expected value");
         }
 
         var genericMethod = TryGetValueMethod.MakeGenericMethod(argument.Type);
@@ -35,18 +37,18 @@ internal class AppendAction : ArgumentAction
         IList list;
         var idx = 0;
 
-        if (obj is IList existing)
+        if (obj is IList src)
         {
-            list = CollectionUtils.CreateCollection(argument.Type, itemType, existing.Count + len);
-            CopyItems(existing, list);
-            idx = existing.Count;
+            list = CollectionUtils.CreateCollection(argument.Type, itemType, src.Count + len);
+            CopyItems(src, list);
+            idx = src.Count;
         }
         else
         {
             list = obj is null
                 ? CollectionUtils.CreateCollection(argument.Type, itemType, len)
                 : throw new InvalidOperationException(
-                    $"Invalid state: appending to value of argument '{name}' not possible, its type is not IList");
+                    $"Argument {name} in invalid state: appending to non enumerable type not possible");
         }
 
         var isArray = list is Array;
@@ -58,26 +60,17 @@ internal class AppendAction : ArgumentAction
                 Append(list, argument.ConstValue, isArray, idx);
                 idx++;
             }
-            else if (argument.ConstValue is IList constEnumerable)
+            else if (argument.ConstValue is IList constList)
             {
-                foreach (var item in constEnumerable)
+                foreach (var item in constList)
                 {
-                    if (!itemType.IsInstanceOfType(item))
-                    {
-                        var itemTypeName = itemType.GetFriendlyName();
-                        throw new ArgumentValueException(name,
-                            $"const value for argument '{name}' must be either an enumerable of type {itemTypeName} or an instance of type {itemTypeName}");
-                    }
-
                     Append(list, item, isArray, idx);
                     idx++;
                 }
             }
             else
             {
-                var itemTypeName = itemType.GetFriendlyName();
-                throw new ArgumentValueException(name,
-                    $"const value for argument '{name}' must be either an enumerable of type {itemTypeName} or an instance of type {itemTypeName}");
+                throw new InvalidOperationException("Invalid state for const value in append action");
             }
         }
 
@@ -132,12 +125,12 @@ internal class AppendAction : ArgumentAction
     {
         if (argument.Arity == 0)
         {
-            throw new ArgumentException($"Argument: {argument.Name}: arity for 'append' must be != 0.");
+            throw new ArgumentException($"Argument {argument.Name}: arity for 'append' must be != 0");
         }
 
         if (!argument.Type.IsEnumerable())
         {
-            throw new ArgumentException($"Argument: {argument.Name}: Type for 'append' must be an enumerable.");
+            throw new ArgumentException($"Argument {argument.Name}: type for 'append' must be an enumerable");
         }
 
         if (argument.ConstValue != null && !argument.Arity.IsOptional)
@@ -145,6 +138,34 @@ internal class AppendAction : ArgumentAction
             throw new ArgumentException(
                 $"Argument {argument.Name}: arity must be {Arity.Optional} or {Arity.Any} to supply a const value");
         }
+
+        if (argument.ConstValue != null && !IsValidConstType(argument))
+        {
+            var itemTypeName = argument.Type.GetElementTypeIfEnumerable()!.GetFriendlyName();
+            throw new ArgumentException(
+                $"Argument {argument.Name}: const value must be either an enumerable of type {itemTypeName} or an instance of type {itemTypeName}");
+        }
+    }
+
+    private static bool IsValidConstType(Argument argument)
+    {
+        var itemType = argument.Type.GetElementTypeIfEnumerable()!;
+
+        if (argument.ConstValue is IList constList)
+        {
+            var type = constList.GetType().GetElementTypeIfEnumerable()!;
+
+            if (!itemType.IsAssignableFrom(type))
+            {
+                return false;
+            }
+        }
+        else if (!itemType.IsInstanceOfType(argument.ConstValue))
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private static int GetConstValueLength(object value) => value is IList list ? list.Count : 1;

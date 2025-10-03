@@ -7,6 +7,8 @@ internal class CountAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
+        base.Execute(argument, repository, tokens);
+
         if (repository.TryGetValue<int>(argument.Dest, out var value))
         {
             repository.Set(argument.Dest, value + 1);

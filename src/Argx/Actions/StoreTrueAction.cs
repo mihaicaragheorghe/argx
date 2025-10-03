@@ -7,6 +7,8 @@ internal class StoreTrueAction : ArgumentAction
 {
     public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
     {
+        base.Execute(argument, repository, tokens);
+
         repository.Set(argument.Dest, true);
     }
 
