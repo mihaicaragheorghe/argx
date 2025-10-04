@@ -10,12 +10,39 @@ public class ArgumentParser
     private readonly Queue<Argument> _knowsArgs = [];
     private readonly IArgumentRepository _repository;
 
-    public ArgumentParser()
+    public string? Program { get; }
+    public string? Description { get; }
+    public string? Usage { get; }
+    public string? Epilogue { get; }
+    public bool AddHelpArgument { get; }
+    public bool ExitOnError { get; }
+
+    public ArgumentParser(
+        string? program = null,
+        string? description = null,
+        string? usage = null,
+        string? epilogue = null,
+        bool addHelp = true,
+        bool exitOnError = true)
     {
+        Program = program;
+        Description = description;
+        Usage = usage;
+        Epilogue = epilogue;
+        AddHelpArgument = addHelp;
+        ExitOnError = exitOnError;
         _repository = new ArgumentRepository();
     }
 
-    public ArgumentParser(IArgumentRepository repository)
+    internal ArgumentParser(
+        IArgumentRepository repository,
+        string? program = null,
+        string? description = null,
+        string? usage = null,
+        string? epilogue = null,
+        bool addHelp = true,
+        bool exitOnError = true)
+        : this(program, description, usage, epilogue, addHelp, exitOnError)
     {
         _repository = repository;
     }

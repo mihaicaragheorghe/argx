@@ -25,4 +25,6 @@ public class AliasSet
     }
 
     private static bool IsValid(string alias) => !string.IsNullOrWhiteSpace(alias) && alias[0] == '-';
+
+    public override string ToString() => string.Join(", ", _aliases);
 }
