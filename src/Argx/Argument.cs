@@ -53,4 +53,9 @@ public class Argument
             ? new Arity(ActionRegistry.DefaultArity(action ?? ArgumentActions.Store))
             : new Arity(arity);
     }
+
+    public string GetDisplayName()
+    {
+        return Name + (string.IsNullOrEmpty(Aliases?.ToString()) ? "" : $", {Aliases}");
+    }
 }

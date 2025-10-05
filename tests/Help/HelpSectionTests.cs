@@ -53,16 +53,16 @@ public class HelpSectionTests
     [Fact]
     public void AppendColumns_ShouldAppendColumns_WhenLeftOverMaxWidth()
     {
-        var section = new HelpSection("test") { MaxLineWidth = 10 };
+        var section = new HelpSection("test") { MaxLineWidth = 5 };
         const string expected = """
-                                --foo -f  Lorem
-                                          ipsum
-                                          dolor
-                                          sit
-                                          amet
+                                --foo, -f  Lorem
+                                           ipsum
+                                           dolor
+                                           sit
+                                           amet
                                 """;
 
-        section.AppendColumns([new HelpRow("--foo -f", "Lorem ipsum dolor sit amet")]);
+        section.AppendColumns([new HelpRow("--foo, -f", "Lorem ipsum dolor sit amet")]);
 
         Assert.Equal(expected, section.Content);
     }
@@ -72,7 +72,7 @@ public class HelpSectionTests
     {
         var section = new HelpSection(string.Empty, "foo");
         var result = section.Render();
-        Assert.Equal("foo" + Environment.NewLine, result);
+        Assert.Equal("foo", result);
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public class HelpSectionTests
     {
         var section = new HelpSection("foo");
         var result = section.Render();
-        Assert.Equal("foo:" + Environment.NewLine, result);
+        Assert.Equal("foo:", result);
     }
 
     [Fact]
@@ -99,7 +99,6 @@ public class HelpSectionTests
         const string expected = """
                                 foo:
                                   bar
-
                                 """;
         Assert.Equal(expected, result);
     }
@@ -117,10 +116,8 @@ public class HelpSectionTests
 
               foo:
                 foo content
-
               bar:
                 bar content
-
             """;
 
         var result = root.Render();
@@ -146,7 +143,6 @@ public class HelpSectionTests
 
                 bar:
                   bar content
-
             """;
 
         var result = root.Render();

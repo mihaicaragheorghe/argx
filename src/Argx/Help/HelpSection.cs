@@ -47,7 +47,7 @@ internal class HelpSection
         {
             foreach (var line in WrapText(Content, MaxLineWidth - indent))
             {
-                sb.AppendLine($"{ind}{line}");
+                sb.AppendLine(ind + line);
             }
         }
 
@@ -57,7 +57,7 @@ internal class HelpSection
             sb.Append(child.Render(indent + IndentSize));
         }
 
-        return sb.ToString();
+        return sb.ToString().TrimEnd();
     }
 
     internal void AppendText(string text)
@@ -83,8 +83,9 @@ internal class HelpSection
             var first = true;
             foreach (var line in WrapText(row.Right, MaxLineWidth - padding))
             {
-                sb.Append(line.PadLeft(first ? 0 : padding + line.Length) + Environment.NewLine);
+                sb.AppendLine(line.PadLeft(first ? 0 : padding + line.Length));
 
+                // do not add padding to the first line, because it's already added on the left side
                 if (first) first = false;
             }
         }
@@ -94,20 +95,23 @@ internal class HelpSection
 
     private static IEnumerable<string> WrapText(string text, int maxWidth)
     {
-        var line = "";
-        var words = text.Split(' ');
-
-        foreach (var word in words)
+        foreach (var line in text.Split(Environment.NewLine))
         {
-            if ((line + word).Length > maxWidth && !string.IsNullOrWhiteSpace(line))
+            var currLine = "";
+            var words = line.Split(' ');
+
+            foreach (var word in words)
             {
-                yield return line.TrimEnd();
-                line = "";
+                if ((currLine + word).Length > maxWidth && !string.IsNullOrWhiteSpace(currLine))
+                {
+                    yield return currLine.TrimEnd();
+                    currLine = "";
+                }
+
+                currLine += word + " ";
             }
 
-            line += word + " ";
+            if (currLine.Length > 0) yield return currLine.TrimEnd();
         }
-
-        if (line.Length > 0) yield return line.TrimEnd();
     }
 }

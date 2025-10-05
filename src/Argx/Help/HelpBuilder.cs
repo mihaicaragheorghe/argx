@@ -20,15 +20,17 @@ internal class HelpBuilder
         return this;
     }
 
-    internal HelpBuilder AddArguments(IList<Argument> arguments)
+    internal HelpBuilder AddArguments(IList<Argument> arguments, string title = "Arguments")
     {
-        var section = new HelpSection("Arguments");
+        var section = new HelpSection(title);
 
         var rows = arguments
-            .Select(a => new HelpRow(Left: $"{a.Name}, {a.Aliases}", Right: a.Usage ?? string.Empty))
+            .Select(a => new HelpRow(Left: a.GetDisplayName(), Right: a.Usage ?? string.Empty))
+            .OrderBy(r => r.Left)
             .ToList();
 
         section.AppendColumns(rows);
+        _sections.Add(section);
         return this;
     }
 
@@ -42,6 +44,6 @@ internal class HelpBuilder
             sb.Append(SectionSpacing);
         }
 
-        return sb.ToString();
+        return sb.ToString().TrimEnd();
     }
 }
