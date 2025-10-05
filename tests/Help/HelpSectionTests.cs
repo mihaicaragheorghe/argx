@@ -5,6 +5,15 @@ namespace Argx.Tests.Help;
 public class HelpSectionTests
 {
     [Fact]
+    public void AddChild_ShouldAddChild()
+    {
+        var root = new HelpSection("root");
+        var child = new HelpSection("child");
+        root.AddChild(child);
+        Assert.Contains(child, root.GetChildren());
+    }
+
+    [Fact]
     public void AppendText_ShouldAppendText_WhenContentIsEmpty()
     {
         var section = new HelpSection("test");
@@ -32,20 +41,20 @@ public class HelpSectionTests
     public void AppendColumns_ShouldAppendColumns()
     {
         var section = new HelpSection("test");
-        section.AppendColumns([new HelpRow("foo", "bar")]);
+        section.AppendColumns([new TwoColumnRow("foo", "bar")]);
         Assert.Equal("foo  bar", section.Content);
     }
 
     [Fact]
     public void AppendColumns_ShouldWrapRightColumns_WhenOverMaxWidth()
     {
-        var section = new HelpSection("test") { MaxLineWidth = 20 };
+        var section = new HelpSection("test", maxLineWidth: 20);
         const string expected = """
                                 foo  Lorem ipsum
                                      dolor sit amet
                                 """;
 
-        section.AppendColumns([new HelpRow("foo", "Lorem ipsum dolor sit amet")]);
+        section.AppendColumns([new TwoColumnRow("foo", "Lorem ipsum dolor sit amet")]);
 
         Assert.Equal(expected, section.Content);
     }
@@ -53,7 +62,7 @@ public class HelpSectionTests
     [Fact]
     public void AppendColumns_ShouldAppendColumns_WhenLeftOverMaxWidth()
     {
-        var section = new HelpSection("test") { MaxLineWidth = 5 };
+        var section = new HelpSection("test", maxLineWidth: 5);
         const string expected = """
                                 --foo, -f  Lorem
                                            ipsum
@@ -62,7 +71,7 @@ public class HelpSectionTests
                                            amet
                                 """;
 
-        section.AppendColumns([new HelpRow("--foo, -f", "Lorem ipsum dolor sit amet")]);
+        section.AppendColumns([new TwoColumnRow("--foo, -f", "Lorem ipsum dolor sit amet")]);
 
         Assert.Equal(expected, section.Content);
     }

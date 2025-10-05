@@ -6,20 +6,23 @@ internal class HelpSection
 {
     internal string Title { get; }
 
-    internal int IndentSize { get; set; } = 2;
-
-    internal int MaxLineWidth { get; set; } = 80;
-
     internal string Content { get; private set; } = string.Empty;
+
+    private readonly int _indentSize;
+
+    private readonly int _maxLineWidth;
 
     private readonly List<HelpSection> _children = [];
 
-    internal HelpSection(string title)
+    internal HelpSection(string title, int indentSize = 2, int maxLineWidth = 80)
     {
         Title = title;
+        _indentSize = indentSize;
+        _maxLineWidth = maxLineWidth;
     }
 
-    internal HelpSection(string title, string content) : this(title)
+    internal HelpSection(string title, string content, int indentSize = 2, int maxLineWidth = 80)
+        : this(title, indentSize, maxLineWidth)
     {
         Content = content;
     }
@@ -40,12 +43,12 @@ internal class HelpSection
         if (!string.IsNullOrWhiteSpace(Title))
         {
             sb.AppendLine($"{ind}{Title}:");
-            ind += new string(' ', IndentSize);
+            ind += new string(' ', _indentSize);
         }
 
         if (!string.IsNullOrWhiteSpace(Content))
         {
-            foreach (var line in WrapText(Content, MaxLineWidth - indent))
+            foreach (var line in WrapText(Content, _maxLineWidth - indent))
             {
                 sb.AppendLine(ind + line);
             }
@@ -54,7 +57,7 @@ internal class HelpSection
         foreach (var child in _children)
         {
             sb.AppendLine(string.Empty);
-            sb.Append(child.Render(indent + IndentSize));
+            sb.Append(child.Render(indent + _indentSize));
         }
 
         return sb.ToString().TrimEnd();
@@ -70,7 +73,7 @@ internal class HelpSection
         Content += Environment.NewLine + line;
     }
 
-    internal void AppendColumns(IList<HelpRow> rows)
+    internal void AppendColumns(IList<TwoColumnRow> rows)
     {
         var sb = new StringBuilder();
         var padding = rows.Max(r => r.Left.Length) + 2; // 2 spaces between
@@ -81,7 +84,7 @@ internal class HelpSection
             sb.Append(left);
 
             var first = true;
-            foreach (var line in WrapText(row.Right, MaxLineWidth - padding))
+            foreach (var line in WrapText(row.Right, _maxLineWidth - padding))
             {
                 sb.AppendLine(line.PadLeft(first ? 0 : padding + line.Length));
 

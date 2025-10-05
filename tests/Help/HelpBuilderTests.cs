@@ -8,14 +8,20 @@ public class HelpBuilderTests
     public void AddSection_ShouldAddSection()
     {
         var section = new HelpSection("foo", "bar");
-        var result = new HelpBuilder().AddSection(section.Title, section.Content).Build();
+        var result = new HelpBuilder(HelpConfiguration.Default())
+            .AddSection(section.Title, section.Content)
+            .Build();
+
         Assert.Equal(section.Render(), result);
     }
 
     [Fact]
     public void AddText_ShouldAddText()
     {
-        var result = new HelpBuilder().AddText("foo").Build();
+        var result = new HelpBuilder(HelpConfiguration.Default())
+            .AddText("foo")
+            .Build();
+
         Assert.Equal("foo", result);
     }
 
@@ -23,11 +29,15 @@ public class HelpBuilderTests
     public void AddArguments_ShouldAddSingleArgument()
     {
         var arg = new Argument("--foo", usage: "foo argument", alias: "-f");
-        var result = new HelpBuilder().AddArguments([arg]).Build();
         const string expected = """
                                 Arguments:
                                   --foo, -f  foo argument
                                 """;
+
+        var result = new HelpBuilder(HelpConfiguration.Default())
+            .AddArguments([arg])
+            .Build();
+
         Assert.Equal(expected, result);
     }
 
@@ -42,7 +52,6 @@ public class HelpBuilderTests
             new("qux", usage: "qux argument"),
             new("--quux")
         ];
-        var result = new HelpBuilder().AddArguments(args).Build();
         const string expected = """
                                 Arguments:
                                   --bar, -b    bar argument
@@ -51,6 +60,12 @@ public class HelpBuilderTests
                                   --quux
                                   qux          qux argument
                                 """;
+
+        var result = new HelpBuilder(HelpConfiguration.Default())
+            .AddArguments(args)
+            .Build();
+
+
         Assert.Equal(expected, result);
     }
 
@@ -74,7 +89,7 @@ public class HelpBuilderTests
                                   --foo, -f  foo option
                                 """;
 
-        var result = new HelpBuilder()
+        var result = new HelpBuilder(HelpConfiguration.Default())
             .AddSection(program.Title, program.Content)
             .AddSection(usage.Title, usage.Content)
             .AddArguments([positional], "Positional arguments")
