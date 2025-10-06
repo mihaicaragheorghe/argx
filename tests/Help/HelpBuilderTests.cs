@@ -274,4 +274,30 @@ public class HelpBuilderTests
 
         Assert.Equal(expected, actual);
     }
+
+    [Fact]
+    public void AddUsage_ShouldWrapContent_WhenExceedsMaxWidth()
+    {
+        List<Argument> args =
+        [
+            new("--help", arity: "0", alias: "-h"),
+            new("-v", arity: "0"),
+            new("--foo", arity: "1", alias: "-f"),
+            new("filename", isPositional: true),
+            new("action", isPositional: true),
+        ];
+
+        const string expected = """
+                                Usage:
+                                  prog [--help] [-v]
+                                  [--foo FOO]
+                                  filename action
+                                """;
+
+        var actual = new HelpBuilder(new HelpConfiguration { MaxLineWidth = 20 })
+            .AddUsage(args, prefix: "prog")
+            .Build();
+
+        Assert.Equal(expected, actual);
+    }
 }

@@ -66,6 +66,12 @@ internal class HelpBuilder
             sb.Append("] ");
         }
 
+        // If wrapped, positionals should be on new line
+        if (sb.Length > _config.MaxLineWidth)
+        {
+            sb.AppendLine();
+        }
+
         foreach (var pos in arguments.Where(a => a.IsPositional))
         {
             sb.Append(pos.Name).Append(' ');

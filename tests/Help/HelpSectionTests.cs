@@ -158,4 +158,46 @@ public class HelpSectionTests
 
         Assert.Equal(expected, result);
     }
+
+    [Fact]
+    public void Render_ShouldWrapContent_WhenExceedsMaxWidth()
+    {
+        var section = new HelpSection("test", "Lorem ipsum dolor sit amet", maxLineWidth: 10);
+        const string expected = """
+                                test:
+                                  Lorem
+                                  ipsum
+                                  dolor sit
+                                  amet
+                                """;
+
+        var actual = section.Render();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Render_ShouldWrapContentForChildren_WhenExceedsMaxWidth()
+    {
+        var root = new HelpSection("root", "Lorem ipsum dolor sit amet", maxLineWidth: 10);
+        var child = new HelpSection("child", "Lorem ipsum dolor sit amet", maxLineWidth: 10);
+        root.AddChild(child);
+        const string expected = """
+                                root:
+                                  Lorem
+                                  ipsum
+                                  dolor sit
+                                  amet
+
+                                  child:
+                                    Lorem
+                                    ipsum
+                                    dolor
+                                    sit amet
+                                """;
+
+        var actual = root.Render();
+
+        Assert.Equal(expected, actual);
+    }
 }
