@@ -105,10 +105,10 @@ public class ArgumentParser
             dest: dest,
             arity: arity,
             usage: usage,
-            defaultVal: defaultValue,
+            defaultValue: defaultValue,
             constValue: constValue,
             choices: choices,
-            isRequired: isPositional,
+            isPositional: isPositional,
             type: typeof(T));
 
         if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))

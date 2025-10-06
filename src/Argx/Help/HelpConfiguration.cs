@@ -8,6 +8,8 @@ public class HelpConfiguration
 
     public int MaxLineWidth { get; set; } = 80;
 
+    public bool PrintAliasInUsage { get; set; } = false;
+
     public static HelpConfiguration Default()
     {
         return new HelpConfiguration();

@@ -14,6 +14,10 @@ public class AliasSet
 
     public bool Contains(string alias) => _aliases.Contains(alias);
 
+    public int Count => _aliases.Count;
+
+    public string First() => _aliases.First();
+
     public void Add(string alias)
     {
         if (!IsValid(alias))

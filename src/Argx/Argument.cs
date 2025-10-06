@@ -24,18 +24,18 @@ public class Argument
 
     public Arity Arity { get; }
 
-    public bool IsRequired { get; }
+    public bool IsPositional { get; }
 
     public Argument(
         string name,
         string? action = null,
         string? dest = null,
         string? usage = null,
-        string? defaultVal = null,
+        string? defaultValue = null,
         string? arity = null,
         object? constValue = null,
         string[]? choices = null,
-        bool isRequired = false,
+        bool isPositional = false,
         Type? type = null,
         params string[]? alias)
     {
@@ -43,12 +43,12 @@ public class Argument
         Aliases = alias == null ? null : new AliasSet(alias);
         Type = type ?? typeof(string);
         Action = action ?? ArgumentActions.Store;
-        Dest = dest ?? name.Replace("--", string.Empty);
+        Dest = dest ?? name.TrimStart('-');
         Usage = usage;
-        DefaultValue = defaultVal;
+        DefaultValue = defaultValue;
         ConstValue = constValue;
         Choices = choices;
-        IsRequired = isRequired;
+        IsPositional = isPositional;
         Arity = arity is null
             ? new Arity(ActionRegistry.DefaultArity(action ?? ArgumentActions.Store))
             : new Arity(arity);

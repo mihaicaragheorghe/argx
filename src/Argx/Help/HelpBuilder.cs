@@ -39,6 +39,46 @@ internal class HelpBuilder
         return this;
     }
 
+    internal HelpBuilder AddUsage(IList<Argument> arguments, string prefix = "", string title = "Usage")
+    {
+        var sb = new StringBuilder();
+
+        if (!string.IsNullOrEmpty(prefix))
+        {
+            sb.Append(prefix).Append(" ");
+        }
+
+        foreach (var opt in arguments.Where(a => !a.IsPositional))
+        {
+            var placeholder = opt.Name.TrimStart('-').ToUpper();
+            var value = opt.Arity.IsFixed
+                ? string.Join(" ", Enumerable.Repeat(placeholder, int.Parse(opt.Arity.Value)))
+                : opt.Arity.Value switch
+                {
+                    Arity.Optional => $"[{placeholder}]",
+                    Arity.Any or Arity.AtLeastOne => $"[{placeholder} ...]",
+                    _ => ""
+                };
+
+            sb.Append('[');
+            sb.Append(_config.PrintAliasInUsage && opt.Aliases?.Count > 0 ? opt.Aliases.First() : opt.Name);
+            if (!string.IsNullOrEmpty(value)) sb.Append(" ").Append(value);
+            sb.Append(']');
+            sb.Append(' ');
+        }
+
+        foreach (var pos in arguments.Where(a => a.IsPositional))
+        {
+            sb.Append(pos.Name).Append(' ');
+        }
+
+        var content = sb.ToString().TrimEnd();
+        var section = new HelpSection(title, content, _config.IndentSize, _config.MaxLineWidth);
+
+        _sections.Add(section);
+        return this;
+    }
+
     internal string Build()
     {
         var sb = new StringBuilder();
