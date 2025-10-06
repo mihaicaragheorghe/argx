@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>netstandard2.1;</TargetFrameworks>
+        <TargetFrameworks>netstandard2.1;net9.0;</TargetFrameworks>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <InternalsVisibleTo Include="Argx.Tests" />
+        <InternalsVisibleTo Include="Argx.Tests"/>
     </ItemGroup>
 
 </Project>
