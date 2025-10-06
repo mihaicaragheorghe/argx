@@ -1,37 +1,45 @@
 using Argx.Actions;
 using Argx.Extensions;
+using Argx.Help;
 using Argx.Store;
 
 namespace Argx.Parsing;
 
 public class ArgumentParser
 {
-    private readonly List<Argument> _knownOpts = [];
-    private readonly Queue<Argument> _knowsArgs = [];
-    private readonly IArgumentRepository _repository;
-
     public string? Program { get; }
+
     public string? Description { get; }
+
     public string? Usage { get; }
+
     public string? Epilogue { get; }
-    public bool AddHelpArgument { get; }
-    public bool ExitOnError { get; }
+
+    private readonly List<Argument> _knownOpts = [];
+    private readonly Queue<Argument> _knownArgs = [];
+    private readonly IArgumentRepository _repository;
+    private readonly ArgumentParserConfiguration _configuration;
 
     public ArgumentParser(
         string? program = null,
         string? description = null,
         string? usage = null,
         string? epilogue = null,
-        bool addHelp = true,
-        bool exitOnError = true)
+        ArgumentParserConfiguration? configuration = null)
     {
+        var config = configuration ?? new ArgumentParserConfiguration();
+
         Program = program;
         Description = description;
         Usage = usage;
         Epilogue = epilogue;
-        AddHelpArgument = addHelp;
-        ExitOnError = exitOnError;
+        _configuration = config;
         _repository = new ArgumentRepository();
+
+        if (config.AddHelpArgument)
+        {
+            _knownOpts.Add(new Argument("--help", alias: "-h", usage: "Print help", action: ArgumentActions.StoreTrue));
+        }
     }
 
     internal ArgumentParser(
@@ -40,9 +48,8 @@ public class ArgumentParser
         string? description = null,
         string? usage = null,
         string? epilogue = null,
-        bool addHelp = true,
-        bool exitOnError = true)
-        : this(program, description, usage, epilogue, addHelp, exitOnError)
+        ArgumentParserConfiguration? configuration = null)
+        : this(program, description, usage, epilogue, configuration)
     {
         _repository = repository;
     }
@@ -120,7 +127,7 @@ public class ArgumentParser
 
         if (isPositional)
         {
-            _knowsArgs.Enqueue(arg);
+            _knownArgs.Enqueue(arg);
         }
         else
         {
@@ -226,6 +233,12 @@ public class ArgumentParser
                 continue;
             }
 
+            if (_configuration.AddHelpArgument && tokens[i] == "-h" || tokens[i] == "--help")
+            {
+                WriteHelp(Console.Out);
+                Environment.Exit(0);
+            }
+
             if (consumeOpts && tokens[i].Type == TokenType.Option)
             {
                 i += ConsumeOption(i, tokens, result);
@@ -243,13 +256,13 @@ public class ArgumentParser
 
     private void ConsumePositional(Token token, Arguments result)
     {
-        if (_knowsArgs.Count == 0)
+        if (_knownArgs.Count == 0)
         {
             result.Extras.Add(token.Value);
             return;
         }
 
-        var arg = _knowsArgs.Dequeue();
+        var arg = _knownArgs.Dequeue();
 
         if (arg.Arity != 1)
         {
@@ -325,6 +338,45 @@ public class ArgumentParser
             default:
                 throw new InvalidOperationException($"Unknown arity value: {arg.Arity.Value}");
         }
+    }
+
+    internal void WriteHelp(TextWriter writer)
+    {
+        var arguments = new List<Argument>(_knownOpts);
+        while (_knownArgs.Count > 0)
+        {
+            arguments.Add(_knownArgs.Dequeue());
+        }
+
+        var builder = new HelpBuilder(_configuration.HelpConfiguration);
+
+        if (!string.IsNullOrEmpty(Program))
+        {
+            builder.AddSection(Program, Description ?? string.Empty);
+        }
+        else if (!string.IsNullOrEmpty(Description))
+        {
+            builder.AddText(Description);
+        }
+
+        if (!string.IsNullOrEmpty(Usage))
+        {
+            builder.AddSection("Usage", Usage);
+        }
+        else
+        {
+            builder.AddUsage(arguments, Program);
+        }
+
+        builder.AddArguments(arguments);
+
+        if (!string.IsNullOrEmpty(Epilogue))
+        {
+            builder.AddText(Epilogue);
+        }
+
+        var stdout = builder.Build();
+        writer.WriteLine(stdout);
     }
 
     private static bool IsPositional(string s) => s.Length > 0 && s[0] != '-';

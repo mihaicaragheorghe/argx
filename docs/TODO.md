@@ -1,8 +1,9 @@
 # TODO
 
-- [x] Dynamic arity support for append action
-- [ ] Help text generation
-- [ ] Argument parser configuration
-- [ ] Help text formatter
+
 - [ ] Error messages generation & stderr
 - [ ] Arity for positional arguments
+- [x] Dynamic arity support for append action
+- [x] Help text generation
+- [x] Help text formatter
+- [x] Argument parser configuration
