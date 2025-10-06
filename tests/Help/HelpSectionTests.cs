@@ -38,15 +38,15 @@ public class HelpSectionTests
     }
 
     [Fact]
-    public void AppendColumns_ShouldAppendColumns()
+    public void AppendRows_ShouldAppendRows()
     {
         var section = new HelpSection("test");
-        section.AppendColumns([new TwoColumnRow("foo", "bar")]);
+        section.AppendRows([new TwoColumnRow("foo", "bar")]);
         Assert.Equal("foo  bar", section.Content);
     }
 
     [Fact]
-    public void AppendColumns_ShouldWrapRightColumns_WhenOverMaxWidth()
+    public void AppendRows_ShouldWrapRightColumns_WhenOverMaxWidth()
     {
         var section = new HelpSection("test", maxLineWidth: 20);
         const string expected = """
@@ -54,13 +54,13 @@ public class HelpSectionTests
                                      dolor sit amet
                                 """;
 
-        section.AppendColumns([new TwoColumnRow("foo", "Lorem ipsum dolor sit amet")]);
+        section.AppendRows([new TwoColumnRow("foo", "Lorem ipsum dolor sit amet")]);
 
         Assert.Equal(expected, section.Content);
     }
 
     [Fact]
-    public void AppendColumns_ShouldAppendColumns_WhenLeftOverMaxWidth()
+    public void AppendRows_ShouldAppendRows_WhenLeftOverMaxWidth()
     {
         var section = new HelpSection("test", maxLineWidth: 5);
         const string expected = """
@@ -71,7 +71,7 @@ public class HelpSectionTests
                                            amet
                                 """;
 
-        section.AppendColumns([new TwoColumnRow("--foo, -f", "Lorem ipsum dolor sit amet")]);
+        section.AppendRows([new TwoColumnRow("--foo, -f", "Lorem ipsum dolor sit amet")]);
 
         Assert.Equal(expected, section.Content);
     }

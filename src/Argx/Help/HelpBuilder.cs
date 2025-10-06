@@ -34,7 +34,7 @@ internal class HelpBuilder
             .OrderBy(r => r.Left)
             .ToList();
 
-        section.AppendColumns(rows);
+        section.AppendRows(rows);
         _sections.Add(section);
         return this;
     }
@@ -45,7 +45,7 @@ internal class HelpBuilder
 
         if (!string.IsNullOrEmpty(prefix))
         {
-            sb.Append(prefix).Append(" ");
+            sb.Append(prefix).Append(' ');
         }
 
         foreach (var opt in arguments.Where(a => !a.IsPositional))
@@ -62,9 +62,8 @@ internal class HelpBuilder
 
             sb.Append('[');
             sb.Append(_config.PrintAliasInUsage && opt.Aliases?.Count > 0 ? opt.Aliases.First() : opt.Name);
-            if (!string.IsNullOrEmpty(value)) sb.Append(" ").Append(value);
-            sb.Append(']');
-            sb.Append(' ');
+            if (!string.IsNullOrEmpty(value)) sb.Append(' ').Append(value);
+            sb.Append("] ");
         }
 
         foreach (var pos in arguments.Where(a => a.IsPositional))

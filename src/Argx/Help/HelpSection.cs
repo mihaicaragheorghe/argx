@@ -14,23 +14,28 @@ internal class HelpSection
 
     private readonly List<HelpSection> _children = [];
 
-    internal HelpSection(string title, int indentSize = 2, int maxLineWidth = 80)
+    internal HelpSection(
+        string title,
+        int indentSize = HelpConfiguration.DefaultIndentSize,
+        int maxLineWidth = HelpConfiguration.DefaultMaxLineWidth)
     {
         Title = title;
         _indentSize = indentSize;
         _maxLineWidth = maxLineWidth;
     }
 
-    internal HelpSection(string title, string content, int indentSize = 2, int maxLineWidth = 80)
+    internal HelpSection(
+        string title, string content,
+        int indentSize = HelpConfiguration.DefaultIndentSize,
+        int maxLineWidth = HelpConfiguration.DefaultMaxLineWidth)
         : this(title, indentSize, maxLineWidth)
     {
         Content = content;
     }
 
-    internal HelpSection AddChild(HelpSection section)
+    internal void AddChild(HelpSection section)
     {
         _children.Add(section);
-        return this;
     }
 
     internal IReadOnlyList<HelpSection> GetChildren() => _children.AsReadOnly();
@@ -73,7 +78,7 @@ internal class HelpSection
         Content += Environment.NewLine + line;
     }
 
-    internal void AppendColumns(IList<TwoColumnRow> rows)
+    internal void AppendRows(IList<TwoColumnRow> rows)
     {
         var sb = new StringBuilder();
         var padding = rows.Max(r => r.Left.Length) + 2; // 2 spaces between
