@@ -290,8 +290,8 @@ public class HelpBuilderTests
         const string expected = """
                                 Usage:
                                   prog [--help] [-v]
-                                  [--foo FOO]
-                                  filename action
+                                       [--foo FOO]
+                                       filename action
                                 """;
 
         var actual = new HelpBuilder(new HelpConfiguration { MaxLineWidth = 20 })

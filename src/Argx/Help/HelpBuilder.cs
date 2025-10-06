@@ -42,11 +42,7 @@ internal class HelpBuilder
     internal HelpBuilder AddUsage(IList<Argument> arguments, string prefix = "", string title = "Usage")
     {
         var sb = new StringBuilder();
-
-        if (!string.IsNullOrEmpty(prefix))
-        {
-            sb.Append(prefix).Append(' ');
-        }
+        var section = new HelpSection(title, _config.IndentSize, _config.MaxLineWidth);
 
         foreach (var opt in arguments.Where(a => !a.IsPositional))
         {
@@ -66,19 +62,19 @@ internal class HelpBuilder
             sb.Append("] ");
         }
 
-        // If wrapped, positionals should be on new line
-        if (sb.Length > _config.MaxLineWidth)
-        {
-            sb.AppendLine();
-        }
-
         foreach (var pos in arguments.Where(a => a.IsPositional))
         {
             sb.Append(pos.Name).Append(' ');
         }
 
-        var content = sb.ToString().TrimEnd();
-        var section = new HelpSection(title, content, _config.IndentSize, _config.MaxLineWidth);
+        if (!string.IsNullOrEmpty(prefix))
+        {
+            section.AppendRows([new TwoColumnRow(Left: prefix, Right: sb.ToString().TrimEnd())], spacing: 1);
+        }
+        else
+        {
+            section.AppendText(sb.ToString().TrimEnd());
+        }
 
         _sections.Add(section);
         return this;

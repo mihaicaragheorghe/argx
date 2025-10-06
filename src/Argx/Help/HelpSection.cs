@@ -1,5 +1,7 @@
 using System.Text;
 
+using Argx.Utils;
+
 namespace Argx.Help;
 
 internal class HelpSection
@@ -53,7 +55,7 @@ internal class HelpSection
 
         if (!string.IsNullOrWhiteSpace(Content))
         {
-            foreach (var line in WrapText(Content, _maxLineWidth - indent))
+            foreach (var line in TextFormatter.WrapText(Content, _maxLineWidth - indent))
             {
                 sb.AppendLine(ind + line);
             }
@@ -78,10 +80,10 @@ internal class HelpSection
         Content += Environment.NewLine + line;
     }
 
-    internal void AppendRows(IList<TwoColumnRow> rows)
+    internal void AppendRows(IList<TwoColumnRow> rows, int spacing = 2)
     {
         var sb = new StringBuilder();
-        var padding = rows.Max(r => r.Left.Length) + 2; // 2 spaces between
+        var padding = rows.Max(r => r.Left.Length) + spacing;
 
         foreach (var row in rows)
         {
@@ -89,7 +91,7 @@ internal class HelpSection
             sb.Append(left);
 
             var first = true;
-            foreach (var line in WrapText(row.Right, _maxLineWidth - padding))
+            foreach (var line in TextFormatter.WrapText(row.Right, _maxLineWidth - padding))
             {
                 sb.AppendLine(line.PadLeft(first ? 0 : padding + line.Length));
 
@@ -99,27 +101,5 @@ internal class HelpSection
         }
 
         Content += sb.ToString().TrimEnd();
-    }
-
-    private static IEnumerable<string> WrapText(string text, int maxWidth)
-    {
-        foreach (var line in text.Split(Environment.NewLine))
-        {
-            var currLine = "";
-            var words = line.Split(' ');
-
-            foreach (var word in words)
-            {
-                if ((currLine + word).Length > maxWidth && !string.IsNullOrWhiteSpace(currLine))
-                {
-                    yield return currLine.TrimEnd();
-                    currLine = "";
-                }
-
-                currLine += word + " ";
-            }
-
-            if (currLine.Length > 0) yield return currLine.TrimEnd();
-        }
     }
 }
