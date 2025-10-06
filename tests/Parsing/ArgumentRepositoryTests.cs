@@ -64,6 +64,21 @@ public class ArgumentRepositoryTests
         Assert.Equal(expected, actual);
     }
 
+    [Theory]
+    [InlineData("foo", "Foo")]
+    [InlineData("Foo", "foo")]
+    [InlineData("FOO", "Foo")]
+    [InlineData("FOO", "foo")]
+    public void TryGetValue_ShouldBeCaseInsensitive(string set, string get)
+    {
+        var repo = new ArgumentRepository();
+        repo.Set(set, "bar");
+
+        var result = repo.TryGetValue(get, out _);
+
+        Assert.True(result);
+    }
+
     [Fact]
     public void TryGetValueT_ShouldReturnTrueAndOutValue_WhenExistsAndValueTypeT()
     {
@@ -84,7 +99,7 @@ public class ArgumentRepositoryTests
         var result = repo.TryGetValue<int>("foo", out var value);
 
         Assert.False(result);
-        Assert.Equal(default(int), value);
+        Assert.Equal(0, value);
     }
 
     [Fact]
@@ -96,6 +111,6 @@ public class ArgumentRepositoryTests
         var result = repo.TryGetValue<int>("foo", out var value);
 
         Assert.False(result);
-        Assert.Equal(default(int), value);
+        Assert.Equal(0, value);
     }
 }

@@ -2,7 +2,7 @@ namespace Argx.Store;
 
 public sealed class ArgumentRepository : IArgumentRepository
 {
-    private readonly Dictionary<string, object> _values = new();
+    private readonly Dictionary<string, object> _values = new(StringComparer.OrdinalIgnoreCase);
 
     public void Set(string arg, object value)
     {

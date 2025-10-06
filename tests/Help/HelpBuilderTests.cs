@@ -1,3 +1,5 @@
+using System.Reflection;
+
 using Argx.Help;
 
 namespace Argx.Tests.Help;
@@ -137,6 +139,23 @@ public class HelpBuilderTests
     }
 
     [Fact]
+    public void AddUsage_ShouldUseArgvZero_WhenPrefixIsEmpty()
+    {
+        var arg = new Argument("foo", isPositional: true);
+        var programName = Path.GetFileName(Assembly.GetEntryAssembly()?.Location);
+        var expected = $"""
+                        Usage:
+                          {programName} foo
+                        """;
+
+        var actual = new HelpBuilder(HelpConfiguration.Default())
+            .AddUsage([arg])
+            .Build();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
     public void AddUsage_ShouldCorrectlyAddArgument_WhenOptionalWithZeroArity()
     {
         var arg = new Argument("--foo", arity: "0");
@@ -246,6 +265,23 @@ public class HelpBuilderTests
                                 """;
         var actual = new HelpBuilder(new HelpConfiguration { PrintAliasInUsage = true })
             .AddUsage(args, prefix: "prog")
+            .Build();
+
+        Assert.Equal(expected, actual);
+    }
+
+
+    [Fact]
+    public void AddUsage_ShouldUseDefaultValue_WhenOption()
+    {
+        var arg = new Argument("--foo", arity: "1", defaultValue: "bar");
+        const string expected = """
+                                Usage:
+                                  prog [--foo bar]
+                                """;
+
+        var actual = new HelpBuilder(HelpConfiguration.Default())
+            .AddUsage([arg], prefix: "prog")
             .Build();
 
         Assert.Equal(expected, actual);

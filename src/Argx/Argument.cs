@@ -45,7 +45,7 @@ public class Argument
         Action = action ?? ArgumentActions.Store;
         Dest = dest ?? name.TrimStart('-');
         Usage = usage;
-        DefaultValue = defaultValue;
+        DefaultValue = defaultValue ?? Name.TrimStart('-').ToUpper();
         ConstValue = constValue;
         Choices = choices;
         IsPositional = isPositional;

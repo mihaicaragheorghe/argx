@@ -39,14 +39,21 @@ internal class HelpBuilder
         return this;
     }
 
-    internal HelpBuilder AddUsage(IList<Argument> arguments, string prefix = "", string title = "Usage")
+    internal HelpBuilder AddUsage(IList<Argument> arguments, string? prefix = null, string title = "Usage")
     {
         var sb = new StringBuilder();
         var section = new HelpSection(title, _config.IndentSize, _config.MaxLineWidth);
 
+        if (string.IsNullOrEmpty(prefix))
+        {
+            var arg = Environment.GetCommandLineArgs()[0];
+
+            prefix = Path.IsPathFullyQualified(arg) ? Path.GetFileName(arg) : arg;
+        }
+
         foreach (var opt in arguments.Where(a => !a.IsPositional))
         {
-            var placeholder = opt.Name.TrimStart('-').ToUpper();
+            var placeholder = opt.DefaultValue;
             var value = opt.Arity.IsFixed
                 ? string.Join(" ", Enumerable.Repeat(placeholder, int.Parse(opt.Arity.Value)))
                 : opt.Arity.Value switch
