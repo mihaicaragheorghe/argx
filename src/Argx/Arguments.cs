@@ -29,4 +29,15 @@ public class Arguments
     public T GetValue<T>(string arg) => TryGetValue(arg, out T value) ? value : default!;
 
     public bool TryGetValue<T>(string arg, out T value) => _repository.TryGetValue(arg, out value);
+
+    public T GetRequired<T>(string arg)
+    {
+        if (_repository.TryGetValue<T>(arg, out var value))
+        {
+            return value;
+        }
+
+        throw new InvalidOperationException(
+            $"Missing required value for argument '{arg}' (expected type: {typeof(T).Name}).");
+    }
 }
