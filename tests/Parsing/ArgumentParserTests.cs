@@ -1,3 +1,5 @@
+using System.Reflection;
+
 using Argx.Parsing;
 using Argx.Store;
 
@@ -216,5 +218,139 @@ public partial class ArgumentParserTests
         Assert.Equal("qux", result["bax"]);
         Assert.Equal("123", result["x"]);
         Assert.Equal("456", result["y"]);
+    }
+
+    [Fact]
+    public void WriteHelp_ShouldWriteHelp()
+    {
+        var parser = new ArgumentParser("prog", "what the program does", epilogue: "check website");
+        parser.Add("--foo");
+        parser.Add("x");
+        parser.Add("y");
+        var writer = new StringWriter();
+        const string expected = """
+                                prog:
+                                  what the program does
+
+                                Usage:
+                                  prog [--help] [--foo FOO] x y
+
+                                Arguments:
+                                  --foo
+                                  --help, -h  Print help
+                                  x
+                                  y
+
+                                check website
+
+                                """;
+
+        parser.WriteHelp(writer);
+
+        Assert.Equal(expected, writer.ToString());
+    }
+
+    [Fact]
+    public void WriteHelp_ShouldNotWriteProgramName_WhenNullOrEmpty()
+    {
+        var parser = new ArgumentParser(description: "what the program does");
+        parser.Add("--foo");
+        parser.Add("x");
+        parser.Add("y");
+        var program = Path.GetFileName(Assembly.GetEntryAssembly()?.Location);
+        var writer = new StringWriter();
+        var expected = $"""
+                        what the program does
+
+                        Usage:
+                          {program} [--help] [--foo FOO] x y
+
+                        Arguments:
+                          --foo
+                          --help, -h  Print help
+                          x
+                          y
+
+                        """;
+
+        parser.WriteHelp(writer);
+
+        Assert.Equal(expected, writer.ToString());
+    }
+
+    [Fact]
+    public void WriteHelp_ShouldNotWriteDescription_WhenNullOrEmpty()
+    {
+        var parser = new ArgumentParser();
+        parser.Add("--foo");
+        parser.Add("x");
+        parser.Add("y");
+        var program = Path.GetFileName(Assembly.GetEntryAssembly()?.Location);
+        var writer = new StringWriter();
+        var expected = $"""
+                        Usage:
+                          {program} [--help] [--foo FOO] x y
+
+                        Arguments:
+                          --foo
+                          --help, -h  Print help
+                          x
+                          y
+
+                        """;
+
+        parser.WriteHelp(writer);
+
+        Assert.Equal(expected, writer.ToString());
+    }
+
+    [Fact]
+    public void WriteHelp_ShouldNotWriteEpilogue_WhenNullOrEmpty()
+    {
+        var parser = new ArgumentParser(usage: "prog x y");
+        parser.Add("--foo");
+        parser.Add("x");
+        parser.Add("y");
+        var writer = new StringWriter();
+        const string expected = $"""
+                                 Usage:
+                                   prog x y
+
+                                 Arguments:
+                                   --foo
+                                   --help, -h  Print help
+                                   x
+                                   y
+
+                                 """;
+
+        parser.WriteHelp(writer);
+
+        Assert.Equal(expected, writer.ToString());
+    }
+
+    [Fact]
+    public void WriteHelp_ShouldWriteUsage_WhenNotNullOrEmpty()
+    {
+        var parser = new ArgumentParser(usage: "prog x y");
+        parser.Add("--foo");
+        parser.Add("x");
+        parser.Add("y");
+        var writer = new StringWriter();
+        const string expected = $"""
+                                 Usage:
+                                   prog x y
+
+                                 Arguments:
+                                   --foo
+                                   --help, -h  Print help
+                                   x
+                                   y
+
+                                 """;
+
+        parser.WriteHelp(writer);
+
+        Assert.Equal(expected, writer.ToString());
     }
 }

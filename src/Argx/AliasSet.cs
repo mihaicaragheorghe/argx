@@ -14,6 +14,10 @@ public class AliasSet
 
     public bool Contains(string alias) => _aliases.Contains(alias);
 
+    public int Count => _aliases.Count;
+
+    public string First() => _aliases.First();
+
     public void Add(string alias)
     {
         if (!IsValid(alias))
@@ -25,4 +29,6 @@ public class AliasSet
     }
 
     private static bool IsValid(string alias) => !string.IsNullOrWhiteSpace(alias) && alias[0] == '-';
+
+    public override string ToString() => string.Join(", ", _aliases);
 }
