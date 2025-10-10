@@ -8,12 +8,48 @@ namespace Argx.Tests.Parsing;
 public partial class ArgumentParserTests
 {
     [Fact]
+    public void AddArgument_ShouldThrowInvalidOperationException_WhenArgIsOption()
+    {
+        var parser = new ArgumentParser();
+        Assert.Throws<InvalidOperationException>(() => parser.AddArgument("--foo"));
+    }
+
+    [Fact]
+    public void AddArgumentT_ShouldThrowInvalidOperationException_WhenArgIsOption()
+    {
+        var parser = new ArgumentParser();
+        Assert.Throws<InvalidOperationException>(() => parser.AddArgument<int>("--foo"));
+    }
+
+    [Fact]
+    public void AddArgumentT_ShouldAddPositionalArgument_WhenValid()
+    {
+        var repository = new Mock<IArgumentRepository>();
+        var parser = new ArgumentParser(repository.Object);
+        parser.AddArgument<int>("foo");
+        _ = parser.ParseInternal(["69"]);
+
+        repository.Verify(x => x.Set("foo", 69));
+    }
+
+    [Fact]
+    public void AddArgument_ShouldAddPositionalArgument_WhenValid()
+    {
+        var repository = new Mock<IArgumentRepository>();
+        var parser = new ArgumentParser(repository.Object);
+        parser.AddArgument("foo");
+        _ = parser.ParseInternal(["bar"]);
+
+        repository.Verify(x => x.Set("foo", "bar"));
+    }
+
+    [Fact]
     public void Parse_ShouldStoreArg_WhenValidPositional()
     {
         var parser = new ArgumentParser();
         parser.Add("foo");
 
-        var result = parser.Parse(["bar"]);
+        var result = parser.ParseInternal(["bar"]);
 
         Assert.Equal("bar", result["foo"]);
     }
@@ -25,7 +61,7 @@ public partial class ArgumentParserTests
         parser.Add("foo");
         parser.Add("bar");
 
-        var result = parser.Parse(["baz", "qux"]);
+        var result = parser.ParseInternal(["baz", "qux"]);
 
         Assert.Equal("baz", result["foo"]);
         Assert.Equal("qux", result["bar"]);
@@ -37,7 +73,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add("foo", dest: "bar");
 
-        var result = parser.Parse(["baz"]);
+        var result = parser.ParseInternal(["baz"]);
 
         Assert.Equal("baz", result["bar"]);
     }
@@ -49,7 +85,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser(repo.Object);
         parser.Add<int>("x");
 
-        _ = parser.Parse(["21"]);
+        _ = parser.ParseInternal(["21"]);
 
         repo.Verify(x => x.Set("x", 21));
     }
@@ -62,7 +98,7 @@ public partial class ArgumentParserTests
         parser.Add<int>("x");
         parser.Add<int>("y");
 
-        var result = parser.Parse(args);
+        var result = parser.ParseInternal(args);
 
         Assert.Equal("21", result["x"]);
         Assert.Equal("22", result["y"]);
@@ -76,7 +112,7 @@ public partial class ArgumentParserTests
         parser.Add<int>("x");
         parser.Add<int>("y");
 
-        var result = parser.Parse(args);
+        var result = parser.ParseInternal(args);
 
         Assert.True(result.TryGetValue<int>("x", out var x));
         Assert.True(result.TryGetValue<int>("y", out var y));
@@ -91,6 +127,20 @@ public partial class ArgumentParserTests
         string[] args = ["foo"];
         parser.Add<int[]>("echo", arity: "2");
 
-        Assert.Throws<InvalidOperationException>(() => parser.Parse(args));
+        Assert.Throws<InvalidOperationException>(() => parser.ParseInternal(args));
+    }
+
+    [Fact]
+    public void Parse_ShouldAddToExtras_WhenNoMoreArguments()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<int>("x");
+        parser.Add<int>("y");
+
+        var result = parser.ParseInternal(["1", "2", "3"]);
+        
+        Assert.Equal("1", result["x"]);
+        Assert.Equal("2", result["y"]);
+        Assert.Contains("3", result.Extras);
     }
 }

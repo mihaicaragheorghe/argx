@@ -14,6 +14,7 @@ internal static class ActionRegistry
             [ArgumentActions.Choice] = new ChoiceAction(),
             [ArgumentActions.Count] = new CountAction(),
             [ArgumentActions.Append] = new AppendAction(),
+            [ArgumentActions.NoAction] = new NoAction(),
         };
 
     internal static int DefaultArity(string action)

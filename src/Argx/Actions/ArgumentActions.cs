@@ -15,4 +15,6 @@ public static class ArgumentActions
     public const string Count = "count";
 
     public const string Append = "append";
+
+    internal const string NoAction = "no_action";
 }

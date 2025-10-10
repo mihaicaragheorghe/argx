@@ -38,7 +38,7 @@ internal static partial class TokenConverter
             return TokenConversionResult.Success(converted);
         }
 
-        return TokenConversionResult.Failure($"Failed to convert '{token}' to type {type.GetFriendlyName()}");
+        return TokenConversionResult.Failure($"Failed to convert '{token}' to {type.GetFriendlyName()}");
     }
 
     private static TokenConversionResult ConvertSpan(Type type, ReadOnlySpan<Token> tokens)

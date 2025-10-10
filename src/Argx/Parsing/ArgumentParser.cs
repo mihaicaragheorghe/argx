@@ -1,4 +1,5 @@
 using Argx.Actions;
+using Argx.Errors;
 using Argx.Extensions;
 using Argx.Help;
 using Argx.Store;
@@ -16,7 +17,9 @@ public class ArgumentParser
     public string? Epilogue { get; }
 
     private readonly List<Argument> _knownOpts = [];
-    private readonly Queue<Argument> _knownArgs = [];
+    private readonly List<Argument> _knownArgs = [];
+    private int _nextArgPos;
+
     private readonly IArgumentRepository _repository;
     private readonly ArgumentParserConfiguration _configuration;
 
@@ -38,7 +41,8 @@ public class ArgumentParser
 
         if (config.AddHelpArgument)
         {
-            _knownOpts.Add(new Argument("--help", alias: "-h", usage: "Print help", action: ArgumentActions.StoreTrue));
+            _knownOpts.Add(new Argument("--help", alias: "-h", usage: "Print help message",
+                action: ArgumentActions.NoAction));
         }
     }
 
@@ -102,7 +106,8 @@ public class ArgumentParser
 
         if (isPositional && alias != null)
         {
-            throw new InvalidOperationException("Positional arguments cannot have an alias");
+            throw new InvalidOperationException(
+                $"Argument {name}: positional arguments cannot have an alias, consider using an optional argument");
         }
 
         var arg = new Argument(
@@ -127,7 +132,7 @@ public class ArgumentParser
 
         if (isPositional)
         {
-            _knownArgs.Enqueue(arg);
+            _knownArgs.Add(arg);
         }
         else
         {
@@ -219,7 +224,28 @@ public class ArgumentParser
             arity: arity);
     }
 
-    public Arguments Parse(string[] args)
+    public Arguments Parse(params string[] args)
+    {
+        try
+        {
+            return ParseInternal(args);
+        }
+        catch (ArgumentValueException ex)
+        {
+            if (!_configuration.ExitOnError)
+            {
+                throw;
+            }
+
+            Console.WriteLine(ex.Message);
+            Console.WriteLine();
+            WriteUsage(Console.Out);
+            Environment.Exit(1);
+            return null;
+        }
+    }
+
+    internal Arguments ParseInternal(string[] args)
     {
         var result = new Arguments(_repository);
         var tokens = args.Tokenize();
@@ -256,14 +282,15 @@ public class ArgumentParser
 
     private void ConsumePositional(Token token, Arguments result)
     {
-        if (_knownArgs.Count == 0)
+        if (_nextArgPos >= _knownArgs.Count)
         {
             result.Extras.Add(token.Value);
             return;
         }
 
-        var arg = _knownArgs.Dequeue();
+        var arg = _knownArgs[_nextArgPos];
 
+        // TODO: support for arity and actions for positional arguments
         if (arg.Arity != 1)
         {
             throw new InvalidOperationException($"Argument {arg.Name}: arity for positional arguments should be 1");
@@ -275,11 +302,14 @@ public class ArgumentParser
             argument: arg,
             repository: _repository,
             tokens: [new Token(arg.Name, TokenType.Argument, Token.ImplicitPosition), token]);
+
+        _nextArgPos++;
     }
 
     private int ConsumeOption(int idx, ReadOnlySpan<Token> tokens, Arguments result)
     {
         var token = tokens[idx];
+        // TODO: optimize this
         var arg = _knownOpts.FirstOrDefault(a => a.Name == token.Value || a.Aliases?.Contains(token.Value) == true);
 
         if (arg is null)
@@ -330,7 +360,7 @@ public class ArgumentParser
 
                 if (arg.Arity.Value == Arity.AtLeastOne && count == 0)
                 {
-                    throw new InvalidOperationException($"Argument '{arg.Name}' requires at least one value.");
+                    throw new ArgumentValueException(arg.Name, "requires at least one value");
                 }
 
                 return count;
@@ -340,14 +370,11 @@ public class ArgumentParser
         }
     }
 
+    private List<Argument> ConcatArguments() => new List<Argument>(_knownOpts).Concat(_knownArgs).ToList();
+
     internal void WriteHelp(TextWriter writer)
     {
-        var arguments = new List<Argument>(_knownOpts);
-        while (_knownArgs.Count > 0)
-        {
-            arguments.Add(_knownArgs.Dequeue());
-        }
-
+        var arguments = ConcatArguments();
         var builder = new HelpBuilder(_configuration.HelpConfiguration);
 
         if (!string.IsNullOrEmpty(Program))
@@ -368,15 +395,32 @@ public class ArgumentParser
             builder.AddUsage(arguments, Program);
         }
 
-        builder.AddArguments(arguments);
+        builder.AddArguments(_knownArgs, "Positional arguments");
+        builder.AddArguments(_knownOpts, "Options");
 
         if (!string.IsNullOrEmpty(Epilogue))
         {
             builder.AddText(Epilogue);
         }
 
-        var stdout = builder.Build();
-        writer.WriteLine(stdout);
+        writer.WriteLine(builder.Build());
+    }
+
+    private void WriteUsage(TextWriter writer)
+    {
+        var builder = new HelpBuilder(_configuration.HelpConfiguration);
+        var arguments = ConcatArguments();
+
+        if (!string.IsNullOrEmpty(Usage))
+        {
+            builder.AddSection("Usage", Usage);
+        }
+        else
+        {
+            builder.AddUsage(arguments, Program);
+        }
+
+        writer.WriteLine(builder.Build());
     }
 
     private static bool IsPositional(string s) => s.Length > 0 && s[0] != '-';

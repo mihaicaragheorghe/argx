@@ -1,5 +1,7 @@
 using System.Reflection;
 
+using Argx.Actions;
+using Argx.Errors;
 using Argx.Parsing;
 using Argx.Store;
 
@@ -63,7 +65,7 @@ public partial class ArgumentParserTests
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
         parser.AddOption("--foo");
-        _ = parser.Parse(["--foo", "bar"]);
+        _ = parser.ParseInternal(["--foo", "bar"]);
 
         repository.Verify(x => x.Set("foo", "bar"));
     }
@@ -74,108 +76,7 @@ public partial class ArgumentParserTests
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
         parser.AddOption<int>("--foo");
-        _ = parser.Parse(["--foo", "69"]);
-
-        repository.Verify(x => x.Set("foo", 69));
-    }
-
-    [Fact]
-    public void AddArgument_ShouldAddPositionalArgument_WhenValid()
-    {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
-        parser.AddArgument("foo");
-        _ = parser.Parse(["bar"]);
-
-        repository.Verify(x => x.Set("foo", "bar"));
-    }
-
-    [Fact]
-    public void AddArgument_ShouldThrowInvalidOperationException_WhenArgIsOption()
-    {
-        var parser = new ArgumentParser();
-        Assert.Throws<InvalidOperationException>(() => parser.AddArgument("--foo"));
-    }
-
-    [Fact]
-    public void AddArgumentT_ShouldThrowInvalidOperationException_WhenArgIsOption()
-    {
-        var parser = new ArgumentParser();
-        Assert.Throws<InvalidOperationException>(() => parser.AddArgument<int>("--foo"));
-    }
-
-    [Fact]
-    public void AddArgumentT_ShouldAddPositionalArgument_WhenValid()
-    {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
-        parser.AddArgument<int>("foo");
-        _ = parser.Parse(["69"]);
-
-        repository.Verify(x => x.Set("foo", 69));
-    }
-
-    [Fact]
-    public void AddFlag_ShouldAddFlagOption_WhenValid()
-    {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
-        parser.AddFlag("--foo", ["-f"]);
-        _ = parser.Parse(["--foo"]);
-
-        repository.Verify(x => x.Set("foo", true));
-    }
-
-    [Fact]
-    public void AddFlag_ShouldAddFalseFlagOption_WhenValueIsFalse()
-    {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
-        parser.AddFlag("--foo", ["-f"], value: false);
-        _ = parser.Parse(["--foo"]);
-
-        repository.Verify(x => x.Set("foo", false));
-    }
-
-    [Fact]
-    public void AddFlag_ShouldThrowInvalidOperationException_WhenArgIsNotOption()
-    {
-        var parser = new ArgumentParser();
-        Assert.Throws<InvalidOperationException>(() => parser.AddArgument("--foo"));
-    }
-
-    [Fact]
-    public void AddOption_ShouldAddOptionalArgument_WhenValid()
-    {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
-        parser.AddOption("--foo");
-        _ = parser.Parse(["--foo", "bar"]);
-
-        repository.Verify(x => x.Set("foo", "bar"));
-    }
-
-    [Fact]
-    public void AddOption_ShouldThrowInvalidOperationException_WhenArgIsNotOption()
-    {
-        var parser = new ArgumentParser();
-        Assert.Throws<InvalidOperationException>(() => parser.AddOption("foo"));
-    }
-
-    [Fact]
-    public void AddOptionT_ShouldThrowInvalidOperationException_WhenArgIsOption()
-    {
-        var parser = new ArgumentParser();
-        Assert.Throws<InvalidOperationException>(() => parser.AddOption<int>("foo"));
-    }
-
-    [Fact]
-    public void AddOptionT_ShouldAddOptionalArgument_WhenValid()
-    {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
-        parser.AddOption<int>("--foo");
-        _ = parser.Parse(["--foo", "69"]);
+        _ = parser.ParseInternal(["--foo", "69"]);
 
         repository.Verify(x => x.Set("foo", 69));
     }
@@ -188,7 +89,7 @@ public partial class ArgumentParserTests
         parser.Add("arg1");
         parser.Add("arg2");
 
-        var result = parser.Parse(["--foo", "bar", "--", "--baz", "qux"]);
+        var result = parser.ParseInternal(["--foo", "bar", "--", "--baz", "qux"]);
 
         Assert.Equal("--baz", result["arg1"]);
         Assert.Equal("qux", result["arg2"]);
@@ -212,12 +113,21 @@ public partial class ArgumentParserTests
         parser.Add("x");
         parser.Add("y");
 
-        var result = parser.Parse(args);
+        var result = parser.ParseInternal(args);
 
         Assert.Equal("bar", result["foo"]);
         Assert.Equal("qux", result["bax"]);
         Assert.Equal("123", result["x"]);
         Assert.Equal("456", result["y"]);
+    }
+
+    [Fact]
+    public void Parse_ShouldRethrow_WhenNotExitOnError()
+    {
+        var parser = new ArgumentParser(configuration: new ArgumentParserConfiguration { ExitOnError = false });
+        parser.Add("--foo", action: ArgumentActions.Choice, choices: ["bar"]);
+
+        Assert.Throws<ArgumentValueException>(() => parser.Parse("--foo", "baz"));
     }
 
     [Fact]
@@ -237,7 +147,7 @@ public partial class ArgumentParserTests
 
                                 Arguments:
                                   --foo
-                                  --help, -h  Print help
+                                  --help, -h  Print help message
                                   x
                                   y
 
@@ -267,7 +177,7 @@ public partial class ArgumentParserTests
 
                         Arguments:
                           --foo
-                          --help, -h  Print help
+                          --help, -h  Print help message
                           x
                           y
 
@@ -293,7 +203,7 @@ public partial class ArgumentParserTests
 
                         Arguments:
                           --foo
-                          --help, -h  Print help
+                          --help, -h  Print help message
                           x
                           y
 
@@ -318,7 +228,7 @@ public partial class ArgumentParserTests
 
                                  Arguments:
                                    --foo
-                                   --help, -h  Print help
+                                   --help, -h  Print help message
                                    x
                                    y
 
@@ -343,7 +253,7 @@ public partial class ArgumentParserTests
 
                                  Arguments:
                                    --foo
-                                   --help, -h  Print help
+                                   --help, -h  Print help message
                                    x
                                    y
 
