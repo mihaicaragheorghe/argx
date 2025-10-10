@@ -27,6 +27,10 @@ public partial class ArgumentParserTests
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
         parser.AddArgument<int>("foo");
+        repository
+            .Setup(x => x.Contains("foo"))
+            .Returns(true);
+
         _ = parser.ParseInternal(["69"]);
 
         repository.Verify(x => x.Set("foo", 69));
@@ -38,6 +42,10 @@ public partial class ArgumentParserTests
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
         parser.AddArgument("foo");
+        repository
+            .Setup(x => x.Contains("foo"))
+            .Returns(true);
+
         _ = parser.ParseInternal(["bar"]);
 
         repository.Verify(x => x.Set("foo", "bar"));
@@ -84,6 +92,8 @@ public partial class ArgumentParserTests
         var repo = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repo.Object);
         parser.Add<int>("x");
+        repo.Setup(x => x.Contains("x"))
+            .Returns(true);
 
         _ = parser.ParseInternal(["21"]);
 
@@ -138,7 +148,7 @@ public partial class ArgumentParserTests
         parser.Add<int>("y");
 
         var result = parser.ParseInternal(["1", "2", "3"]);
-        
+
         Assert.Equal("1", result["x"]);
         Assert.Equal("2", result["y"]);
         Assert.Contains("3", result.Extras);

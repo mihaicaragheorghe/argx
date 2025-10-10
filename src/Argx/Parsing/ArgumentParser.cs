@@ -18,7 +18,6 @@ public class ArgumentParser
 
     private readonly List<Argument> _knownOpts = [];
     private readonly List<Argument> _knownArgs = [];
-    private int _nextArgPos;
 
     private readonly IArgumentRepository _repository;
     private readonly ArgumentParserConfiguration _configuration;
@@ -250,6 +249,7 @@ public class ArgumentParser
         var result = new Arguments(_repository);
         var tokens = args.Tokenize();
         var consumeOpts = true;
+        var nextArgIdx = 0;
 
         for (int i = 0; i < tokens.Length; i++)
         {
@@ -273,22 +273,28 @@ public class ArgumentParser
 
             if (tokens[i].Type == TokenType.Argument || !consumeOpts)
             {
-                ConsumePositional(tokens[i], result);
+                ConsumePositional(tokens[i], result, nextArgIdx);
+                nextArgIdx++;
             }
+        }
+
+        if (!ValidateRequiredArgs(out var name))
+        {
+            throw new ArgumentValueException(name!, "expected value");
         }
 
         return result;
     }
 
-    private void ConsumePositional(Token token, Arguments result)
+    private void ConsumePositional(Token token, Arguments result, int idx)
     {
-        if (_nextArgPos >= _knownArgs.Count)
+        if (idx >= _knownArgs.Count)
         {
             result.Extras.Add(token.Value);
             return;
         }
 
-        var arg = _knownArgs[_nextArgPos];
+        var arg = _knownArgs[idx];
 
         // TODO: support for arity and actions for positional arguments
         if (arg.Arity != 1)
@@ -302,8 +308,6 @@ public class ArgumentParser
             argument: arg,
             repository: _repository,
             tokens: [new Token(arg.Name, TokenType.Argument, Token.ImplicitPosition), token]);
-
-        _nextArgPos++;
     }
 
     private int ConsumeOption(int idx, ReadOnlySpan<Token> tokens, Arguments result)
@@ -368,6 +372,21 @@ public class ArgumentParser
             default:
                 throw new InvalidOperationException($"Unknown arity value: {arg.Arity.Value}");
         }
+    }
+
+    private bool ValidateRequiredArgs(out string? argName)
+    {
+        foreach (var arg in _knownArgs.Where(a => a.ConstValue is null))
+        {
+            if (!_repository.Contains(arg.Dest))
+            {
+                argName = arg.Name;
+                return false;
+            }
+        }
+
+        argName = null;
+        return true;
     }
 
     private List<Argument> ConcatArguments() => new List<Argument>(_knownOpts).Concat(_knownArgs).ToList();

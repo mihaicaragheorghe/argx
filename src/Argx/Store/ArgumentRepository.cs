@@ -32,4 +32,6 @@ public sealed class ArgumentRepository : IArgumentRepository
         value = null;
         return false;
     }
+
+    public bool Contains(string arg) => _values.ContainsKey(arg);
 }

@@ -131,6 +131,17 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
+    public void Parse_ShouldThrowArgumentValueException_WhenRequiredArgNotProvided()
+    {
+        var parser = new ArgumentParser();
+        parser.Add("foo");
+        parser.Add("bar");
+
+        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["foo"]));
+        Assert.Equal("Error: argument bar: expected value", ex.Message);
+    }
+
+    [Fact]
     public void WriteHelp_ShouldWriteHelp()
     {
         var parser = new ArgumentParser("prog", "what the program does", epilogue: "check website");
@@ -145,11 +156,13 @@ public partial class ArgumentParserTests
                                 Usage:
                                   prog [--help] [--foo FOO] x y
 
-                                Arguments:
-                                  --foo
-                                  --help, -h  Print help message
+                                Positional arguments:
                                   x
                                   y
+
+                                Options:
+                                  --foo
+                                  --help, -h  Print help message
 
                                 check website
 
@@ -175,11 +188,13 @@ public partial class ArgumentParserTests
                         Usage:
                           {program} [--help] [--foo FOO] x y
 
-                        Arguments:
-                          --foo
-                          --help, -h  Print help message
+                        Positional arguments:
                           x
                           y
+
+                        Options:
+                          --foo
+                          --help, -h  Print help message
 
                         """;
 
@@ -201,11 +216,13 @@ public partial class ArgumentParserTests
                         Usage:
                           {program} [--help] [--foo FOO] x y
 
-                        Arguments:
-                          --foo
-                          --help, -h  Print help message
+                        Positional arguments:
                           x
                           y
+
+                        Options:
+                          --foo
+                          --help, -h  Print help message
 
                         """;
 
@@ -226,11 +243,13 @@ public partial class ArgumentParserTests
                                  Usage:
                                    prog x y
 
-                                 Arguments:
-                                   --foo
-                                   --help, -h  Print help message
+                                 Positional arguments:
                                    x
                                    y
+
+                                 Options:
+                                   --foo
+                                   --help, -h  Print help message
 
                                  """;
 
@@ -251,11 +270,13 @@ public partial class ArgumentParserTests
                                  Usage:
                                    prog x y
 
-                                 Arguments:
-                                   --foo
-                                   --help, -h  Print help message
+                                 Positional arguments:
                                    x
                                    y
+
+                                 Options:
+                                   --foo
+                                   --help, -h  Print help message
 
                                  """;
 

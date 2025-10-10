@@ -6,6 +6,6 @@ parser.AddOption<int>("--count", ["-c"], usage: "count argument");
 parser.AddFlag("--verbose", ["-v"], usage: "verbose argument, on/off flag");
 
 var argx = parser.Parse(args);
-var filename = argx.GetRequired<int>("filename");
+var filename = argx.GetRequired<string>("filename");
 
 Console.WriteLine(filename);
