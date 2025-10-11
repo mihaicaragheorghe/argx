@@ -16,8 +16,8 @@ public class ArgumentParser
 
     public string? Epilogue { get; }
 
-    private readonly List<Argument> _knownOpts = [];
-    private readonly List<Argument> _knownArgs = [];
+    private readonly OptionSet _knownOpts = new();
+    private readonly PositionalList _knownArgs = [];
 
     private readonly IArgumentRepository _repository;
     private readonly ArgumentParserConfiguration _configuration;
@@ -244,7 +244,8 @@ public class ArgumentParser
             Console.WriteLine(ex.Message);
             Console.WriteLine();
             WriteUsage(Console.Out);
-            Environment.Exit(1);
+
+            Environment.Exit(_configuration.ErrorExitCode);
             return null;
         }
     }
@@ -254,7 +255,6 @@ public class ArgumentParser
         var result = new Arguments(_repository);
         var tokens = args.Tokenize();
         var consumeOpts = true;
-        var nextArgIdx = 0;
 
         for (int i = 0; i < tokens.Length; i++)
         {
@@ -262,12 +262,6 @@ public class ArgumentParser
             {
                 consumeOpts = false;
                 continue;
-            }
-
-            if (_configuration.AddHelpArgument && tokens[i] == "-h" || tokens[i] == "--help")
-            {
-                WriteHelp(Console.Out);
-                Environment.Exit(0);
             }
 
             if (consumeOpts && tokens[i].Type == TokenType.Option)
@@ -278,8 +272,7 @@ public class ArgumentParser
 
             if (tokens[i].Type == TokenType.Argument || !consumeOpts)
             {
-                i += ConsumePositional(i, nextArgIdx, tokens, result);
-                nextArgIdx++;
+                i += ConsumePositional(i, tokens, result);
             }
         }
 
@@ -291,26 +284,26 @@ public class ArgumentParser
         return result;
     }
 
-    private int ConsumePositional(int idx, int nextArgIdx, ReadOnlySpan<Token> tokens, Arguments result)
+    private int ConsumePositional(int idx, ReadOnlySpan<Token> tokens, Arguments result)
     {
-        if (nextArgIdx >= _knownArgs.Count)
+        if (_knownArgs.ReachedEnd)
         {
             result.Extras.Add(tokens[idx].Value);
             return 0;
         }
 
-        var arg = _knownArgs[nextArgIdx];
+        var argument = _knownArgs.Pop();
 
-        if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))
+        if (!ActionRegistry.TryGetHandler(argument.Action, out var handler))
         {
-            throw new InvalidOperationException($"Unknown action for argument {arg.Name}");
+            throw new InvalidOperationException($"Unknown action for argument {argument.Name}");
         }
 
-        var len = ParseArity(arg, tokens, idx);
+        var len = ParseArity(argument, tokens, idx);
 
         handler!.Execute(
-            arg: arg,
-            invocation: new Token(arg.Name, TokenType.Argument, Token.ImplicitPosition),
+            arg: argument,
+            invocation: new Token(argument.Name, TokenType.Argument, Token.ImplicitPosition),
             values: tokens.Slice(idx, len),
             store: _repository);
 
@@ -320,8 +313,14 @@ public class ArgumentParser
     private int ConsumeOption(int idx, ReadOnlySpan<Token> tokens, Arguments result)
     {
         var token = tokens[idx];
-        // TODO: optimize this
-        var arg = _knownOpts.FirstOrDefault(a => a.Name == token.Value || a.Aliases?.Contains(token.Value) == true);
+
+        if (_configuration.AddHelpArgument && token == "-h" || token == "--help")
+        {
+            WriteHelp(Console.Out);
+            Environment.Exit(0);
+        }
+
+        var arg = _knownOpts.Get(token.Value);
 
         if (arg is null)
         {
@@ -345,17 +344,17 @@ public class ArgumentParser
         return len;
     }
 
-    private static int ParseArity(Argument arg, ReadOnlySpan<Token> tokens, int from)
+    private static int ParseArity(Argument argument, ReadOnlySpan<Token> tokens, int from)
     {
-        if (arg.Arity.IsFixed)
+        if (argument.Arity.IsFixed)
         {
-            return int.Parse(arg.Arity.Value);
+            return int.Parse(argument.Arity.Value);
         }
 
         var count = 0;
         var idx = tokens[from].Type == TokenType.Option ? from + 1 : from;
 
-        switch (arg.Arity.Value)
+        switch (argument.Arity.Value)
         {
             case Arity.Optional:
                 if (idx < tokens.Length && tokens[idx].Type == TokenType.Argument)
@@ -373,21 +372,21 @@ public class ArgumentParser
                     idx++;
                 }
 
-                if (arg.Arity.Value == Arity.AtLeastOne && count == 0)
+                if (argument.Arity.Value == Arity.AtLeastOne && count == 0)
                 {
-                    throw new ArgumentValueException(arg.Name, "requires at least one value");
+                    throw new ArgumentValueException(argument.Name, "requires at least one value");
                 }
 
                 return count;
 
             default:
-                throw new InvalidOperationException($"Unknown arity value: {arg.Arity.Value}");
+                throw new InvalidOperationException($"Unknown arity value: {argument.Arity.Value}");
         }
     }
 
     private bool ValidateRequiredArgs(out string? argName)
     {
-        foreach (var arg in _knownArgs.Where(a => a.ConstValue is null))
+        foreach (var arg in _knownArgs)
         {
             if (!_repository.Contains(arg.Dest))
             {
@@ -400,7 +399,7 @@ public class ArgumentParser
         return true;
     }
 
-    private List<Argument> ConcatArguments() => new List<Argument>(_knownOpts).Concat(_knownArgs).ToList();
+    private List<Argument> ConcatArguments() => new List<Argument>(_knownOpts.ToList()).Concat(_knownArgs).ToList();
 
     internal void WriteHelp(TextWriter writer)
     {
@@ -426,7 +425,7 @@ public class ArgumentParser
         }
 
         builder.AddArguments(_knownArgs, "Positional arguments");
-        builder.AddArguments(_knownOpts, "Options");
+        builder.AddArguments(_knownOpts.ToList(), "Options");
 
         if (!string.IsNullOrEmpty(Epilogue))
         {

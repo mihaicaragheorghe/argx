@@ -1,6 +1,8 @@
+using System.Collections;
+
 namespace Argx;
 
-public class AliasSet
+public class AliasSet : IEnumerable<string>
 {
     private readonly HashSet<string> _aliases = new(StringComparer.Ordinal);
 
@@ -29,6 +31,9 @@ public class AliasSet
     }
 
     private static bool IsValid(string alias) => !string.IsNullOrWhiteSpace(alias) && alias[0] == '-';
+
+    public IEnumerator<string> GetEnumerator() => _aliases.GetEnumerator();
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public override string ToString() => string.Join(", ", _aliases);
 }
