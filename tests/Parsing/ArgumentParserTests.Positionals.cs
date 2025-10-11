@@ -1,3 +1,5 @@
+using Argx.Actions;
+using Argx.Errors;
 using Argx.Parsing;
 using Argx.Store;
 
@@ -22,7 +24,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void AddArgumentT_ShouldAddPositionalArgument_WhenValid()
+    public void AddArgumentT_ShouldAddPositional_WhenValid()
     {
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
@@ -37,7 +39,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void AddArgument_ShouldAddPositionalArgument_WhenValid()
+    public void AddArgument_ShouldAddPositional_WhenValid()
     {
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
@@ -52,7 +54,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldStoreArg_WhenValidPositional()
+    public void Parse_ShouldStoreValue_WhenValidPositional()
     {
         var parser = new ArgumentParser();
         parser.Add("foo");
@@ -63,7 +65,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldStoreArgs_WhenValidPositionalArguments()
+    public void Parse_ShouldStoreValues_WhenValidPositionals()
     {
         var parser = new ArgumentParser();
         parser.Add("foo");
@@ -76,7 +78,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldStoreArgToDest_WhenValidPositional()
+    public void Parse_ShouldStoreValueToDest_WhenHasDest()
     {
         var parser = new ArgumentParser();
         parser.Add("foo", dest: "bar");
@@ -87,7 +89,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldStoreArgT_WhenValidPositionalT()
+    public void Parse_ShouldStoreTValue_WhenValidPositionalT()
     {
         var repo = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repo.Object);
@@ -101,7 +103,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldStoreValues_WhenTypedPositionalArguments()
+    public void Parse_ShouldStoreValues_WhenTypedPositionals()
     {
         var parser = new ArgumentParser();
         string[] args = ["21", "22"];
@@ -115,7 +117,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldStoreCorrectType_WhenTypedPositionalArguments()
+    public void Parse_ShouldStoreCorrectType_WhenTypedPositionals()
     {
         var parser = new ArgumentParser();
         string[] args = ["21", "22"];
@@ -131,17 +133,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldThrowInvalidOperationException_WhenArityNotOne()
-    {
-        var parser = new ArgumentParser();
-        string[] args = ["foo"];
-        parser.Add<int[]>("echo", arity: "2");
-
-        Assert.Throws<InvalidOperationException>(() => parser.ParseInternal(args));
-    }
-
-    [Fact]
-    public void Parse_ShouldAddToExtras_WhenNoMoreArguments()
+    public void Parse_ShouldAddToExtras_WhenNoPositionalsLeft()
     {
         var parser = new ArgumentParser();
         parser.Add<int>("x");
@@ -152,5 +144,65 @@ public partial class ArgumentParserTests
         Assert.Equal("1", result["x"]);
         Assert.Equal("2", result["y"]);
         Assert.Contains("3", result.Extras);
+    }
+
+    [Fact]
+    public void Parse_ShouldParseFixedTokens_WhenArityIsFixed()
+    {
+        var parser = new ArgumentParser();
+        string[] expected = ["bar", "baz", "qux"];
+        parser.Add<string[]>("foo", arity: "3", action: ArgumentActions.Store);
+
+        var result = parser.ParseInternal(["bar", "baz", "qux", "--extra"]);
+
+        Assert.True(result.TryGetValue<string[]>("foo", out var actual));
+        Assert.Equal(expected, actual);
+        Assert.Contains("--extra", result.Extras);
+    }
+
+    [Fact]
+    public void Parse_ShouldParseToken_WhenPositionalAndArityOptional()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<string>("foo", arity: Arity.Optional, action: ArgumentActions.Store);
+
+        var result = parser.ParseInternal(["bar", "baz", "qux"]);
+        Assert.True(result.TryGetValue<string>("foo", out var actual));
+        Assert.Equal("bar", actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldParseArgumentTokens_WhenPositionalAndArityAny()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<string[]>("foo", arity: Arity.Any, action: ArgumentActions.Store);
+
+        var result = parser.ParseInternal(["bar", "baz", "--qux", "quux"]);
+
+        Assert.True(result.TryGetValue<string[]>("foo", out var actual));
+        Assert.Equal(["bar", "baz"], actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldParseArgumentTokens_WhenArityAtLeastOne()
+    {
+        var parser = new ArgumentParser();
+        string[] expected = ["bar", "baz"];
+        parser.Add<string[]>("foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
+
+        var result = parser.ParseInternal(["bar", "baz", "--qux", "quux"]);
+
+        Assert.True(result.TryGetValue<string[]>("foo", out var actual));
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void Parse_ShouldThrowInvalidOperationException_WhenArityAtLeastOneAndNoToken()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<string[]>("foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
+        parser.Add<string[]>("--bar", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
+
+        Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["--bar", "baz", "qux", "quux"]));
     }
 }

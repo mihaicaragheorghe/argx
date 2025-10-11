@@ -122,6 +122,11 @@ public class ArgumentParser
             isPositional: isPositional,
             type: typeof(T));
 
+        if (isPositional && arg.Arity == 0)
+        {
+            throw new InvalidOperationException($"Argument {arg.Name}: positional arguments cannot have arity 0");
+        }
+
         if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))
         {
             throw new ArgumentException($"Argument {arg.Name}: Unknown action '{action}'");
@@ -273,7 +278,7 @@ public class ArgumentParser
 
             if (tokens[i].Type == TokenType.Argument || !consumeOpts)
             {
-                ConsumePositional(tokens[i], result, nextArgIdx);
+                i += ConsumePositional(i, nextArgIdx, tokens, result);
                 nextArgIdx++;
             }
         }
@@ -286,28 +291,32 @@ public class ArgumentParser
         return result;
     }
 
-    private void ConsumePositional(Token token, Arguments result, int idx)
+    private int ConsumePositional(int idx, int nextArgIdx, ReadOnlySpan<Token> tokens, Arguments result)
     {
-        if (idx >= _knownArgs.Count)
+        if (nextArgIdx >= _knownArgs.Count)
         {
-            result.Extras.Add(token.Value);
-            return;
+            result.Extras.Add(tokens[idx].Value);
+            return 0;
         }
 
-        var arg = _knownArgs[idx];
+        var arg = _knownArgs[nextArgIdx];
 
-        // TODO: support for arity and actions for positional arguments
-        if (arg.Arity != 1)
+        if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))
         {
-            throw new InvalidOperationException($"Argument {arg.Name}: arity for positional arguments should be 1");
+            throw new InvalidOperationException($"Unknown action for argument {arg.Name}");
         }
 
-        var handler = new StoreAction();
+        var len = ParseArity(arg, tokens, idx);
+        var arr = new Token[len + 1];
+        arr[0] = new Token(arg.Name, TokenType.Argument, Token.ImplicitPosition);
+        tokens.Slice(idx, len).CopyTo(arr.AsSpan(1)); // TODO: avoid extra allocation
 
-        handler.Execute(
+        handler!.Execute(
             argument: arg,
             repository: _repository,
-            tokens: [new Token(arg.Name, TokenType.Argument, Token.ImplicitPosition), token]);
+            values: arr);
+
+        return len - 1;
     }
 
     private int ConsumeOption(int idx, ReadOnlySpan<Token> tokens, Arguments result)
@@ -342,7 +351,7 @@ public class ArgumentParser
         }
 
         var count = 0;
-        var idx = from + 1;
+        var idx = tokens[from].Type == TokenType.Option ? from + 1 : from;
 
         switch (arg.Arity.Value)
         {

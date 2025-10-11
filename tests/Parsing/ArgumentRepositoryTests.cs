@@ -113,4 +113,22 @@ public class ArgumentRepositoryTests
         Assert.False(result);
         Assert.Equal(0, value);
     }
+
+    [Fact]
+    public void Contains_ShouldReturnTrue_WhenContainsKey()
+    {
+        var repo = new ArgumentRepository();
+        repo.Set("foo", "bar");
+
+        Assert.True(repo.Contains("foo"));
+    }
+
+    [Fact]
+    public void Contains_ShouldReturnFalse_WhenDoesNotContainKey()
+    {
+        var repo = new ArgumentRepository();
+        repo.Set("foo", "bar");
+
+        Assert.False(repo.Contains("baz"));
+    }
 }

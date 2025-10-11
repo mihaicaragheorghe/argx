@@ -10,21 +10,23 @@ namespace Argx.Tests.Parsing;
 public partial class ArgumentParserTests
 {
     [Fact]
-    public void AddFlag_ShouldAddFlagOption_WhenValid()
+    public void AddFlag_ShouldAddStoreTrueOption_WhenValueIsTrue()
     {
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
-        parser.AddFlag("--foo", ["-f"]);
+
+        parser.AddFlag("--foo", ["-f"], value: true);
         _ = parser.ParseInternal(["--foo"]);
 
         repository.Verify(x => x.Set("foo", true));
     }
 
     [Fact]
-    public void AddFlag_ShouldAddFalseFlagOption_WhenValueIsFalse()
+    public void AddFlag_ShouldAddStoreFalseOption_WhenValueIsFalse()
     {
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
+
         parser.AddFlag("--foo", ["-f"], value: false);
         _ = parser.ParseInternal(["--foo"]);
 
@@ -32,17 +34,18 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void AddFlag_ShouldThrowInvalidOperationException_WhenArgIsNotOption()
+    public void AddFlag_ShouldThrowInvalidOperationException_WhenNotValidOption()
     {
         var parser = new ArgumentParser();
-        Assert.Throws<InvalidOperationException>(() => parser.AddArgument("--foo"));
+        Assert.Throws<InvalidOperationException>(() => parser.AddFlag("foo"));
     }
 
     [Fact]
-    public void AddOption_ShouldAddOptionalArgument_WhenValid()
+    public void AddOption_ShouldAddOption_WhenValid()
     {
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
+
         parser.AddOption("--foo");
         _ = parser.ParseInternal(["--foo", "bar"]);
 
@@ -50,24 +53,25 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void AddOption_ShouldThrowInvalidOperationException_WhenArgIsNotOption()
+    public void AddOption_ShouldThrowInvalidOperationException_WhenNotValidOption()
     {
         var parser = new ArgumentParser();
         Assert.Throws<InvalidOperationException>(() => parser.AddOption("foo"));
     }
 
     [Fact]
-    public void AddOptionT_ShouldThrowInvalidOperationException_WhenArgIsOption()
+    public void AddOptionT_ShouldThrowInvalidOperationException_WhenNotValidOption()
     {
         var parser = new ArgumentParser();
         Assert.Throws<InvalidOperationException>(() => parser.AddOption<int>("foo"));
     }
 
     [Fact]
-    public void AddOptionT_ShouldAddOptionalArgument_WhenValid()
+    public void AddOptionT_ShouldAddOption_WhenValid()
     {
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
+
         parser.AddOption<int>("--foo");
         _ = parser.ParseInternal(["--foo", "69"]);
 
@@ -75,7 +79,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldStoreArg_WhenValidOption()
+    public void Parse_ShouldStoreOption_WhenValid()
     {
         var parser = new ArgumentParser();
         parser.Add("--input");
@@ -86,7 +90,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldStoreArgs_WhenValidOptions()
+    public void Parse_ShouldStoreOptions_WhenValid()
     {
         var parser = new ArgumentParser();
         parser.Add("--foo");
@@ -99,7 +103,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldStoreArgToDest_WhenArgHasDest()
+    public void Parse_ShouldStoreOptionToDest_WhenHasDest()
     {
         var parser = new ArgumentParser();
         parser.Add("--input", dest: "file");
@@ -110,7 +114,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldStoreArgT_WhenValidOptionT()
+    public void Parse_ShouldStoreOptionT_WhenValid()
     {
         var repo = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repo.Object);
@@ -122,12 +126,13 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldThrowInvalidCastException_WhenOptionConversionFails()
+    public void Parse_ShouldThrowArgumentValueException_WhenOptionConversionFails()
     {
         var parser = new ArgumentParser();
         parser.Add<int>("--foo");
 
-        Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["--foo", "bar"]));
+        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["--foo", "bar"]));
+        Assert.Equal("Error: argument --foo: expected type int. Failed to convert 'bar' to int", ex.Message);
     }
 
     [Fact]
@@ -143,21 +148,22 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldSendCorrectTokensToAction_WhenArityIsFixed()
+    public void Parse_ShouldParseFixedTokensLength_WhenArityIsFixed()
     {
         var parser = new ArgumentParser();
         string[] expected = ["bar", "baz", "qux"];
         parser.Add<string[]>("--foo", arity: "3", action: ArgumentActions.Store);
 
-        var result = parser.ParseInternal(["--foo", "bar", "baz", "qux", "--extra"]);
+        var result = parser.ParseInternal(["--foo", "bar", "baz", "qux", "--extra", "quux"]);
 
         Assert.True(result.TryGetValue<string[]>("foo", out var actual));
         Assert.Equal(expected, actual);
         Assert.Contains("--extra", result.Extras);
+        Assert.Contains("quux", result.Extras);
     }
 
     [Fact]
-    public void Parse_ShouldParseValue_WhenArityOptional()
+    public void Parse_ShouldParseNextArgumentToken_WhenExistsAndArityOptional()
     {
         var parser = new ArgumentParser();
         parser.Add<string>("--foo", arity: Arity.Optional, action: ArgumentActions.Store);
@@ -169,19 +175,19 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldNotParseValue_WhenArityOptionalAndNoValue()
+    public void Parse_ShouldUseConstValue_WhenArityOptionalAndNoNextArgumentToken()
     {
         var parser = new ArgumentParser();
         parser.Add<string>("--foo", arity: Arity.Optional, action: ArgumentActions.Store, constValue: "bar");
 
-        var result = parser.ParseInternal(["--foo", "--bar", "baz"]);
+        var result = parser.ParseInternal(["--foo", "--baz", "qux"]);
 
         Assert.True(result.TryGetValue<string>("foo", out var actual));
         Assert.Equal("bar", actual);
     }
 
     [Fact]
-    public void Parse_ShouldParseAllValues_WhenArityAny()
+    public void Parse_ShouldParseAllFollowingArgumentTokens_WhenArityAny()
     {
         var parser = new ArgumentParser();
         parser.Add<string[]>("--foo", arity: Arity.Any, action: ArgumentActions.Store);
@@ -193,7 +199,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldNotParseValues_WhenArityAnyAndNoValues()
+    public void Parse_ShouldUseConst_WhenArityAnyAndNoFollowingArgumentTokens()
     {
         var parser = new ArgumentParser();
         string[] expected = ["barbar"];
@@ -206,7 +212,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldParseAllValues_WhenArityAtLeastOne()
+    public void Parse_ShouldParseAllFollowingArgumentTokens_WhenArityAtLeastOne()
     {
         var parser = new ArgumentParser();
         string[] expected = ["bar", "baz"];
@@ -219,11 +225,13 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldThrowInvalidOperationException_WhenArityAtLeastOneAndNoValueProvided()
+    public void Parse_ShouldThrowInvalidOperationException_WhenArityAtLeastOneAndNoFollowingArgumentTokens()
     {
         var parser = new ArgumentParser();
         parser.Add<string[]>("--foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
 
-        Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["--foo", "--bar", "baz", "qux", "quux"]));
+        var ex = Assert.Throws<ArgumentValueException>(() =>
+            parser.ParseInternal(["--foo", "--bar", "baz", "qux", "quux"]));
+        Assert.Equal("Error: argument --foo: requires at least one value", ex.Message);
     }
 }

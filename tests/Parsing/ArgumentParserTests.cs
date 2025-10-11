@@ -15,17 +15,17 @@ public partial class ArgumentParserTests
     [InlineData("")]
     [InlineData("  ")]
     [InlineData(null)]
-    public void Add_ShouldThrowArgumentException_WhenNullOrEmptyName(string? arg)
+    public void Add_ShouldThrowArgumentException_WhenNameNullOrEmpty(string? name)
     {
         var parser = new ArgumentParser();
-        Assert.Throws<ArgumentException>(() => parser.Add(arg!));
+        Assert.Throws<ArgumentException>(() => parser.Add(name!));
     }
 
     [Fact]
     public void Add_ShouldThrowArgumentException_WhenActionValidationFails()
     {
         var parser = new ArgumentParser();
-        Assert.Throws<ArgumentException>(() => parser.Add("foo", arity: "0"));
+        Assert.Throws<ArgumentException>(() => parser.Add("foo", arity: "2", action: ArgumentActions.Store));
     }
 
     [Fact]
@@ -60,11 +60,19 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
+    public void Add_ShouldThrowInvalidOperationException_WhenPositionalArgWithArityZero()
+    {
+        var parser = new ArgumentParser();
+        Assert.Throws<InvalidOperationException>(() => parser.Add("foo", arity: "0"));
+    }
+
+    [Fact]
     public void Add_ShouldAddArgument_WhenValid()
     {
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
-        parser.AddOption("--foo");
+        parser.Add("--foo");
+
         _ = parser.ParseInternal(["--foo", "bar"]);
 
         repository.Verify(x => x.Set("foo", "bar"));
@@ -75,7 +83,8 @@ public partial class ArgumentParserTests
     {
         var repository = new Mock<IArgumentRepository>();
         var parser = new ArgumentParser(repository.Object);
-        parser.AddOption<int>("--foo");
+        parser.Add<int>("--foo");
+
         _ = parser.ParseInternal(["--foo", "69"]);
 
         repository.Verify(x => x.Set("foo", 69));
@@ -122,7 +131,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldRethrow_WhenNotExitOnError()
+    public void Parse_ShouldThrow_WhenNotExitOnError()
     {
         var parser = new ArgumentParser(configuration: new ArgumentParserConfiguration { ExitOnError = false });
         parser.Add("--foo", action: ArgumentActions.Choice, choices: ["bar"]);
@@ -142,7 +151,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void WriteHelp_ShouldWriteHelp()
+    public void WriteHelp_ShouldWriteProgramDescriptionAndEpilogue_WhenProvided()
     {
         var parser = new ArgumentParser("prog", "what the program does", epilogue: "check website");
         parser.Add("--foo");
@@ -174,7 +183,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void WriteHelp_ShouldNotWriteProgramName_WhenNullOrEmpty()
+    public void WriteHelp_ShouldUseArgvZeroInUsage_WhenProgramNameNullOrEmpty()
     {
         var parser = new ArgumentParser(description: "what the program does");
         parser.Add("--foo");
@@ -203,10 +212,45 @@ public partial class ArgumentParserTests
         Assert.Equal(expected, writer.ToString());
     }
 
-    [Fact]
-    public void WriteHelp_ShouldNotWriteDescription_WhenNullOrEmpty()
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public void WriteHelp_ShouldNotWriteProgramName_WhenNullOrEmpty(string? prog)
     {
-        var parser = new ArgumentParser();
+        var parser = new ArgumentParser(program: prog, description: "what the program does");
+        parser.Add("--foo");
+        parser.Add("x");
+        parser.Add("y");
+        var program = Path.GetFileName(Assembly.GetEntryAssembly()?.Location);
+        var writer = new StringWriter();
+        var expected = $"""
+                        what the program does
+
+                        Usage:
+                          {program} [--help] [--foo FOO] x y
+
+                        Positional arguments:
+                          x
+                          y
+
+                        Options:
+                          --foo
+                          --help, -h  Print help message
+
+                        """;
+
+        parser.WriteHelp(writer);
+
+        Assert.Equal(expected, writer.ToString());
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public void WriteHelp_ShouldNotWriteDescription_WhenNullOrEmpty(string? description)
+    {
+        var parser = new ArgumentParser(description: description);
         parser.Add("--foo");
         parser.Add("x");
         parser.Add("y");
