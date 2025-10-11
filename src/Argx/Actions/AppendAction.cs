@@ -16,51 +16,49 @@ internal class AppendAction : ArgumentAction
         .GetMethods()
         .First(m => m.Name == "TryGetValue" && m.IsGenericMethodDefinition);
 
-    public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
+    public override void Execute(Argument arg, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
     {
-        base.Execute(argument, repository, tokens);
+        base.Execute(arg, invocation, values, store);
 
-        var name = tokens[0].Value;
-
-        if (argument.ConstValue == null && tokens.Length < 2)
+        if (arg.ConstValue == null && values.Length == 0)
         {
-            throw new ArgumentValueException(name, "expected value");
+            throw new ArgumentValueException(invocation, "expected value");
         }
 
-        var genericMethod = TryGetValueMethod.MakeGenericMethod(argument.Type);
-        var itemType = argument.Type.GetElementTypeIfEnumerable()!;
-        object[] parameters = [argument.Dest, null!];
-        var found = (bool)genericMethod.Invoke(repository, parameters)!;
+        var genericMethod = TryGetValueMethod.MakeGenericMethod(arg.Type);
+        var itemType = arg.Type.GetElementTypeIfEnumerable()!;
+        object[] parameters = [arg.Dest, null!];
+        var found = (bool)genericMethod.Invoke(store, parameters)!;
         var obj = found ? parameters[1] : null;
-        var len = tokens.Length == 1 ? GetConstValueLength(argument.ConstValue!) : tokens.Length - 1;
+        var len = values.Length == 0 ? GetConstValueLength(arg.ConstValue!) : values.Length;
 
         IList list;
         var idx = 0;
 
         if (obj is IList src)
         {
-            list = CollectionUtils.CreateCollection(argument.Type, itemType, src.Count + len);
+            list = CollectionUtils.CreateCollection(arg.Type, itemType, src.Count + len);
             CopyItems(src, list);
             idx = src.Count;
         }
         else
         {
             list = obj is null
-                ? CollectionUtils.CreateCollection(argument.Type, itemType, len)
+                ? CollectionUtils.CreateCollection(arg.Type, itemType, len)
                 : throw new InvalidOperationException(
-                    $"Argument {name} in invalid state: appending to non enumerable type not possible");
+                    $"Argument {invocation} in invalid state: appending to non enumerable type not possible");
         }
 
         var isArray = list is Array;
 
-        if (tokens.Length == 1)
+        if (values.Length == 0)
         {
-            if (itemType.IsInstanceOfType(argument.ConstValue))
+            if (itemType.IsInstanceOfType(arg.ConstValue))
             {
-                Append(list, argument.ConstValue, isArray, idx);
+                Append(list, arg.ConstValue, isArray, idx);
                 idx++;
             }
-            else if (argument.ConstValue is IList constList)
+            else if (arg.ConstValue is IList constList)
             {
                 foreach (var item in constList)
                 {
@@ -74,21 +72,21 @@ internal class AppendAction : ArgumentAction
             }
         }
 
-        for (int i = 1; i < tokens.Length; i++)
+        foreach (var value in values)
         {
-            TokenConversionResult result = TokenConverter.ConvertObject(itemType, tokens[i]);
+            TokenConversionResult result = TokenConverter.ConvertObject(itemType, value);
 
             if (result.IsError)
             {
-                throw new ArgumentValueException(name,
-                    $"invalid value '{tokens[i]}', expected type {argument.Type.GetFriendlyName()}. {result.Error}");
+                throw new ArgumentValueException(invocation,
+                    $"invalid value '{value}', expected type {arg.Type.GetFriendlyName()}. {result.Error}");
             }
 
             Append(list, result.Value, isArray, idx);
             idx++;
         }
 
-        repository.Set(argument.Dest, list);
+        store.Set(arg.Dest, list);
     }
 
     private static void Append(IList list, object? value, bool isArray, int idx)

@@ -46,14 +46,12 @@ public class ActionRegistryTests
 
     private class CustomAction : ArgumentAction
     {
-        public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> values)
+        public override void Execute(Argument arg, Token name, ReadOnlySpan<Token> values, IArgumentRepository store)
         {
-            throw new NotImplementedException();
         }
 
         public override void Validate(Argument argument)
         {
-            throw new NotImplementedException();
         }
     }
 }

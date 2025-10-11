@@ -5,7 +5,7 @@ namespace Argx.Actions;
 
 internal class NoAction : ArgumentAction
 {
-    public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> values)
+    public override void Execute(Argument arg, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
     {
     }
 

@@ -5,11 +5,11 @@ namespace Argx.Actions;
 
 internal class StoreTrueAction : ArgumentAction
 {
-    public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
+    public override void Execute(Argument arg, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
     {
-        base.Execute(argument, repository, tokens);
+        base.Execute(arg, invocation, values, store);
 
-        repository.Set(argument.Dest, true);
+        store.Set(arg.Dest, true);
     }
 
     public override void Validate(Argument argument)

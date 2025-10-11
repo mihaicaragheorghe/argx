@@ -6,33 +6,32 @@ namespace Argx.Actions;
 
 internal class ChoiceAction : ArgumentAction
 {
-    public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
+    public override void Execute(Argument arg, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
     {
-        base.Execute(argument, repository, tokens);
-        
-        var name = tokens[0].Value;
+        base.Execute(arg, invocation, values, store);
 
-        if (tokens.Length < 2)
+        if (values.Length == 0)
         {
-            throw new ArgumentValueException(name, "expected value");
+            throw new ArgumentValueException(invocation, "expected value");
         }
 
-        var value = tokens[1].Value;
-        var allowed = string.Join(", ", argument.Choices!);
+        var value = values[0].Value;
+        var allowed = string.Join(", ", arg.Choices!);
 
         if (!allowed.Contains(value))
         {
-            throw new ArgumentValueException(name, $"invalid choice: {value}, chose from {allowed}");
+            throw new ArgumentValueException(invocation, $"invalid choice: {value}, chose from {allowed}");
         }
 
-        repository.Set(argument.Dest, value);
+        store.Set(arg.Dest, value);
     }
 
     public override void Validate(Argument argument)
     {
         if (argument.Arity != 1)
         {
-            throw new ArgumentException($"Argument {argument.Name}: arity for 'choice' must be 1, use 'store' to store collections");
+            throw new ArgumentException(
+                $"Argument {argument.Name}: arity for 'choice' must be 1, use 'store' to store collections");
         }
 
         if (argument.Choices?.Length == 0)

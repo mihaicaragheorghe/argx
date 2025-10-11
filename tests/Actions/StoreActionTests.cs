@@ -47,23 +47,23 @@ public class StoreActionTests
     }
 
     [Fact]
-    public void Execute_ShouldThrowBadArgumentException_WhenTokensLenLessThanTwo()
+    public void Execute_ShouldThrowBadArgumentException_WhenTokensLengthIsZero()
     {
         var arg = new Argument("--foo", arity: "1", dest: "foo");
 
         var ex = Assert.Throws<ArgumentValueException>(() =>
-            _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo")));
+            _sut.Execute(arg, Create.Token("--foo"), [], _mockRepository.Object));
         Assert.Equal("Error: argument --foo: expected value", ex.Message);
     }
 
     [Fact]
-    public void Execute_ShouldStoreArgumentValue_WhenConvertedSuccessfully()
+    public void Execute_ShouldStoreValue_WhenConvertedSuccessfully()
     {
         const string key = "foo";
         const string value = "bar";
         var arg = new Argument($"--{key}", arity: "1", dest: key);
 
-        _sut.Execute(arg, _mockRepository.Object, Create.Tokens(arg.Name, value));
+        _sut.Execute(arg, Create.Token(arg.Name), Create.Tokens(value), _mockRepository.Object);
 
         _mockRepository.Verify(x => x.Set(key, value));
     }
@@ -75,17 +75,17 @@ public class StoreActionTests
         const string value = "bar";
         var arg = new Argument($"--{key}", arity: null, dest: key);
 
-        _sut.Execute(arg, _mockRepository.Object, Create.Tokens(arg.Name, value));
+        _sut.Execute(arg, Create.Token(arg.Name), Create.Tokens(value), _mockRepository.Object);
 
         _mockRepository.Verify(x => x.Set(key, value));
     }
 
     [Fact]
-    public void Execute_ShouldStoreConstValue_WhenArityIsOptionalAndNoValue()
+    public void Execute_ShouldStoreConstValue_WhenArityIsOptionalAndNoTokens()
     {
         var arg = new Argument($"--foo", arity: Arity.Optional, dest: "foo", constValue: "bar");
 
-        _sut.Execute(arg, _mockRepository.Object, Create.Tokens("--foo"));
+        _sut.Execute(arg, Create.Token("--foo"), [], _mockRepository.Object);
 
         _mockRepository.Verify(x => x.Set("foo", "bar"));
     }
@@ -97,7 +97,7 @@ public class StoreActionTests
         var tokens = Create.Tokens("--foo", "bar", "baz", "qux");
         var value = new[] { "bar", "baz", "qux" };
 
-        _sut.Execute(arg, _mockRepository.Object, tokens);
+        _sut.Execute(arg, tokens[0], tokens[1..], _mockRepository.Object);
 
         _mockRepository.Verify(x => x.Set("foo", value));
     }
@@ -109,7 +109,7 @@ public class StoreActionTests
         var tokens = Create.Tokens("--foo", "bar", "baz", "qux");
         var value = new[] { "bar", "baz", "qux" };
 
-        _sut.Execute(arg, _mockRepository.Object, tokens);
+        _sut.Execute(arg, tokens[0], tokens[1..], _mockRepository.Object);
 
         _mockRepository.Verify(x => x.Set("foo", value));
     }
@@ -138,7 +138,7 @@ public class StoreActionTests
         {
             var arg = new Argument("--foo", type: type, dest: "foo");
             var span = Create.Tokens("--foo", "bar");
-            _sut.Execute(arg, _mockRepository.Object, span);
+            _sut.Execute(arg, span[0], span[1..], _mockRepository.Object);
         });
         Assert.StartsWith($"Error: argument --foo: expected type {typeStr}", ex.Message);
     }

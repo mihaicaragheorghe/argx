@@ -307,14 +307,12 @@ public class ArgumentParser
         }
 
         var len = ParseArity(arg, tokens, idx);
-        var arr = new Token[len + 1];
-        arr[0] = new Token(arg.Name, TokenType.Argument, Token.ImplicitPosition);
-        tokens.Slice(idx, len).CopyTo(arr.AsSpan(1)); // TODO: avoid extra allocation
 
         handler!.Execute(
-            argument: arg,
-            repository: _repository,
-            values: arr);
+            arg: arg,
+            invocation: new Token(arg.Name, TokenType.Argument, Token.ImplicitPosition),
+            values: tokens.Slice(idx, len),
+            store: _repository);
 
         return len - 1;
     }
@@ -338,7 +336,11 @@ public class ArgumentParser
 
         var len = ParseArity(arg, tokens, idx);
 
-        handler!.Execute(arg, _repository, tokens.Slice(idx, len + 1));
+        handler!.Execute(
+            arg: arg,
+            invocation: tokens[idx],
+            values: tokens.Slice(idx + 1, len),
+            store: _repository);
 
         return len;
     }

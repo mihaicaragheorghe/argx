@@ -27,7 +27,7 @@ public class CountActionTests
             .Setup(x => x.TryGetValue("foo", out value))
             .Returns(false);
 
-        _sut.Execute(arg, _repositoryMock.Object, Create.Tokens("--foo", "bar"));
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _repositoryMock.Object);
 
         _repositoryMock.Verify(x => x.Set("foo", 1), Times.Once);
     }
@@ -41,7 +41,7 @@ public class CountActionTests
             .Setup(x => x.TryGetValue("foo", out value))
             .Returns(true);
 
-        _sut.Execute(arg, _repositoryMock.Object, Create.Tokens("--foo", "bar"));
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _repositoryMock.Object);
 
         _repositoryMock.Verify(x => x.Set("foo", 4), Times.Once);
     }

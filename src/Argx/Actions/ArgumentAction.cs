@@ -5,9 +5,9 @@ namespace Argx.Actions;
 
 public abstract class ArgumentAction
 {
-    public virtual void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> values)
+    public virtual void Execute(Argument arg, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
     {
-        if (values.Length == 0)
+        if (string.IsNullOrEmpty(invocation.Value))
         {
             throw new InvalidOperationException("Invalid input: the first token must be the argument name.");
         }

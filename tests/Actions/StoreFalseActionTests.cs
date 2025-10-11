@@ -23,7 +23,7 @@ public class StoreFalseActionTests
     {
         var arg = new Argument("--foo", dest: "foo", arity: "0");
 
-        _sut.Execute(arg, _mockRepository.Object, Create.Tokens("bar"));
+        _sut.Execute(arg, Create.Token("bar"), [], _mockRepository.Object);
 
         _mockRepository.Verify(x => x.Set("foo", false), Times.Once());
     }

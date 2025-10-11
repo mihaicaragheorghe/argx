@@ -27,12 +27,12 @@ public class ChoiceActionTests
     }
 
     [Fact]
-    public void Execute_ShouldThrowBadArgumentException_WhenTokensLenLessThanTwo()
+    public void Execute_ShouldThrowBadArgumentException_WhenValuesLengthIsZero()
     {
         var arg = new Argument("--foo", arity: "1", dest: "foo");
 
         var ex = Assert.Throws<ArgumentValueException>(() =>
-            _sut.Execute(arg, _repositoryMock.Object, Create.Tokens("--foo")));
+            _sut.Execute(arg, Create.Token("--foo"), [], _repositoryMock.Object));
         Assert.Equal("Error: argument --foo: expected value", ex.Message);
     }
 
@@ -40,8 +40,10 @@ public class ChoiceActionTests
     public void Execute_ShouldThrowBadArgumentException_WhenInvalidChoice()
     {
         var arg = new Argument("--color", dest: "color", arity: "1", choices: ["white", "gray", "black"]);
+
         var ex = Assert.Throws<ArgumentValueException>(() =>
-            _sut.Execute(arg, _repositoryMock.Object, Create.Tokens("--color", "blue")));
+            _sut.Execute(arg, Create.Token("--color"), Create.Tokens("blue"), _repositoryMock.Object));
+
         Assert.Equal("Error: argument --color: invalid choice: blue, chose from white, gray, black", ex.Message);
     }
 
@@ -50,7 +52,7 @@ public class ChoiceActionTests
     {
         var arg = new Argument("--color", dest: "color", arity: "1", choices: ["white", "gray", "black"]);
 
-        _sut.Execute(arg, _repositoryMock.Object, Create.Tokens("--color", "white"));
+        _sut.Execute(arg, Create.Token("--color"), Create.Tokens("white"), _repositoryMock.Object);
 
         _repositoryMock.Verify(x => x.Set("color", "white"), Times.Once);
     }

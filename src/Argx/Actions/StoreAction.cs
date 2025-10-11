@@ -8,31 +8,29 @@ namespace Argx.Actions;
 
 internal class StoreAction : ArgumentAction
 {
-    public override void Execute(Argument argument, IArgumentRepository repository, ReadOnlySpan<Token> tokens)
+    public override void Execute(Argument arg, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
     {
-        base.Execute(argument, repository, tokens);
+        base.Execute(arg, invocation, values, store);
 
-        var name = tokens[0].Value;
-
-        if (argument.ConstValue == null && tokens.Length < 2)
+        if (arg.ConstValue == null && values.Length < 1)
         {
-            throw new ArgumentValueException(name, $"expected value");
+            throw new ArgumentValueException(invocation, "expected value");
         }
 
-        if (tokens.Length == 1)
+        if (values.Length == 0)
         {
-            repository.Set(argument.Dest, argument.ConstValue!);
+            store.Set(arg.Dest, arg.ConstValue!);
             return;
         }
 
-        TokenConversionResult result = TokenConverter.ConvertTokens(argument.Type, tokens[1..]);
+        TokenConversionResult result = TokenConverter.ConvertTokens(arg.Type, values);
 
         if (result.IsError)
         {
-            throw new ArgumentValueException(name, $"expected type {argument.Type.GetFriendlyName()}. {result.Error}");
+            throw new ArgumentValueException(invocation, $"expected type {arg.Type.GetFriendlyName()}. {result.Error}");
         }
 
-        repository.Set(argument.Dest, result.Value!);
+        store.Set(arg.Dest, result.Value!);
     }
 
     public override void Validate(Argument argument)
