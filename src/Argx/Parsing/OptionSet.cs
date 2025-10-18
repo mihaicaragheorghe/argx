@@ -19,13 +19,13 @@ internal class OptionSet
 
     internal void Add(Argument argument)
     {
-        _optLookup[argument.Name] = argument;
+        _optLookup[argument.Dest] = argument;
 
         if (argument.Aliases?.Count > 0)
         {
             foreach (var alias in argument.Aliases)
             {
-                _aliasLookup[alias] = argument.Name;
+                _aliasLookup[alias] = argument.Dest;
             }
         }
     }
