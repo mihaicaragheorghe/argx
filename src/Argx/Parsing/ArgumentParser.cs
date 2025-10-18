@@ -8,13 +8,10 @@ namespace Argx.Parsing;
 
 public class ArgumentParser
 {
-    public string? Program { get; }
-
-    public string? Description { get; }
-
-    public string? Usage { get; }
-
-    public string? Epilogue { get; }
+    private readonly string? _program;
+    private readonly string? _description;
+    private readonly string? _usage;
+    private readonly string? _epilogue;
 
     private readonly OptionSet _knownOpts = new();
     private readonly PositionalList _knownArgs = [];
@@ -31,10 +28,10 @@ public class ArgumentParser
     {
         var config = configuration ?? new ArgumentParserConfiguration();
 
-        Program = program;
-        Description = description;
-        Usage = usage;
-        Epilogue = epilogue;
+        _program = program;
+        _description = description;
+        _usage = usage;
+        _epilogue = epilogue;
         _configuration = config;
         _repository = new ArgumentRepository();
 
@@ -292,7 +289,7 @@ public class ArgumentParser
             return 0;
         }
 
-        var argument = _knownArgs.Pop();
+        var argument = _knownArgs.Next();
 
         if (!ActionRegistry.TryGetHandler(argument.Action, out var handler))
         {
@@ -300,6 +297,11 @@ public class ArgumentParser
         }
 
         var len = ParseArity(argument, tokens, idx);
+
+        if (idx + len > tokens.Length)
+        {
+            throw new ArgumentValueException(argument.Name, "not enough values provided");
+        }
 
         handler!.Execute(
             arg: argument,
@@ -334,6 +336,11 @@ public class ArgumentParser
         }
 
         var len = ParseArity(arg, tokens, idx);
+
+        if (idx + 1 + len > tokens.Length)
+        {
+            throw new ArgumentValueException(arg.Name, "not enough values provided");
+        }
 
         handler!.Execute(
             arg: arg,
@@ -406,30 +413,30 @@ public class ArgumentParser
         var arguments = ConcatArguments();
         var builder = new HelpBuilder(_configuration.HelpConfiguration);
 
-        if (!string.IsNullOrEmpty(Program))
+        if (!string.IsNullOrEmpty(_program))
         {
-            builder.AddSection(Program, Description ?? string.Empty);
+            builder.AddSection(_program, _description ?? string.Empty);
         }
-        else if (!string.IsNullOrEmpty(Description))
+        else if (!string.IsNullOrEmpty(_description))
         {
-            builder.AddText(Description);
+            builder.AddText(_description);
         }
 
-        if (!string.IsNullOrEmpty(Usage))
+        if (!string.IsNullOrEmpty(_usage))
         {
-            builder.AddSection("Usage", Usage);
+            builder.AddSection("Usage", _usage);
         }
         else
         {
-            builder.AddUsage(arguments, Program);
+            builder.AddUsage(arguments, _program);
         }
 
         builder.AddArguments(_knownArgs, "Positional arguments");
         builder.AddArguments(_knownOpts.ToList(), "Options");
 
-        if (!string.IsNullOrEmpty(Epilogue))
+        if (!string.IsNullOrEmpty(_epilogue))
         {
-            builder.AddText(Epilogue);
+            builder.AddText(_epilogue);
         }
 
         writer.WriteLine(builder.Build());
@@ -440,13 +447,13 @@ public class ArgumentParser
         var builder = new HelpBuilder(_configuration.HelpConfiguration);
         var arguments = ConcatArguments();
 
-        if (!string.IsNullOrEmpty(Usage))
+        if (!string.IsNullOrEmpty(_usage))
         {
-            builder.AddSection("Usage", Usage);
+            builder.AddSection("Usage", _usage);
         }
         else
         {
-            builder.AddUsage(arguments, Program);
+            builder.AddUsage(arguments, _program);
         }
 
         writer.WriteLine(builder.Build());

@@ -1,5 +1,3 @@
-﻿using Argx.Benchmarks;
+﻿using BenchmarkDotNet.Running;
 
-using BenchmarkDotNet.Running;
-
-BenchmarkRunner.Run<Dotnet>();
+BenchmarkSwitcher.FromAssembly(typeof(Program).Assembly).Run(args);

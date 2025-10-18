@@ -205,4 +205,14 @@ public partial class ArgumentParserTests
 
         Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["--bar", "baz", "qux", "quux"]));
     }
+
+    [Fact]
+    public void Parse_ShouldThrowArgumentValueException_WhenOptionArityExceedsTokensLength()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<string[]>("--foo", arity: "1", action: ArgumentActions.Store);
+
+        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["--foo"]));
+        Assert.Equal("Error: argument --foo: not enough values provided", ex.Message);
+    }
 }

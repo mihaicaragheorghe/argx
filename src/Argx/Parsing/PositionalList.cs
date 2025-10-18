@@ -9,7 +9,7 @@ internal class PositionalList : List<Argument>
     /// <summary>
     /// Returns the current element and advances the position.
     /// </summary>
-    internal Argument Pop()
+    internal Argument Next()
     {
         if (ReachedEnd)
         {
