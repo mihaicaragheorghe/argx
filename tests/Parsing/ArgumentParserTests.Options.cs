@@ -244,4 +244,44 @@ public partial class ArgumentParserTests
         var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["foo", "bar"]));
         Assert.Equal("Error: argument foo: not enough values provided", ex.Message);
     }
+
+    [Fact]
+    public void Parse_ShouldParseBundle_WhenMultipleShortOptionsProvidedInBundle()
+    {
+        var parser = new ArgumentParser();
+        parser.AddFlag("-a");
+        parser.AddFlag("-b");
+        parser.AddFlag("-c");
+
+        var result = parser.ParseInternal(["-abc", "value"]);
+
+        Assert.True(result.TryGetValue<bool>("a", out _));
+        Assert.True(result.TryGetValue<bool>("b", out _));
+        Assert.True(result.TryGetValue<bool>("c", out _));
+    }
+
+    [Fact]
+    public void Parse_ShouldAddToExtras_WhenUnknownShortOptionProvidedInBundle()
+    {
+        var parser = new ArgumentParser();
+        parser.AddFlag("-a");
+        parser.AddFlag("-b");
+
+        var result = parser.ParseInternal(["-abx", "value"]);
+
+        Assert.True(result.TryGetValue<bool>("a", out _));
+        Assert.True(result.TryGetValue<bool>("b", out _));
+        Assert.Contains("-x", result.Extras);
+    }
+
+    [Fact]
+    public void Parse_ShouldThrowArgumentValueException_WhenOptionInBundleRequiresValue()
+    {
+        var parser = new ArgumentParser();
+        parser.AddFlag("-a");
+        parser.AddOption("-b");
+
+        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["-ab", "value"]));
+        Assert.Equal("Error: argument -b: cannot be bundled because it requires a value", ex.Message);
+    }
 }

@@ -1,6 +1,6 @@
 # TODO
 
-- [ ] Flags / consts tuple support
+- [x] Flags / consts bundle support
 - [x] Error messages generation & stderr
 - [x] Arity for positional arguments
 - [x] Dynamic arity support for append action
