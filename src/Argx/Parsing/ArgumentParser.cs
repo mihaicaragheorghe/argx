@@ -60,7 +60,7 @@ public class ArgumentParser
         string? action = null,
         string? usage = null,
         string? dest = null,
-        string? defaultValue = null,
+        string? metavar = null,
         object? constValue = null,
         string? arity = null,
         string[]? choices = null)
@@ -71,7 +71,7 @@ public class ArgumentParser
             action: action,
             usage: usage,
             dest: dest,
-            defaultValue: defaultValue,
+            metavar: metavar,
             constValue: constValue,
             choices: choices,
             arity: arity);
@@ -82,7 +82,7 @@ public class ArgumentParser
         string[]? alias = null,
         string? usage = null,
         string? dest = null,
-        string? defaultValue = null,
+        string? metavar = null,
         object? constValue = null,
         string? action = null,
         string? arity = null,
@@ -113,7 +113,7 @@ public class ArgumentParser
             dest: dest,
             arity: arity,
             usage: usage,
-            defaultValue: defaultValue,
+            metavar: metavar,
             constValue: constValue,
             choices: choices,
             isPositional: isPositional,
@@ -183,7 +183,7 @@ public class ArgumentParser
         string[]? alias = null,
         string? usage = null,
         string? dest = null,
-        string? defaultValue = null,
+        string? metavar = null,
         object? constValue = null,
         string? action = null,
         string? arity = null)
@@ -198,7 +198,7 @@ public class ArgumentParser
             alias: alias,
             usage: usage,
             dest: dest,
-            defaultValue: defaultValue,
+            metavar: metavar,
             constValue: constValue,
             action: action,
             arity: arity);
@@ -209,7 +209,7 @@ public class ArgumentParser
         string[]? alias = null,
         string? usage = null,
         string? dest = null,
-        string? defaultValue = null,
+        string? metavar = null,
         object? constValue = null,
         string? action = null,
         string? arity = null)
@@ -219,7 +219,7 @@ public class ArgumentParser
             alias: alias,
             usage: usage,
             dest: dest,
-            defaultValue: defaultValue,
+            metavar: metavar,
             constValue: constValue,
             action: action,
             arity: arity);

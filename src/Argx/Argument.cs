@@ -16,7 +16,7 @@ public class Argument
 
     public string? Usage { get; }
 
-    public string? DefaultValue { get; }
+    public string? Metavar { get; }
 
     public object? ConstValue { get; }
 
@@ -31,7 +31,7 @@ public class Argument
         string? action = null,
         string? dest = null,
         string? usage = null,
-        string? defaultValue = null,
+        string? metavar = null,
         string? arity = null,
         object? constValue = null,
         string[]? choices = null,
@@ -45,7 +45,7 @@ public class Argument
         Action = action ?? ArgumentActions.Store;
         Dest = dest ?? name.TrimStart('-');
         Usage = usage;
-        DefaultValue = defaultValue ?? Name.TrimStart('-').ToUpper();
+        Metavar = metavar ?? Name.TrimStart('-').ToUpper();
         ConstValue = constValue;
         Choices = choices;
         IsPositional = isPositional;

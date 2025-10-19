@@ -53,7 +53,7 @@ internal class HelpBuilder
 
         foreach (var opt in arguments.Where(a => !a.IsPositional))
         {
-            var placeholder = opt.DefaultValue;
+            var placeholder = opt.Metavar;
             var value = opt.Arity.IsFixed
                 ? string.Join(" ", Enumerable.Repeat(placeholder, int.Parse(opt.Arity.Value)))
                 : opt.Arity.Value switch

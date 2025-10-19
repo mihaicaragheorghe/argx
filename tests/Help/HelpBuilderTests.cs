@@ -272,9 +272,9 @@ public class HelpBuilderTests
 
 
     [Fact]
-    public void AddUsage_ShouldUseDefaultValue_WhenOption()
+    public void AddUsage_ShouldUseMetavar_WhenOption()
     {
-        var arg = new Argument("--foo", arity: "1", defaultValue: "bar");
+        var arg = new Argument("--foo", arity: "1", metavar: "bar");
         const string expected = """
                                 Usage:
                                   prog [--foo bar]
