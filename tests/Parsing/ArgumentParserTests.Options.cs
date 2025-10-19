@@ -244,4 +244,65 @@ public partial class ArgumentParserTests
         var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["foo", "bar"]));
         Assert.Equal("Error: argument foo: not enough values provided", ex.Message);
     }
+
+    [Fact]
+    public void Parse_ShouldParseBundle_WhenMultipleShortOptionsInBundle()
+    {
+        var parser = new ArgumentParser();
+        parser.AddFlag("-a");
+        parser.AddFlag("-b");
+        parser.AddFlag("-c");
+
+        var result = parser.ParseInternal(["-abc", "value"]);
+
+        Assert.True(result.TryGetValue<bool>("a", out _));
+        Assert.True(result.TryGetValue<bool>("b", out _));
+        Assert.True(result.TryGetValue<bool>("c", out _));
+    }
+
+    [Fact]
+    public void Parse_ShouldParseBundle_WhenOptionsWithOptionalArityInBundle()
+    {
+        var parser = new ArgumentParser();
+        parser.AddFlag("-a");
+        parser.AddOption("-b", arity: Arity.Optional, constValue: "foo");
+        parser.AddOption<int>("-c", arity: Arity.Optional, constValue: 69);
+
+        var result = parser.ParseInternal(["-abc", "value"]);
+
+        Assert.True(result.TryGetValue<bool>("a", out _));
+        Assert.True(result.TryGetValue<string>("b", out var b));
+        Assert.True(result.TryGetValue<int>("c", out var c));
+        Assert.Equal("foo", b);
+        Assert.Equal(69, c);
+    }
+
+    [Fact]
+    public void Parse_ShouldAddToExtras_WhenUnknownShortOptionInBundle()
+    {
+        var parser = new ArgumentParser();
+        parser.AddFlag("-a");
+        parser.AddFlag("-b");
+
+        var result = parser.ParseInternal(["-abx", "value"]);
+
+        Assert.True(result.TryGetValue<bool>("a", out _));
+        Assert.True(result.TryGetValue<bool>("b", out _));
+        Assert.Contains("-x", result.Extras);
+    }
+
+    [Theory]
+    [InlineData("1")]
+    [InlineData("3")]
+    [InlineData(Arity.Any)]
+    [InlineData(Arity.AtLeastOne)]
+    public void Parse_ShouldThrowArgumentValueException_WhenOptionInBundleRequiresValue(string arity)
+    {
+        var parser = new ArgumentParser();
+        parser.AddFlag("-a");
+        parser.AddOption<string[]>("-b", arity: arity);
+
+        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["-ab", "value"]));
+        Assert.Equal("Error: argument -b: cannot be bundled because it requires a value", ex.Message);
+    }
 }

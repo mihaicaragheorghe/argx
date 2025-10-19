@@ -30,5 +30,7 @@ internal class OptionSet
         }
     }
 
-    internal List<Argument> ToList() => _optLookup.Values.ToList();
+    internal List<Argument> ToList() => [.. _optLookup.Values];
+
+    internal Argument? GetByAlias(string alias) => _optLookup.GetValueOrDefault(alias);
 }
