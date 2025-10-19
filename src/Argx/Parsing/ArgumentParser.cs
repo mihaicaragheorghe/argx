@@ -322,6 +322,12 @@ public class ArgumentParser
             Environment.Exit(0);
         }
 
+        if (IsTuple(token.Value))
+        {
+            ParseTuple(token, result);
+            return 0;
+        }
+
         var arg = _knownOpts.Get(token.Value);
 
         if (arg is null)
@@ -388,6 +394,31 @@ public class ArgumentParser
 
             default:
                 throw new InvalidOperationException($"Unknown arity value: {argument.Arity.Value}");
+        }
+    }
+
+    private void ParseTuple(Token token, Arguments result)
+    {
+        foreach (char c in token.Value[1..])
+        {
+            var arg = _knownOpts.GetByAlias($"-{c}");
+
+            if (arg is null)
+            {
+                result.Extras.Add(token);
+                continue;
+            }
+
+            if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))
+            {
+                throw new InvalidOperationException($"Unknown action for argument {arg.Name}");
+            }
+
+            handler!.Execute(
+                arg: arg,
+                invocation: token,
+                values: [],
+                store: _repository);
         }
     }
 
@@ -460,6 +491,8 @@ public class ArgumentParser
     }
 
     private static bool IsPositional(string s) => s.Length > 0 && s[0] != '-';
+
+    private static bool IsTuple(string s) => s.Length > 2 && s[0] == '-' && s[1] != '-';
 
     public ArgumentParser AddAction(string name, ArgumentAction action)
     {

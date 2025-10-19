@@ -244,4 +244,19 @@ public partial class ArgumentParserTests
         var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["foo", "bar"]));
         Assert.Equal("Error: argument foo: not enough values provided", ex.Message);
     }
+
+    [Fact]
+    public void Parse_ShouldParseTuple_WhenMultipleShortOptionsProvided()
+    {
+        var parser = new ArgumentParser();
+        parser.AddFlag("-a");
+        parser.AddFlag("-b");
+        parser.AddFlag("-c");
+
+        var result = parser.ParseInternal(["-abc", "value"]);
+
+        Assert.True(result.TryGetValue<bool>("a", out _));
+        Assert.True(result.TryGetValue<bool>("b", out _));
+        Assert.True(result.TryGetValue<bool>("c", out _));
+    }
 }
