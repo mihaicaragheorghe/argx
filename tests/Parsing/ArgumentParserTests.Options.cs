@@ -246,7 +246,7 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldParseBundle_WhenMultipleShortOptionsProvidedInBundle()
+    public void Parse_ShouldParseBundle_WhenMultipleShortOptionsInBundle()
     {
         var parser = new ArgumentParser();
         parser.AddFlag("-a");
@@ -261,7 +261,24 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
-    public void Parse_ShouldAddToExtras_WhenUnknownShortOptionProvidedInBundle()
+    public void Parse_ShouldParseBundle_WhenOptionsWithOptionalArityInBundle()
+    {
+        var parser = new ArgumentParser();
+        parser.AddFlag("-a");
+        parser.AddOption("-b", arity: Arity.Optional, constValue: "foo");
+        parser.AddOption<int>("-c", arity: Arity.Optional, constValue: 69);
+
+        var result = parser.ParseInternal(["-abc", "value"]);
+
+        Assert.True(result.TryGetValue<bool>("a", out _));
+        Assert.True(result.TryGetValue<string>("b", out var b));
+        Assert.True(result.TryGetValue<int>("c", out var c));
+        Assert.Equal("foo", b);
+        Assert.Equal(69, c);
+    }
+
+    [Fact]
+    public void Parse_ShouldAddToExtras_WhenUnknownShortOptionInBundle()
     {
         var parser = new ArgumentParser();
         parser.AddFlag("-a");
@@ -274,12 +291,16 @@ public partial class ArgumentParserTests
         Assert.Contains("-x", result.Extras);
     }
 
-    [Fact]
-    public void Parse_ShouldThrowArgumentValueException_WhenOptionInBundleRequiresValue()
+    [Theory]
+    [InlineData("1")]
+    [InlineData("3")]
+    [InlineData(Arity.Any)]
+    [InlineData(Arity.AtLeastOne)]
+    public void Parse_ShouldThrowArgumentValueException_WhenOptionInBundleRequiresValue(string arity)
     {
         var parser = new ArgumentParser();
         parser.AddFlag("-a");
-        parser.AddOption("-b");
+        parser.AddOption<string[]>("-b", arity: arity);
 
         var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["-ab", "value"]));
         Assert.Equal("Error: argument -b: cannot be bundled because it requires a value", ex.Message);
