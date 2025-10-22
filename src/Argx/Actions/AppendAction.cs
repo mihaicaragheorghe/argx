@@ -25,8 +25,8 @@ internal class AppendAction : ArgumentAction
             throw new ArgumentValueException(invocation, "expected value");
         }
 
-        var genericMethod = TryGetValueMethod.MakeGenericMethod(arg.Type);
-        var itemType = arg.Type.GetElementTypeIfEnumerable()!;
+        var genericMethod = TryGetValueMethod.MakeGenericMethod(arg.ValueType);
+        var itemType = arg.ValueType.GetElementTypeIfEnumerable()!;
         object[] parameters = [arg.Dest, null!];
         var found = (bool)genericMethod.Invoke(store, parameters)!;
         var obj = found ? parameters[1] : null;
@@ -37,14 +37,14 @@ internal class AppendAction : ArgumentAction
 
         if (obj is IList src)
         {
-            list = CollectionUtils.CreateCollection(arg.Type, itemType, src.Count + len);
+            list = CollectionUtils.CreateCollection(arg.ValueType, itemType, src.Count + len);
             CopyItems(src, list);
             idx = src.Count;
         }
         else
         {
             list = obj is null
-                ? CollectionUtils.CreateCollection(arg.Type, itemType, len)
+                ? CollectionUtils.CreateCollection(arg.ValueType, itemType, len)
                 : throw new InvalidOperationException(
                     $"Argument {invocation} in invalid state: appending to non enumerable type not possible");
         }
@@ -79,7 +79,13 @@ internal class AppendAction : ArgumentAction
             if (result.IsError)
             {
                 throw new ArgumentValueException(invocation,
-                    $"invalid value '{value}', expected type {arg.Type.GetFriendlyName()}. {result.Error}");
+                    $"invalid value '{value}', expected type {arg.ValueType.GetFriendlyName()}. {result.Error}");
+            }
+
+            if (arg.Choices?.Length > 0 && !arg.Choices.Contains(result.Value?.ToString()))
+            {
+                throw new ArgumentValueException(invocation,
+                    $"invalid choice '{value}', expected one of: {string.Join(", ", arg.Choices)}");
             }
 
             Append(list, result.Value, isArray, idx);
@@ -126,7 +132,7 @@ internal class AppendAction : ArgumentAction
             throw new ArgumentException($"Argument {argument.Name}: arity for 'append' must be != 0");
         }
 
-        if (!argument.Type.IsEnumerable())
+        if (!argument.ValueType.IsEnumerable())
         {
             throw new ArgumentException($"Argument {argument.Name}: type for 'append' must be an enumerable");
         }
@@ -139,7 +145,7 @@ internal class AppendAction : ArgumentAction
 
         if (argument.ConstValue != null && !IsValidConstType(argument))
         {
-            var itemTypeName = argument.Type.GetElementTypeIfEnumerable()!.GetFriendlyName();
+            var itemTypeName = argument.ValueType.GetElementTypeIfEnumerable()!.GetFriendlyName();
             throw new ArgumentException(
                 $"Argument {argument.Name}: const value must be either an enumerable of type {itemTypeName} or an instance of type {itemTypeName}");
         }
@@ -147,7 +153,7 @@ internal class AppendAction : ArgumentAction
 
     private static bool IsValidConstType(Argument argument)
     {
-        var itemType = argument.Type.GetElementTypeIfEnumerable()!;
+        var itemType = argument.ValueType.GetElementTypeIfEnumerable()!;
 
         if (argument.ConstValue is IList constList)
         {

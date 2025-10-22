@@ -11,7 +11,6 @@ internal static class ActionRegistry
             [ArgumentActions.StoreConst] = new StoreConstAction(),
             [ArgumentActions.StoreTrue] = new StoreTrueAction(),
             [ArgumentActions.StoreFalse] = new StoreFalseAction(),
-            [ArgumentActions.Choice] = new ChoiceAction(),
             [ArgumentActions.Count] = new CountAction(),
             [ArgumentActions.Append] = new AppendAction(),
             [ArgumentActions.NoAction] = new NoAction(),
@@ -21,7 +20,6 @@ internal static class ActionRegistry
         => action switch
         {
             ArgumentActions.Store => 1,
-            ArgumentActions.Choice => 1,
             ArgumentActions.Append => 1,
             _ => 0
         };

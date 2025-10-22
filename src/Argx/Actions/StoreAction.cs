@@ -23,11 +23,23 @@ internal class StoreAction : ArgumentAction
             return;
         }
 
-        TokenConversionResult result = TokenConverter.ConvertTokens(arg.Type, values);
+        if (arg.Choices?.Length > 0)
+        {
+            foreach (var token in values)
+            {
+                if (!arg.Choices.Contains(token.Value))
+                {
+                    throw new ArgumentValueException(invocation,
+                        $"invalid choice '{token}', expected one of: {string.Join(", ", arg.Choices)}");
+                }
+            }
+        }
+
+        TokenConversionResult result = TokenConverter.ConvertTokens(arg.ValueType, values);
 
         if (result.IsError)
         {
-            throw new ArgumentValueException(invocation, $"expected type {arg.Type.GetFriendlyName()}. {result.Error}");
+            throw new ArgumentValueException(invocation, $"expected type {arg.ValueType.GetFriendlyName()}. {result.Error}");
         }
 
         store.Set(arg.Dest, result.Value!);
@@ -47,7 +59,7 @@ internal class StoreAction : ArgumentAction
                 $"Argument {argument.Name}: arity must be {Arity.Optional} or {Arity.Any} to supply a const value");
         }
 
-        if (argument.Arity.AcceptsMultipleValues && !argument.Type.IsEnumerable())
+        if (argument.Arity.AcceptsMultipleValues && !argument.ValueType.IsEnumerable())
         {
             throw new ArgumentException(
                 $"Argument {argument.Name}: type must be enumerable for arity > 1, {Arity.Any} or {Arity.AtLeastOne}, consider {Arity.Optional}");

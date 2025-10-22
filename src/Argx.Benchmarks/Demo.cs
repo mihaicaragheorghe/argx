@@ -11,7 +11,7 @@ public class Demo
     public void TwoArguments()
     {
         string[] args = ["foo.txt", "-c", "4"];
-        var parser = new ArgumentParser(program: "Argx", description: "Argx playground");
+        var parser = new ArgumentParser(app: "Argx", description: "Argx playground");
         parser.AddArgument("filename", usage: "the file name");
         parser.AddFlag("--verbose", ["-v"], usage: "verbose argument, on/off flag");
 
@@ -22,7 +22,7 @@ public class Demo
     public void FourArguments()
     {
         string[] args = ["123", "456", "-c", "4", "-v"];
-        var parser = new ArgumentParser(program: "Argx", description: "Argx playground");
+        var parser = new ArgumentParser(app: "Argx", description: "Argx playground");
         parser.AddArgument<string>("x", usage: "The X argument");
         parser.AddArgument<string>("y", usage: "The Y argument");
         parser.AddOption<int>("--count", ["-c"], usage: "Count argument");
@@ -35,7 +35,7 @@ public class Demo
     public void EightArguments()
     {
         string[] args = ["foo", "bar", "baz", "qux", "-c", "4", "--file", "foo.txt", "-v", "-d"];
-        var parser = new ArgumentParser(program: "Argx", description: "Argx playground");
+        var parser = new ArgumentParser(app: "Argx", description: "Argx playground");
         parser.AddArgument<string>("foo", usage: "The foo argument");
         parser.AddArgument<string>("bar", usage: "The bar argument");
         parser.AddArgument<string>("baz", usage: "The baz argument");

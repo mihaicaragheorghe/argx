@@ -282,4 +282,14 @@ public class AppendActionTests
 
         Assert.Throws<InvalidCastException>(() => _sut.Execute(arg, Create.Token("--foo"), [], _mockRepository.Object));
     }
+
+    [Fact]
+    public void Execute_ShouldThrowArgumentValueException_WhenChoiceInvalid()
+    {
+        var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(string[]), choices: ["bar", "baz"]);
+
+        var ex = Assert.Throws<ArgumentValueException>(() =>
+            _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("baz", "qux"), _mockRepository.Object));
+        Assert.Equal("Error: argument --foo: invalid choice 'qux', expected one of: bar, baz", ex.Message);
+    }
 }

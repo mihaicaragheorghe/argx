@@ -1,11 +1,8 @@
-﻿using Argx.Parsing;
+﻿using Argx;
+using Argx.Actions;
+using Argx.Parsing;
 
-var parser = new ArgumentParser(program: "Argx", description: "Argx playground");
-parser.AddArgument("filename", usage: "the file name");
-parser.AddOption<int>("--count", ["-c"], usage: "count argument");
-parser.AddFlag("--verbose", ["-v"], usage: "verbose argument, on/off flag");
-
-var argx = parser.Parse(args);
-var filename = argx.GetRequired<string>("filename");
-
-Console.WriteLine(filename);
+var parser = new ArgumentParser();
+parser.Add<int[]>("--foo", action: ArgumentActions.Append, arity: Arity.AtLeastOne);
+var argx = parser.Parse(["--foo", "0", "--foo", "1", "2", "--bar", "10", "--foo", "3"]);
+Console.WriteLine(string.Join(", ", argx.GetValue<int[]>("foo"))); // Outputs: 0, 1, 2

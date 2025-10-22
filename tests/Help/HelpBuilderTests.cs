@@ -263,7 +263,7 @@ public class HelpBuilderTests
                                 Usage:
                                   prog [-f FOO] [-b BAR]
                                 """;
-        var actual = new HelpBuilder(new HelpConfiguration { PrintAliasInUsage = true })
+        var actual = new HelpBuilder(new HelpConfiguration { UseAliasInUsageText = true })
             .AddUsage(args, prefix: "prog")
             .Build();
 

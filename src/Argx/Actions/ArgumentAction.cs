@@ -3,6 +3,10 @@ using Argx.Store;
 
 namespace Argx.Actions;
 
+/// <summary>
+/// Base class for argument actions.  
+/// Provides a template for executing actions associated with arguments.
+/// </summary>
 public abstract class ArgumentAction
 {
     public virtual void Execute(Argument arg, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
