@@ -64,7 +64,7 @@ internal class HelpBuilder
                 };
 
             sb.Append('[');
-            sb.Append(_config.PrintAliasInUsage && opt.Aliases?.Count > 0 ? opt.Aliases.First() : opt.Name);
+            sb.Append(_config.UseAliasInUsageText && opt.Aliases?.Count > 0 ? opt.Aliases.First() : opt.Name);
             if (!string.IsNullOrEmpty(value)) sb.Append(' ').Append(value);
             sb.Append("] ");
         }
