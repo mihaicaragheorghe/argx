@@ -134,7 +134,7 @@ public partial class ArgumentParserTests
     public void Parse_ShouldThrow_WhenNotExitOnError()
     {
         var parser = new ArgumentParser(configuration: new ArgumentParserConfiguration { ExitOnError = false });
-        parser.Add("--foo", action: ArgumentActions.Choice, choices: ["bar"]);
+        parser.Add("--foo", action: ArgumentActions.Store, choices: ["bar"]);
 
         Assert.Throws<ArgumentValueException>(() => parser.Parse("--foo", "baz"));
     }

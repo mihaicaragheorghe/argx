@@ -1,6 +1,9 @@
 namespace Argx.Errors;
 
-internal class ArgumentValueException : Exception
+/// <summary>
+/// Exception thrown when an argument value is invalid.
+/// </summary>
+public class ArgumentValueException(string arg, string message)
+    : Exception($"Error: argument {arg}: {message}")
 {
-    internal ArgumentValueException(string arg, string message) : base($"Error: argument {arg}: {message}") { }
 }

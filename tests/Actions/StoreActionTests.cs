@@ -142,4 +142,14 @@ public class StoreActionTests
         });
         Assert.StartsWith($"Error: argument --foo: expected type {typeStr}", ex.Message);
     }
+
+    [Fact]
+    public void Execute_ShouldThrowArgumentValueException_WhenChoiceInvalid()
+    {
+        var arg = new Argument("--foo", arity: "1", dest: "foo", choices: ["bar", "baz"]);
+
+        var ex = Assert.Throws<ArgumentValueException>(() =>
+            _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux"), _mockRepository.Object));
+        Assert.Equal("Error: argument --foo: invalid choice 'qux', expected one of: bar, baz", ex.Message);
+    }
 }

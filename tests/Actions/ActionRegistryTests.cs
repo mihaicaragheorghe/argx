@@ -11,7 +11,6 @@ public class ActionRegistryTests
     [InlineData(ArgumentActions.StoreTrue, typeof(StoreTrueAction))]
     [InlineData(ArgumentActions.StoreFalse, typeof(StoreFalseAction))]
     [InlineData(ArgumentActions.StoreConst, typeof(StoreConstAction))]
-    [InlineData(ArgumentActions.Choice, typeof(ChoiceAction))]
     [InlineData(ArgumentActions.Count, typeof(CountAction))]
     [InlineData(ArgumentActions.Append, typeof(AppendAction))]
     public void Registry_ShouldContainBuiltinValues_WhenNotExplicitlySet(string action, Type expectedType)
