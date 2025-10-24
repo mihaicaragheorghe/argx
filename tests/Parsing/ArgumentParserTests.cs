@@ -218,7 +218,7 @@ public partial class ArgumentParserTests
     [InlineData(null)]
     public void WriteHelp_ShouldNotWriteProgramName_WhenNullOrEmpty(string? prog)
     {
-        var parser = new ArgumentParser(program: prog, description: "what the program does");
+        var parser = new ArgumentParser(app: prog, description: "what the program does");
         parser.Add("--foo");
         parser.Add("x");
         parser.Add("y");

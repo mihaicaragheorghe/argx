@@ -22,6 +22,7 @@ public class Arity
     /// Any number of values. The argument can be provided with zero or more values.
     /// </summary>
     /// <remarks>
+    /// The argument type has to be a collection type.<br/>
     /// Zero or more arguments will be consumed from the command line, and produced as a collection.<br/>
     /// Arguments with this arity will consume all following values until an option is encountered
     /// or the end of the command line is reached.

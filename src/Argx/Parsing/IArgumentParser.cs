@@ -22,7 +22,7 @@ public interface IArgumentParser
     /// Positional arguments should be specified without prefixes (e.g., <c>input</c>), while optional arguments should start with dashes (e.g., <c>--verbose</c>, <c>-verbose</c>, <c>-v</c>).
     /// </param>
     /// <param name="alias">
-    /// Optional alternative names for the argument (e.g., <c>-v</c>). Use null if no aliases are desired.<br/>
+    /// Optional alternative names for the argument (e.g., <c>-v</c>). Use null for no alias.<br/>
     /// Must be null for positional arguments.
     /// </param>
     /// <param name="usage">
@@ -47,7 +47,7 @@ public interface IArgumentParser
     /// Use <c>null</c> to rely on defaults inferred from the action.
     /// </param>
     /// <param name="choices">
-    /// A set of allowed values for the argument. Only applicable to <c>"choice"</c> action.
+    /// A set of allowed values for the argument. If specified, the argument's value must be one of these choices.
     /// </param>
     /// <returns>
     /// The current <see cref="ArgumentParser"/> instance, allowing for chaining.
@@ -92,13 +92,18 @@ public interface IArgumentParser
     /// </typeparam>
     /// <param name="name">
     /// The name of the positional argument (must not start with a dash).
+    /// Used to retrieve the argument value from the parsed result.
     /// </param>
     /// <param name="usage">
     /// A short description of the argument’s purpose, displayed in help output.
     /// </param>
-    /// <param name="dest">
-    /// The key which will be added to the <see cref="Arguments"/> dictionary returned by the <see cref="Parse()"/> method, used to store and retrieve the argument value.<br/>
-    /// If null, <paramref name="name"/> will be used.
+    /// <param name="action">
+    /// The action to perform when the argument is encountered (e.g., <c>"store"</c>, <c>"store_true"</c>).<br/>
+    /// Action names are defined in <see cref="ArgumentActions"/>.<br/>
+    /// </param>
+    /// <param name="arity">
+    /// Specifies how many values the argument expects (e.g., <c>?</c>(optional), <c>*</c>(any), <c>"+"</c>(at least one), or a fixed number).<br/>
+    /// Use <c>null</c> to rely on defaults inferred from the action.
     /// </param>
     /// <returns>
     /// The current <see cref="ArgumentParser"/> instance, allowing for chaining.
@@ -112,7 +117,10 @@ public interface IArgumentParser
     /// <remarks>
     /// This method is a convenience overload of <see cref="Add{T}(string, string[], string, string, string, object, string, string, string[])"/> for defining positional arguments.
     /// </remarks>
-    public ArgumentParser AddArgument<T>(string name, string? usage = null, string? dest = null);
+    public ArgumentParser AddArgument<T>(string name, string? usage = null, string? action = null, string? arity = null);
+
+    /// <inheritdoc cref="AddArgument{T}(string, string?, string?, string?)" />
+    ArgumentParser AddArgument(string name, string? usage = null, string? action = null, string? arity = null);
 
     /// <summary>
     /// Adds a new <b>boolean flag</b> to the parser.
@@ -159,19 +167,19 @@ public interface IArgumentParser
     /// Adds a new <b>optional argument</b> (option) to the parser.
     /// </summary>
     /// <typeparam name="T">
-    /// The expected type of the option value.  
+    /// The expected type of the value.  
     /// </typeparam>
     /// <param name="name">
     /// The primary name of the option, must start with <c>'-'</c> or <c>"--"</c> (e.g. <c>"--output"</c> or <c>"-o"</c>).
     /// </param>
     /// <param name="alias">
-    /// Optional alternative names for the option (e.g., <c>"-o"</c>). Use <c>null</c> if no aliases are desired.
+    /// Optional alternative names for the option (e.g., <c>"-o"</c>). Use <c>null</c> for no alias.
     /// </param>
     /// <param name="usage">
     /// A short description of the option’s purpose, shown in help output.
     /// </param>
     /// <param name="dest">
-    /// The key which will be added to the <see cref="Arguments"/> dictionary returned by the <see cref="Parse()"/> method, used to store and retrieve the argument value.<br/>
+    /// The key which will be used to retrieve the value from parsed result.<br/>
     /// If null, the parser infers it from <paramref name="name"/>.
     /// </param>
     /// <param name="metavar">
@@ -189,7 +197,7 @@ public interface IArgumentParser
     /// Use <c>null</c> to rely on defaults inferred from the action.
     /// </param>
     /// <param name="choices">
-    /// A set of allowed values for the argument. Only applicable to <c>"choice"</c> action.
+    /// A set of allowed values for the argument. If specified, the argument's value must be one of these choices.
     /// </param>
     /// <returns>
     /// The current <see cref="ArgumentParser"/> instance, allowing for chaining.

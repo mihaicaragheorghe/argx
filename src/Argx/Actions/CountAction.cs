@@ -12,6 +12,7 @@ internal class CountAction : ArgumentAction
         if (store.TryGetValue<int>(arg.Dest, out var value))
         {
             store.Set(arg.Dest, value + 1);
+            return;
         }
 
         store.Set(arg.Dest, 1);

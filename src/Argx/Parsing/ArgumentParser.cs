@@ -9,7 +9,7 @@ namespace Argx.Parsing;
 /// <inheritdoc cref="IArgumentParser"/>
 public class ArgumentParser : IArgumentParser
 {
-    private readonly string? _program;
+    private readonly string? _app;
     private readonly string? _description;
     private readonly string? _usage;
     private readonly string? _epilogue;
@@ -23,8 +23,8 @@ public class ArgumentParser : IArgumentParser
     /// <summary>
     /// Initializes a new instance of the <see cref="ArgumentParser"/> class.
     /// </summary>
-    /// <param name="program">The name of the program being executed, shown at the top of the help message and in usage (default: generated from <c>argv[0]</c>).</param>
-    /// <param name="description">A short description of what the program does, displayed in the help output (default: no text).</param>
+    /// <param name="app">The name of the application being executed, shown at the top of the help message and in usage (default: generated from <c>argv[0]</c>).</param>
+    /// <param name="description">A short description of what the application does, displayed in the help output (default: no text).</param>
     /// <param name="usage">Custom usage text (default: generated from arguments added to parser).</param>
     /// <param name="epilogue">Optional text displayed at the end of the help message.</param>
     /// <param name="configuration">Optional parser configuration. If <c>null</c>, a default <see cref="ArgumentParserConfiguration"/> is created.</param>
@@ -33,7 +33,7 @@ public class ArgumentParser : IArgumentParser
     /// a <c>--help</c> / <c>-h</c> argument is automatically registered to display help information.
     /// </remarks>
     public ArgumentParser(
-        string? program = null,
+        string? app = null,
         string? description = null,
         string? usage = null,
         string? epilogue = null,
@@ -41,7 +41,7 @@ public class ArgumentParser : IArgumentParser
     {
         var config = configuration ?? new ArgumentParserConfiguration();
 
-        _program = program;
+        _app = app;
         _description = description;
         _usage = usage;
         _epilogue = epilogue;
@@ -57,12 +57,12 @@ public class ArgumentParser : IArgumentParser
 
     internal ArgumentParser(
         IArgumentRepository repository,
-        string? program = null,
+        string? app = null,
         string? description = null,
         string? usage = null,
         string? epilogue = null,
         ArgumentParserConfiguration? configuration = null)
-        : this(program, description, usage, epilogue, configuration)
+        : this(app, description, usage, epilogue, configuration)
     {
         _repository = repository;
     }
@@ -159,19 +159,19 @@ public class ArgumentParser : IArgumentParser
     }
 
     /// <inheritdoc/>
-    public ArgumentParser AddArgument<T>(string name, string? usage = null, string? dest = null)
+    public ArgumentParser AddArgument<T>(string name, string? usage = null, string? action = null, string? arity = null)
     {
         if (name.IsOption())
         {
             throw new InvalidOperationException($"Invalid positional argument {name}: cannot start with '-'");
         }
 
-        return Add<T>(name: name, usage: usage, dest: dest);
+        return Add<T>(name: name, usage: usage, action: action, arity: arity);
     }
 
-    /// <inheritdoc cref="AddArgument{T}(string, string, string)" />
-    public ArgumentParser AddArgument(string name, string? usage = null, string? dest = null)
-        => AddArgument<string>(name: name, usage: usage, dest: dest);
+    /// <inheritdoc/>
+    public ArgumentParser AddArgument(string name, string? usage = null, string? action = null, string? arity = null)
+        => AddArgument<string>(name: name, usage: usage, action: action, arity: arity);
 
     /// <inheritdoc/>
     public ArgumentParser AddFlag(
@@ -471,9 +471,9 @@ public class ArgumentParser : IArgumentParser
         var arguments = ConcatArguments();
         var builder = new HelpBuilder(_configuration.HelpConfiguration);
 
-        if (!string.IsNullOrEmpty(_program))
+        if (!string.IsNullOrEmpty(_app))
         {
-            builder.AddSection(_program, _description ?? string.Empty);
+            builder.AddSection(_app, _description ?? string.Empty);
         }
         else if (!string.IsNullOrEmpty(_description))
         {
@@ -486,7 +486,7 @@ public class ArgumentParser : IArgumentParser
         }
         else
         {
-            builder.AddUsage(arguments, _program);
+            builder.AddUsage(arguments, _app);
         }
 
         builder.AddArguments(_knownArgs, "Positional arguments");
@@ -511,7 +511,7 @@ public class ArgumentParser : IArgumentParser
         }
         else
         {
-            builder.AddUsage(arguments, _program);
+            builder.AddUsage(arguments, _app);
         }
 
         writer.WriteLine(builder.Build());
