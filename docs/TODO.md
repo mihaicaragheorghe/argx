@@ -1,9 +1,8 @@
 # TODO
 
-- [ ] Validate arity * and + type
-- [ ] Validate positional arguments actions
-- [ ] Remove value from AddFlag
-- [ ] Optional positional arguments
+- [ ] Optional positional arguments?
+- [x] Validate positional arguments actions
+- [x] Validate arity * and + type
 - [x] Flags / consts bundle support
 - [x] Error messages generation & stderr
 - [x] Arity for positional arguments

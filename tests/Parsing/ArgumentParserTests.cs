@@ -66,6 +66,16 @@ public partial class ArgumentParserTests
         Assert.Throws<InvalidOperationException>(() => parser.Add("foo", arity: "0"));
     }
 
+    [Theory]
+    [InlineData(Arity.Any)]
+    [InlineData(Arity.AtLeastOne)]
+    public void Add_ShouldThrowInvalidOperationException_WhenArgWithInvalidArityForType(string arity)
+    {
+        var parser = new ArgumentParser();
+        var ex = Assert.Throws<InvalidOperationException>(() => parser.Add<int>("foo", arity: arity));
+        Assert.Equal($"Argument foo: only arguments with enumerable types can have arity '{arity}'", ex.Message);
+    }
+
     [Fact]
     public void Add_ShouldAddArgument_WhenValid()
     {

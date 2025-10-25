@@ -191,6 +191,7 @@ public partial class ArgumentParserTests
     {
         var parser = new ArgumentParser();
         parser.Add<string[]>("--foo", arity: Arity.Any, action: ArgumentActions.Store);
+        parser.Add<string>("--qux");
 
         var result = parser.ParseInternal(["--foo", "bar", "baz", "--qux", "quux"]);
 
@@ -204,6 +205,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         string[] expected = ["barbar"];
         parser.Add<string[]>("--foo", arity: Arity.Any, action: ArgumentActions.Store, constValue: expected);
+        parser.Add<string>("--bar");
 
         var result = parser.ParseInternal(["--foo", "--bar", "baz", "qux"]);
 
@@ -217,6 +219,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         string[] expected = ["bar", "baz"];
         parser.Add<string[]>("--foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
+        parser.Add<string>("--qux");
 
         var result = parser.ParseInternal(["--foo", "bar", "baz", "--qux", "quux"]);
 
@@ -229,6 +232,7 @@ public partial class ArgumentParserTests
     {
         var parser = new ArgumentParser();
         parser.Add<string[]>("--foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
+        parser.Add<string[]>("--bar", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
 
         var ex = Assert.Throws<ArgumentValueException>(() =>
             parser.ParseInternal(["--foo", "--bar", "baz", "qux", "quux"]));

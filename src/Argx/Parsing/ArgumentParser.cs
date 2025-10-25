@@ -115,6 +115,12 @@ public class ArgumentParser : IArgumentParser
             throw new InvalidOperationException($"Argument {arg.Name}: positional arguments cannot have arity 0");
         }
 
+        if (arity is Arity.Any or Arity.AtLeastOne && !arg.ValueType.IsEnumerable())
+        {
+            throw new InvalidOperationException(
+                $"Argument {arg.Name}: only arguments with enumerable types can have arity '{arity}'");
+        }
+
         if (!ActionRegistry.TryGetHandler(arg.Action, out var handler))
         {
             throw new ArgumentException($"Argument {arg.Name}: Unknown action '{action}'");
@@ -378,7 +384,7 @@ public class ArgumentParser : IArgumentParser
         return len;
     }
 
-    private static int ParseArity(Argument argument, ReadOnlySpan<Token> tokens, int from)
+    private int ParseArity(Argument argument, ReadOnlySpan<Token> tokens, int from)
     {
         if (argument.Arity.IsFixed)
         {
@@ -400,7 +406,8 @@ public class ArgumentParser : IArgumentParser
 
             case Arity.Any:
             case Arity.AtLeastOne:
-                while (idx < tokens.Length && tokens[idx].Type == TokenType.Argument)
+                while (idx < tokens.Length && (tokens[idx].Type == TokenType.Argument
+                    || tokens[idx].Type == TokenType.Option && !IsKnownOption(tokens[idx])))
                 {
                     count++;
                     idx++;
@@ -417,6 +424,8 @@ public class ArgumentParser : IArgumentParser
                 throw new InvalidOperationException($"Unknown arity value: {argument.Arity.Value}");
         }
     }
+
+    private bool IsKnownOption(Token token) => _knownOpts.Get(token.Value) is not null;
 
     private void ParseBundle(Token token, Arguments result)
     {

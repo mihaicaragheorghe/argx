@@ -176,6 +176,7 @@ public partial class ArgumentParserTests
     {
         var parser = new ArgumentParser();
         parser.Add<string[]>("foo", arity: Arity.Any, action: ArgumentActions.Store);
+        parser.Add<string>("--qux");
 
         var result = parser.ParseInternal(["bar", "baz", "--qux", "quux"]);
 
@@ -189,6 +190,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         string[] expected = ["bar", "baz"];
         parser.Add<string[]>("foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
+        parser.Add<string>("--qux");
 
         var result = parser.ParseInternal(["bar", "baz", "--qux", "quux"]);
 
@@ -214,5 +216,17 @@ public partial class ArgumentParserTests
 
         var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["--foo"]));
         Assert.Equal("Error: argument --foo: not enough values provided", ex.Message);
+    }
+
+    [Fact]
+    public void Parse_ShouldAppendValues_WhenActionIsAppend()
+    {
+        var parser = new ArgumentParser();
+        parser.Add<int[]>("nums", arity: Arity.Any, action: ArgumentActions.Append);
+
+        var result = parser.ParseInternal(["1", "2", "3"]);
+
+        Assert.True(result.TryGetValue<int[]>("nums", out var nums));
+        Assert.Equal([1, 2, 3], nums);
     }
 }
