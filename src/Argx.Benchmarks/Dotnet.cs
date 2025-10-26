@@ -69,7 +69,7 @@ public class Dotnet
         parser.AddOption(name: "--verbosity", alias: ["-v"], dest: "verbosity", action: ArgumentActions.Store,
             usage: "Sets the verbosity level.");
 
-        parser.AddArgument(name: "applicationArguments", dest: "applicationArguments",
+        parser.AddArgument(name: "applicationArguments",
             usage: "Arguments passed to the application that is being run.");
 
         var result = parser.Parse("dotnet run", "--project", "src/Argx.Benchmarks/", "-c", "Release");

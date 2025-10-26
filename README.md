@@ -112,8 +112,8 @@ The `Parse()` method processes the command-line arguments, validates them agains
 
 `IArguments` returned by `Parse()` provides type-safe methods to retrieve the values of the added arguments by their key.
 
-- `Extras`: contains any arguments not matched by the parser.
-- `Indexer (args["key"])`: retrieves the string value of an argument by its key or null if it doesn’t exist.
+- `Extras`: Contains any arguments not matched by the parser.
+- `Indexer (args["key"])`: Retrieves the string value of an argument by its key or null if it doesn’t exist.
 - `GetValue<T>` : Retrieves the value, or default(T) if the argument is missing.
 - `GetRequired<T>`: Retrieves the value, throwing an InvalidOperationException if the argument is missing.
 - `TryGetValue<T>`: Attempts to get the value; returns true if found, false otherwise. The out parameter receives the value if it exists, otherwise default(T).
@@ -336,6 +336,30 @@ var helpConfig = new HelpConfiguration
 (Default: 80)
 - `UseAliasInUsageText`: Whether to show argument aliases instead of primary names in usage text.
 (Default: false)
+
+### Argument type parsing configuration
+
+`ArgumentConversionDefaults` defines the default configuration for converting string tokens into typed values, such as numbers, dates, and time spans.
+
+- **NumberStyles**: Defines parsing behavior for each numeric type. These are passed directly to their respective `.TryParse()` call.  
+Default: A new instance with the default values used by .NET.
+- **FormatProvider**: Specifies the culture or formatting conventions used during parsing. Passed to all numeric `.TryParse()` calls and all `TryParseExact()` calls.
+Default: `CultureInfo.InvariantCulture`.
+- **DateTimeFormat**: Optional format string used when converting to `DateTime`.
+If null, `DateTime.TryParse()` is used; else `DateTime.TryParseExact()`
+Default: `null`.
+- **TimeSpanFormat**: Optional format string used when converting to `TimeSpan`.
+If null, `TimeSpan.TryParse()` is used; else `TimeSpan.TryParseExact()`.  
+Default: `null`.
+
+All options are static and affect conversions globally.
+
+``` csharp
+ArgumentConversionDefaults.DateTimeFormat = "dd.MM.yyyy";
+ArgumentConversionDefaults.TimeSpanFormat = @"hh\:mm\:ss"
+ArgumentConversionDefaults.FormatProvider = CultureInfo.GetCultureInfo("de-DE");
+ArgumentConversionDefaults.NumberStyles.Double = NumberStyles.Currency;
+```
 
 ### Add parameters
 

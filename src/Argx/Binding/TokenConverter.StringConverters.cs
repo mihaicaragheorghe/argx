@@ -11,6 +11,12 @@ internal static partial class TokenConverter
     private static Dictionary<Type, TryConvertString> StringConverters
         => s_stringConverters ??= new Dictionary<Type, TryConvertString>
         {
+            [typeof(string)] = (string input, out object? value) =>
+            {
+                value = input;
+                return true;
+            },
+
             [typeof(bool)] = (string token, out object? value) =>
             {
                 if (bool.TryParse(token, out var parsed))
@@ -23,15 +29,12 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(string)] = (string input, out object? value) =>
-            {
-                value = input;
-                return true;
-            },
-
             [typeof(int)] = (string token, out object? value) =>
             {
-                if (int.TryParse(token, out var intValue))
+                if (int.TryParse(token,
+                    style: ArgumentConversionDefaults.NumberStyles.Int,
+                    provider: ArgumentConversionDefaults.FormatProvider,
+                    result: out var intValue))
                 {
                     value = intValue;
                     return true;
@@ -43,7 +46,10 @@ internal static partial class TokenConverter
 
             [typeof(long)] = (string token, out object? value) =>
             {
-                if (long.TryParse(token, out var longValue))
+                if (long.TryParse(token,
+                    style: ArgumentConversionDefaults.NumberStyles.Long,
+                    provider: ArgumentConversionDefaults.FormatProvider,
+                    result: out var longValue))
                 {
                     value = longValue;
                     return true;
@@ -55,7 +61,10 @@ internal static partial class TokenConverter
 
             [typeof(short)] = (string token, out object? value) =>
             {
-                if (short.TryParse(token, out var shortValue))
+                if (short.TryParse(token,
+                    style: ArgumentConversionDefaults.NumberStyles.Short,
+                    provider: ArgumentConversionDefaults.FormatProvider,
+                    result: out var shortValue))
                 {
                     value = shortValue;
                     return true;
@@ -67,7 +76,10 @@ internal static partial class TokenConverter
 
             [typeof(uint)] = (string token, out object? value) =>
             {
-                if (uint.TryParse(token, out var uintValue))
+                if (uint.TryParse(token,
+                    style: ArgumentConversionDefaults.NumberStyles.Int,
+                    provider: ArgumentConversionDefaults.FormatProvider,
+                    result: out var uintValue))
                 {
                     value = uintValue;
                     return true;
@@ -79,7 +91,10 @@ internal static partial class TokenConverter
 
             [typeof(ulong)] = (string token, out object? value) =>
             {
-                if (ulong.TryParse(token, out var ulongValue))
+                if (ulong.TryParse(token,
+                    style: ArgumentConversionDefaults.NumberStyles.Long,
+                    provider: ArgumentConversionDefaults.FormatProvider,
+                    result: out var ulongValue))
                 {
                     value = ulongValue;
                     return true;
@@ -91,7 +106,10 @@ internal static partial class TokenConverter
 
             [typeof(ushort)] = (string token, out object? value) =>
             {
-                if (ushort.TryParse(token, out var ushortValue))
+                if (ushort.TryParse(token,
+                    style: ArgumentConversionDefaults.NumberStyles.Short,
+                    provider: ArgumentConversionDefaults.FormatProvider,
+                    result: out var ushortValue))
                 {
                     value = ushortValue;
                     return true;
@@ -103,7 +121,10 @@ internal static partial class TokenConverter
 
             [typeof(decimal)] = (string input, out object? value) =>
             {
-                if (decimal.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
+                if (decimal.TryParse(input,
+                    style: ArgumentConversionDefaults.NumberStyles.Decimal,
+                    provider: ArgumentConversionDefaults.FormatProvider,
+                    result: out var parsed))
                 {
                     value = parsed;
                     return true;
@@ -115,7 +136,10 @@ internal static partial class TokenConverter
 
             [typeof(double)] = (string input, out object? value) =>
             {
-                if (double.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
+                if (double.TryParse(input,
+                    style: ArgumentConversionDefaults.NumberStyles.Double,
+                    provider: ArgumentConversionDefaults.FormatProvider,
+                    result: out var parsed))
                 {
                     value = parsed;
                     return true;
@@ -127,7 +151,10 @@ internal static partial class TokenConverter
 
             [typeof(float)] = (string input, out object? value) =>
             {
-                if (float.TryParse(input, NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
+                if (float.TryParse(input,
+                    style: ArgumentConversionDefaults.NumberStyles.Float,
+                    provider: ArgumentConversionDefaults.FormatProvider,
+                    result: out var parsed))
                 {
                     value = parsed;
                     return true;
@@ -151,7 +178,51 @@ internal static partial class TokenConverter
 
             [typeof(DateTime)] = (string input, out object? value) =>
             {
+                if (ArgumentConversionDefaults.DateTimeFormat != null)
+                {
+                    if (DateTime.TryParseExact(input,
+                        format: ArgumentConversionDefaults.DateTimeFormat,
+                        provider: ArgumentConversionDefaults.FormatProvider,
+                        style: DateTimeStyles.None,
+                        result: out var parsedExact))
+                    {
+                        value = parsedExact;
+                        return true;
+                    }
+
+                    value = null;
+                    return false;
+                }
+
                 if (DateTime.TryParse(input, out var parsed))
+                {
+                    value = parsed;
+                    return true;
+                }
+
+                value = null;
+                return false;
+            },
+
+            [typeof(DateTimeOffset)] = (string input, out object? value) =>
+            {
+                if (ArgumentConversionDefaults.DateTimeFormat != null)
+                {
+                    if (DateTimeOffset.TryParseExact(input,
+                        format: ArgumentConversionDefaults.DateTimeFormat,
+                        formatProvider: ArgumentConversionDefaults.FormatProvider,
+                        styles: DateTimeStyles.AllowWhiteSpaces,
+                        result: out var parsedExact))
+                    {
+                        value = parsedExact;
+                        return true;
+                    }
+
+                    value = null;
+                    return false;
+                }
+
+                if (DateTimeOffset.TryParse(input, out var parsed))
                 {
                     value = parsed;
                     return true;
@@ -163,6 +234,21 @@ internal static partial class TokenConverter
 
             [typeof(TimeSpan)] = (string input, out object? value) =>
             {
+                if (ArgumentConversionDefaults.TimeSpanFormat != null)
+                {
+                    if (TimeSpan.TryParseExact(input,
+                        format: ArgumentConversionDefaults.TimeSpanFormat,
+                        formatProvider: ArgumentConversionDefaults.FormatProvider,
+                        result: out var timeSpanExact))
+                    {
+                        value = timeSpanExact;
+                        return true;
+                    }
+
+                    value = null;
+                    return false;
+                }
+
                 if (TimeSpan.TryParse(input, out var timeSpan))
                 {
                     value = timeSpan;
