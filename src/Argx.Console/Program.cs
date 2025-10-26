@@ -1,8 +1,10 @@
-﻿using Argx;
-using Argx.Actions;
+﻿using Argx.Actions;
 using Argx.Parsing;
 
 var parser = new ArgumentParser();
-parser.Add<int[]>("--foo", action: ArgumentActions.Append, arity: Arity.AtLeastOne);
-var argx = parser.Parse(["--foo", "0", "--foo", "1", "2", "--bar", "10", "--foo", "3"]);
-Console.WriteLine(string.Join(", ", argx.GetValue<int[]>("foo"))); // Outputs: 0, 1, 2
+parser.Add("file");
+parser.Add<int>("--level");
+parser.Add<bool>("--debug", ["-d"],
+    usage: "enable debug mode",
+    action: ArgumentActions.StoreTrue);
+var argx = parser.Parse(args);

@@ -26,4 +26,6 @@ public class ArgumentParserConfiguration
     /// Gets or sets the help configuration settings.
     /// </summary>
     public HelpConfiguration HelpConfiguration { get; set; } = HelpConfiguration.Default();
+
+    public static ArgumentParserConfiguration Default() => new();
 }

@@ -1,8 +1,9 @@
 # Argx
 
-A modern command-line argument parsing library for dotnet.
+A modern command-line argument parsing library for dotnet.  
 
-The library aims to provide an easier way to write user-friendly command-line applications.  
+## How it works
+
 The application should define the arguments it requires and the library will figure out how to parse them. It will automatically generate help and usage messages, as well as errors when the user input is not valid.
 
 ## ArgumentParser
@@ -13,8 +14,15 @@ The argument parsing is done via `ArgumentParser`, which provides functionality 
 var parser = new ArgumentParser(
     app: "app_name",
     description: "What the application does",
-    epilogue: "Text at the bottom of the help message");
+    epilogue: "Text at the bottom of the help message",
+    configuration: ArgumentParserConfiguration.Default());
 ```
+
+**NOTE** All parameters are optional. By default:
+
+- app, description, and epilogue are null and will not be printed.
+- The default `ArgumentParserConfiguration` is used.
+- If app is null, the usage output will use `argv[0]` (`Environment.GetCommandLineArgs()[0]`) as the application name.
 
 ### Adding arguments
 
@@ -77,6 +85,7 @@ hello world
 hello world
 hello world
 ```
+
 `NOTE`: -- is used to separate the application arguments from the dotnet run arguments.
 
 `NOTE`: When storing the value, dashes are automatically removed. So if you add an argument like --count, you’ll access it using count. To override this behavior, use the dest parameter.
@@ -129,7 +138,8 @@ parser.Add<string>("--foo", action: ArgumentActions.StoreFalse);
 var argx = parser.Parse(["--foo"]);
 Console.WriteLine(argx.GetValue<bool?>("foo")); // Outputs: False
 ```
-`NOTE`: nullable is used because GetValue<T> returns default(T) if the key doesn't exist, which is false for bool. Using TryGetValue would also work.
+
+`NOTE`: nullable is used because GetValue\<T\> returns default(T) if the key doesn't exist, which is false for bool. Using TryGetValue would also work.
 
 **`count`**: Stores the number of times the argument is encountered.
 
@@ -141,6 +151,7 @@ parser.Add<int>("-v",
 var argx = parser.Parse(["-vvv"]);
 Console.WriteLine(argx.GetValue<int>("verbosity")); // Outputs: 3
 ```
+
 **`append`**: Appends each value to a list. Useful when an option can appear multiple times.
 
 ``` csharp
@@ -148,6 +159,7 @@ parser.Add<int[]>("--foo", action: ArgumentActions.Append, arity: Arity.AtLeastO
 var argx = parser.Parse(["--foo", "0", "--foo", "1", "2", "--bar", "10", "--foo", "3"]);
 Console.WriteLine(string.Join(", ", argx.GetValue<int[]>("foo"))); // Outputs: 0, 1, 2
 ```
+
 **NOTE**: `Arity.AtLeastOne` reads all the following values until another option is encountered or end is reached. This means we can append both individual values and collections of values. If arity was 1, then it would append only the following value. `Arity.Any` works in a similar way but it needs a `constValue` when no value is provided. See [arity](#arity) for more details.
 
 #### **Custom actions**
@@ -200,6 +212,88 @@ parser.Add<int[]>("--foo", action: ArgumentActions.Append, arity: Arity.AtLeastO
 var argx = parser.Parse(["--foo", "0", "--foo", "1", "2", "--bar", "10", "--foo", "3"]);
 Console.WriteLine(string.Join(", ", argx.GetValue<int[]>("foo"))); // Outputs: 0, 1, 2
 ```
+
+### Help text
+
+When `AddHelpArgument` is enabled in the configuration (by default it is), the parser automatically adds a built-in help option (`-h` / `--help`).
+If this argument is provided on the command line, the parser prints the help text and exits with code 0.
+
+``` csharp
+var parser = new ArgumentParser();
+parser.Add("file");
+parser.Add<int>("--level");
+parser.Add<bool>("--debug", ["-d"],
+    usage: "enable debug mode",
+    action: ArgumentActions.StoreTrue);
+
+var argx = parser.Parse(args);
+```
+
+If the application is run with `--help` or `-h`, it will output:
+
+``` console
+Usage:
+  Argx.Console.dll [--help] [--level LEVEL] [--debug] file
+
+Positional arguments:
+  file
+
+Options:
+  --debug, -d  enable debug mode
+  --help, -h   Print help message
+  --level
+```
+
+The formatting can be customized via [HelpConfiguration](#help-configuration).
+
+### Parser Configuration
+
+`ArgumentParser` constructor takes an instance of `ArgumentParserConfiguration` as a parameter, which defines the parser’s behavior and customization options.
+
+``` csharp
+var config = new ArgumentParserConfiguration
+{
+    AddHelpArgument = true,
+    ExitOnError = true,
+    ErrorExitCode = 1,
+    HelpConfiguration = HelpConfiguration.Default()
+};
+```
+
+**Options**:
+
+- `AddHelpArgument` — Automatically adds a built-in help argument (`-h` / `--help`).
+(Default: `true`)
+- `ExitOnError` — Determines whether the parser should exit automatically when an error occurs.
+(Default: `true`)
+- `ErrorExitCode` — The exit code used when an error occurs and ExitOnError is enabled.
+(Default: `1`)
+- `HelpConfiguration` — Specifies how help messages are formatted and displayed.
+(Default: `HelpConfiguration.Default()`). See [help configuration](#help-configuration)
+
+### Help configuration
+
+The `HelpConfiguration` class defines how help and usage text is formatted.
+
+``` csharp
+var helpConfig = new HelpConfiguration
+{
+    SectionSpacing = Environment.NewLine + Environment.NewLine,
+    IndentSize = 2,
+    MaxLineWidth = 80,
+    UseAliasInUsageText = false
+};
+```
+
+**Options**:
+
+- `SectionSpacing` - Spacing between sections in the help output. (Default: two new lines)
+- `IndentSize` — Number of spaces used to indent help text.
+(Default: 2)
+- `MaxLineWidth` — Maximum width of help text before wrapping occurs.
+(Default: 80)
+- `UseAliasInUsageText` — Whether to show argument aliases instead of primary names in usage text.
+(Default: false)
 
 ### Add parameters
 

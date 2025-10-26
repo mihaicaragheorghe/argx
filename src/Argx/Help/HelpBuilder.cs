@@ -15,18 +15,27 @@ internal class HelpBuilder
 
     internal HelpBuilder AddSection(string title, string content)
     {
+        if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(content))
+        {
+            return this;
+        }
+
         _sections.Add(new HelpSection(title, content, _config.IndentSize, _config.MaxLineWidth));
         return this;
     }
 
     internal HelpBuilder AddText(string text)
     {
+        if (string.IsNullOrWhiteSpace(text)) return this;
+
         _sections.Add(new HelpSection(string.Empty, text, _config.IndentSize, _config.MaxLineWidth));
         return this;
     }
 
     internal HelpBuilder AddArguments(IList<Argument> arguments, string title = "Arguments")
     {
+        if (arguments.Count == 0) return this;
+
         var section = new HelpSection(title, _config.IndentSize, _config.MaxLineWidth);
 
         var rows = arguments

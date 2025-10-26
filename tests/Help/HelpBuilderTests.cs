@@ -18,6 +18,16 @@ public class HelpBuilderTests
     }
 
     [Fact]
+    public void AddSection_ShouldIgnoreEmptySection()
+    {
+        var result = new HelpBuilder(HelpConfiguration.Default())
+            .AddSection("", "")
+            .Build();
+
+        Assert.Equal(string.Empty, result);
+    }
+
+    [Fact]
     public void AddText_ShouldAddText()
     {
         var result = new HelpBuilder(HelpConfiguration.Default())
@@ -25,6 +35,26 @@ public class HelpBuilderTests
             .Build();
 
         Assert.Equal("foo", result);
+    }
+
+    [Fact]
+    public void AddText_ShouldIgnoreEmptyText()
+    {
+        var result = new HelpBuilder(HelpConfiguration.Default())
+            .AddText("")
+            .Build();
+
+        Assert.Equal(string.Empty, result);
+    }
+
+    [Fact]
+    public void AddArguments_ShouldIgnoreEmptyArgumentList()
+    {
+        var result = new HelpBuilder(HelpConfiguration.Default())
+            .AddArguments([])
+            .Build();
+
+        Assert.Equal(string.Empty, result);
     }
 
     [Fact]
