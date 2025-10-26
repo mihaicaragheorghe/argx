@@ -1,6 +1,6 @@
 # Argx
 
-A modern command-line argument parsing library for dotnet.  
+A modern command-line argument parsing library for dotnet.
 
 ## How it works
 
@@ -20,11 +20,11 @@ var parser = new ArgumentParser(
 
 **NOTE** All parameters are optional. By default:
 
-- app, description, and epilogue are null and will not be printed.
+- app, description, and epilogue (used to print help text and usage) are null and will not be printed.
 - The default `ArgumentParserConfiguration` is used.
 - If app is null, the usage output will use `argv[0]` (`Environment.GetCommandLineArgs()[0]`) as the application name.
 
-### Adding arguments
+### Defining arguments
 
 The `Add` method is used to add individual argument specifications to the parser. It supports positional arguments, options and flags.
 
@@ -37,11 +37,11 @@ parser.Add<bool>("--debug", ["-d"], // flag
 ```
 
 However, it’s recommended to use the dedicated methods for each argument type: `AddArgument`, `AddOption`, and `AddFlag`. These methods accept only the parameters relevant to their specific type.  
-All the add have methods a generic overload for specifying the argument’s value type.
+All the add methods have a generic overload for specifying the argument’s value type, see [supported types](#supported-types).
 
-### AddArgument
+#### AddArgument
 
-Positional arguments are identified by their position in the command line, rather than by a flag or option name, their meaning depends on where they appear in the command. This means the positional arguments will be parsed in the ordered they were added.
+Positional arguments are identified by their position in the command line, rather than by a flag or option name, their meaning depends on where they appear in the command line. This means the positional arguments will be parsed in the order they were added.
 
 Use `AddArgument` to add a positional argument
 
@@ -57,7 +57,7 @@ var y = argx.GetValue<int>("y");
 Console.WriteLine(x + y); // Outputs: 5
 ```
 
-### AddOption
+#### AddOption
 
 Options are identified by name. They must start with `-` or `--`.
 
@@ -88,9 +88,7 @@ hello world
 
 `NOTE`: -- is used to separate the application arguments from the dotnet run arguments.
 
-`NOTE`: When storing the value, dashes are automatically removed. So if you add an argument like --count, you’ll access it using count. To override this behavior, use the dest parameter.
-
-### AddFlag
+#### AddFlag
 
 A flag is an option that represents a boolean value, it’s either present (true) or absent (false). They are options, so they must start with `-`, or `--`.
 
@@ -100,33 +98,59 @@ var argx = parser.Parse(["-v"]);
 Console.WriteLine(argx.GetValue<bool>("verbose")); // Outputs: True
 ```
 
-`NOTE`: When storing the value, dashes are automatically removed. So if you add an argument like --count, you’ll access it using count. To override this behavior, use the dest parameter.
+### Parsing arguments
+
+Once all arguments are defined, the next step is to parse the input provided by the user. This is done using the `Parse()` method on the ArgumentParser instance.  
+
+``` csharp
+var parsedArgs = parser.Parse(args);
+```
+
+The `Parse()` method processes the command-line arguments, validates them against the defined schema, applies conversions, executes [actions](#actions), and returns an `IArguments` instance.
+
+### Accessing parsed arguments
+
+`IArguments` returned by `Parse()` provides type-safe methods to retrieve the values of the added arguments by their key.
+
+- `Extras`: contains any arguments not matched by the parser.
+- `Indexer (args["key"])`: retrieves the string value of an argument by its key or null if it doesn’t exist.
+- `GetValue<T>` : Retrieves the value, or default(T) if the argument is missing.
+- `GetRequired<T>`: Retrieves the value, throwing an InvalidOperationException if the argument is missing.
+- `TryGetValue<T>`: Attempts to get the value; returns true if found, false otherwise. The out parameter receives the value if it exists, otherwise default(T).
+
+**NOTE**: The key used to access an argument value corresponds to the dest parameter specified in `Add/AddOption`. If not provided, it is inferred automatically:
+
+- Options: leading dashes are removed(e.g. `--verbose` becomes `verbose`).
+- Positional arguments: the argument name itself is used. `AddArgument` does not have a `dest` parameter.
 
 ### Actions
 
-Actions define what happens when an argument is encountered during parsing.  
-Built-in actions are:
+Actions define what happens when an argument is encountered during parsing.
+
+#### Built-in actions
 
 **`store`**: Stores the argument’s value(s). This is the default action when no action is explicitly specified.
 
 ``` csharp
-parser.Add<string>("foo");
+parser.Add("foo");
 var argx = parser.Parse(["bar"]);
-Console.WriteLine(argx.GetValue<string>("foo")); // output: "bar"
+Console.WriteLine(argx["foo"]); // output: "bar"
 ```
+
+**NOTE**: if not specified, the type will be inferred from the action (each action has a default type, e.g. string for store, bool for store_true, int for count).
 
 **`store_const`**: Stores the predefined `constValue` when the **option** is encountered.
 
 ``` csharp
-parser.Add<string>("--foo", action: ArgumentActions.StoreConst, constValue: "bar");
+parser.Add<int>("--foo", action: ArgumentActions.StoreConst, constValue: 6);
 var argx = parser.Parse(["--foo"]);
-Console.WriteLine(argx.GetValue<string>("foo")); // Outputs: bar
+Console.WriteLine(argx.GetValue<int>("foo")); // Outputs: 6
 ```
 
 **`store_true`**: Stores `true` when the **option** is encountered.
 
 ``` csharp
-parser.Add<string>("--foo", action: ArgumentActions.StoreTrue);
+parser.Add<bool>("--foo", action: ArgumentActions.StoreTrue);
 var argx = parser.Parse(["--foo"]);
 Console.WriteLine(argx.GetValue<bool>("foo")); // Outputs: True
 ```
@@ -134,12 +158,12 @@ Console.WriteLine(argx.GetValue<bool>("foo")); // Outputs: True
 **`store_false`**: Stores `false` when the **option** is encountered.
 
 ``` csharp
-parser.Add<string>("--foo", action: ArgumentActions.StoreFalse);
+parser.Add("--foo", action: ArgumentActions.StoreFalse);
 var argx = parser.Parse(["--foo"]);
 Console.WriteLine(argx.GetValue<bool?>("foo")); // Outputs: False
 ```
 
-`NOTE`: nullable is used because GetValue\<T\> returns default(T) if the key doesn't exist, which is false for bool. Using TryGetValue would also work.
+**NOTE**: nullable is used because GetValue\<T\> returns default(T) if the key doesn't exist, which is false for bool. Using TryGetValue would also work.
 
 **`count`**: Stores the number of times the argument is encountered.
 
@@ -152,30 +176,31 @@ var argx = parser.Parse(["-vvv"]);
 Console.WriteLine(argx.GetValue<int>("verbosity")); // Outputs: 3
 ```
 
-**`append`**: Appends each value to a list. Useful when an option can appear multiple times.
+**`append`**: Appends each value to a list. Useful when an option can appear multiple times.  
+The type must be an enumerable.
 
 ``` csharp
 parser.Add<int[]>("--foo", action: ArgumentActions.Append, arity: Arity.AtLeastOne);
 var argx = parser.Parse(["--foo", "0", "--foo", "1", "2", "--bar", "10", "--foo", "3"]);
-Console.WriteLine(string.Join(", ", argx.GetValue<int[]>("foo"))); // Outputs: 0, 1, 2
+Console.WriteLine(string.Join(", ", argx.GetValue<int[]>("foo"))); // Outputs: 0, 1, 2, 3
 ```
 
 **NOTE**: `Arity.AtLeastOne` reads all the following values until another option is encountered or end is reached. This means we can append both individual values and collections of values. If arity was 1, then it would append only the following value. `Arity.Any` works in a similar way but it needs a `constValue` when no value is provided. See [arity](#arity) for more details.
 
-#### **Custom actions**
+#### Custom actions
 
 To register a custom action, use the `ArgumentParser.AddAction` method. It takes an action name and an `ArgumentAction` instance. Once added, you can use the action by specifying its name in the action parameter of any add method.
 
 `ArgumentAction` is the base type for all actions. Every action implementation derives from it and must define two methods:
 
-**Validate**
+#### Validate
 
 Called when a new argument specification is added to the parser. It ensures that the action is valid and can be performed. Each action has its own validation rules and throws an exception if they are not met.
 This helps catch configuration errors at startup, rather than at runtime during parsing.
 
-**Execute**
+#### Execute
 
-Called when the argument is encountered during parsing. This method performs the action’s logic, such as storing values, it receives the argument definition, the token that triggered it, any associated value tokens, and the argument repository where parsed results are stored.  
+Called when the argument is encountered during parsing. This method performs the action’s logic, such as storing values, it receives the argument definition, the token that triggered it, any associated value tokens (identified by arity), and the argument repository where parsed results are stored.  
 Each action overrides this method to implement its specific behavior.  
 The base implementation validates that the invocation is not null or empty.
 
@@ -183,7 +208,7 @@ The base implementation validates that the invocation is not null or empty.
 
 Defines the arity (number of values) an argument can accept. This can be either a fixed number or a keyword.
 
-#### **Keywords**
+#### Keywords
 
 **`? (Arity.Optional)`**: An optional value, one argument will be consumed from the command line if possible, and produced as a single item. This should be used along `constValue`, which will be used if no value is provided.
 
@@ -195,7 +220,7 @@ Console.WriteLine(result.GetValue("foo")); // Outputs: 0
 Console.WriteLine(result.GetValue("bar")); // Outputs: baz
 ```
 
-**`* (Any)`**:  Any number of values. The argument can be provided with zero or more values. The argument type has to be a collection type. This will consume all the following values until another option is encountered or reaches the end of the command line.
+**`* (Any)`**:  Any number of values. The argument can be provided with zero or more values. The argument type must be a collection type. This will consume all the following values until another known option is encountered or reaches the end of the command line.
 
 ``` csharp
 parser.Add<int[]>("--foo", arity: Arity.Any, constValue: Array.Empty<int>());
@@ -210,12 +235,27 @@ Console.WriteLine($"bar: {string.Join(", ", result.GetValue<int[]>("bar"))}"); /
 ``` csharp
 parser.Add<int[]>("--foo", action: ArgumentActions.Append, arity: Arity.AtLeastOne);
 var argx = parser.Parse(["--foo", "0", "--foo", "1", "2", "--bar", "10", "--foo", "3"]);
-Console.WriteLine(string.Join(", ", argx.GetValue<int[]>("foo"))); // Outputs: 0, 1, 2
+Console.WriteLine(string.Join(", ", argx.GetValue<int[]>("foo"))); // Outputs: 0, 1, 2, 3
+```
+
+If no value is provided:
+
+``` csharp
+parser.Add<int[]>("--foo", action: ArgumentActions.Append, arity: Arity.AtLeastOne);
+parser.Add<int[]>("--bar", action: ArgumentActions.Append, arity: Arity.AtLeastOne);
+var argx = parser.Parse(["--foo", "--bar", "10"]);
+```
+
+``` console
+Error: argument --foo: requires at least one value
+
+Usage:
+  Argx.Console.dll [--help] [--foo [FOO ...]] [--bar [BAR ...]]
 ```
 
 ### Help text
 
-When `AddHelpArgument` is enabled in the configuration (by default it is), the parser automatically adds a built-in help option (`-h` / `--help`).
+When `ArgumentParserConfiguration.AddHelpArgument` is enabled in the configuration (by default it is), the parser automatically adds a built-in help option (`-h` / `--help`).
 If this argument is provided on the command line, the parser prints the help text and exits with code 0.
 
 ``` csharp
@@ -244,6 +284,8 @@ Options:
   --level
 ```
 
+**NOTE**: The `Usage`, `Positional arguments`, and `Options` blocks are referred to as sections.
+
 The formatting can be customized via [HelpConfiguration](#help-configuration).
 
 ### Parser Configuration
@@ -262,18 +304,18 @@ var config = new ArgumentParserConfiguration
 
 **Options**:
 
-- `AddHelpArgument` — Automatically adds a built-in help argument (`-h` / `--help`).
+- `AddHelpArgument`: Automatically adds a built-in help argument (`-h` / `--help`).
 (Default: `true`)
-- `ExitOnError` — Determines whether the parser should exit automatically when an error occurs.
+- `ExitOnError`: Determines whether the parser should exit automatically when an error occurs.
 (Default: `true`)
-- `ErrorExitCode` — The exit code used when an error occurs and ExitOnError is enabled.
+- `ErrorExitCode`: The exit code used when an error occurs and ExitOnError is enabled.
 (Default: `1`)
-- `HelpConfiguration` — Specifies how help messages are formatted and displayed.
+- `HelpConfiguration`: Specifies how help messages are formatted and displayed.
 (Default: `HelpConfiguration.Default()`). See [help configuration](#help-configuration)
 
 ### Help configuration
 
-The `HelpConfiguration` class defines how help and usage text is formatted.
+The `HelpConfiguration` class defines how help and usage text is formatted and displayed.
 
 ``` csharp
 var helpConfig = new HelpConfiguration
@@ -287,12 +329,12 @@ var helpConfig = new HelpConfiguration
 
 **Options**:
 
-- `SectionSpacing` - Spacing between sections in the help output. (Default: two new lines)
-- `IndentSize` — Number of spaces used to indent help text.
+- `SectionSpacing`: Spacing between sections in the help output. (Default: two new lines)
+- `IndentSize`: Number of spaces used to indent help text.
 (Default: 2)
-- `MaxLineWidth` — Maximum width of help text before wrapping occurs.
+- `MaxLineWidth`: Maximum width of help text before wrapping occurs.
 (Default: 80)
-- `UseAliasInUsageText` — Whether to show argument aliases instead of primary names in usage text.
+- `UseAliasInUsageText`: Whether to show argument aliases instead of primary names in usage text.
 (Default: false)
 
 ### Add parameters
@@ -307,3 +349,12 @@ var helpConfig = new HelpConfiguration
 - **action**: The action to perform when the argument is encountered, see [actions](#actions).
 - **arity**: Specifies how many values the argument expects, use null to reply on defaults inferred from the action. see [arity](#arity) for more details.
 - **choices**: A set of allowed values for the argument. If specified, the argument's value must be one of these choices.
+
+### Supported types
+
+- string
+- bool
+- numerics (short, int, long, decimal, double, float, ushort, uint, ulong)
+- Guid
+- DateTime
+- TimeSpan
