@@ -8,41 +8,41 @@ namespace Argx.Actions;
 
 internal class StoreAction : ArgumentAction
 {
-    public override void Execute(Argument arg, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
+    public override void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
     {
-        base.Execute(arg, invocation, values, store);
+        base.Execute(argument, invocation, values, store);
 
-        if (arg.ConstValue == null && values.Length < 1)
+        if (argument.ConstValue == null && values.Length < 1)
         {
             throw new ArgumentValueException(invocation, "expected value");
         }
 
         if (values.Length == 0)
         {
-            store.Set(arg.Dest, arg.ConstValue!);
+            store.Set(argument.Dest, argument.ConstValue!);
             return;
         }
 
-        if (arg.Choices?.Length > 0)
+        if (argument.Choices?.Length > 0)
         {
             foreach (var token in values)
             {
-                if (!arg.Choices.Contains(token.Value))
+                if (!argument.Choices.Contains(token.Value))
                 {
                     throw new ArgumentValueException(invocation,
-                        $"invalid choice '{token}', expected one of: {string.Join(", ", arg.Choices)}");
+                        $"invalid choice '{token}', expected one of: {string.Join(", ", argument.Choices)}");
                 }
             }
         }
 
-        TokenConversionResult result = TokenConverter.ConvertTokens(arg.ValueType, values);
+        TokenConversionResult result = TokenConverter.ConvertTokens(argument.ValueType, values);
 
         if (result.IsError)
         {
-            throw new ArgumentValueException(invocation, $"expected type {arg.ValueType.GetFriendlyName()}. {result.Error}");
+            throw new ArgumentValueException(invocation, $"expected type {argument.ValueType.GetFriendlyName()}. {result.Error}");
         }
 
-        store.Set(arg.Dest, result.Value!);
+        store.Set(argument.Dest, result.Value!);
     }
 
     public override void Validate(Argument argument)

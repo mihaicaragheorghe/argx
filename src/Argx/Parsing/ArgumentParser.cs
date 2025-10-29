@@ -211,7 +211,8 @@ public class ArgumentParser : IArgumentParser
         string? metavar = null,
         object? constValue = null,
         string? action = null,
-        string? arity = null)
+        string? arity = null,
+        string[]? choices = null)
     {
         if (!name.IsOption())
         {
@@ -226,7 +227,8 @@ public class ArgumentParser : IArgumentParser
             metavar: metavar,
             constValue: constValue,
             action: action,
-            arity: arity);
+            arity: arity,
+            choices: choices);
     }
 
     /// <inheritdoc/>
@@ -238,7 +240,8 @@ public class ArgumentParser : IArgumentParser
         string? metavar = null,
         object? constValue = null,
         string? action = null,
-        string? arity = null)
+        string? arity = null,
+        string[]? choices = null)
     {
         return AddOption<string>(
             name: name,
@@ -248,7 +251,8 @@ public class ArgumentParser : IArgumentParser
             metavar: metavar,
             constValue: constValue,
             action: action,
-            arity: arity);
+            arity: arity,
+            choices: choices);
     }
 
     /// <inheritdoc/>
@@ -331,7 +335,7 @@ public class ArgumentParser : IArgumentParser
         }
 
         handler!.Execute(
-            arg: argument,
+            argument: argument,
             invocation: new Token(argument.Name, TokenType.Argument, Token.ImplicitPosition),
             values: tokens.Slice(idx, len),
             store: _repository);
@@ -376,7 +380,7 @@ public class ArgumentParser : IArgumentParser
         }
 
         handler!.Execute(
-            arg: arg,
+            argument: arg,
             invocation: tokens[idx],
             values: tokens.Slice(idx + 1, len),
             store: _repository);
@@ -451,7 +455,7 @@ public class ArgumentParser : IArgumentParser
             }
 
             handler!.Execute(
-                arg: arg,
+                argument: arg,
                 invocation: token,
                 values: [],
                 store: _repository);

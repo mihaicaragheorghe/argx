@@ -5,17 +5,17 @@ namespace Argx.Actions;
 
 internal class CountAction : ArgumentAction
 {
-    public override void Execute(Argument arg, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
+    public override void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
     {
-        base.Execute(arg, invocation, values, store);
+        base.Execute(argument, invocation, values, store);
 
-        if (store.TryGetValue<int>(arg.Dest, out var value))
+        if (store.TryGetValue<int>(argument.Dest, out var value))
         {
-            store.Set(arg.Dest, value + 1);
+            store.Set(argument.Dest, value + 1);
             return;
         }
 
-        store.Set(arg.Dest, 1);
+        store.Set(argument.Dest, 1);
     }
 
     public override void Validate(Argument argument)

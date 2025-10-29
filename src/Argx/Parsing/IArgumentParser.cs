@@ -1,4 +1,5 @@
 using Argx.Actions;
+using Argx.Errors;
 
 namespace Argx.Parsing;
 
@@ -29,7 +30,7 @@ public interface IArgumentParser
     /// A short description of the argument’s purpose, shown in help output.
     /// </param>
     /// <param name="dest">
-    /// The key which will be added to the <see cref="Arguments"/> dictionary returned by the <see cref="Parse()"/> method, used to store and retrieve the argument value.<br/>
+    /// The key which will be added to the <see cref="Arguments"/> dictionary returned by the <see cref="Parse"/> method, used to store and retrieve the argument value.<br/>
     /// If null, the parser infers it from <paramref name="name"/>.
     /// </param>
     /// <param name="metavar">
@@ -135,7 +136,7 @@ public interface IArgumentParser
     /// A short description of the flag’s purpose, shown in help output.
     /// </param>
     /// <param name="dest">
-    /// The key which will be added to the <c><see cref="Arguments"/></c> dictionary returned by the <c><see cref="Parse()"/></c> method, used to store and retrieve the argument value.<br/>
+    /// The key which will be added to the <c><see cref="Arguments"/></c> dictionary returned by the <c><see cref="Parse"/></c> method, used to store and retrieve the argument value.<br/>
     /// If null, the parser infers it from <c><paramref name="name"/></c>.
     /// </param>
     /// <param name="value">
@@ -219,9 +220,10 @@ public interface IArgumentParser
         string? metavar = null,
         object? constValue = null,
         string? action = null,
-        string? arity = null);
+        string? arity = null,
+        string[]? choices = null);
 
-    /// <inheritdoc cref="AddOption{T}(string, string[], string, string, string, object, string, string)" />
+    /// <inheritdoc cref="AddOption{T}(string, string[], string, string, string, object, string, string, string[])" />
     public ArgumentParser AddOption(
         string name,
         string[]? alias = null,
@@ -230,14 +232,15 @@ public interface IArgumentParser
         string? metavar = null,
         object? constValue = null,
         string? action = null,
-        string? arity = null);
+        string? arity = null,
+        string[]? choices = null);
 
     /// <summary>
     /// Parses the provided command-line arguments according to the defined argument schema.
     /// </summary>
     /// <param name="args">
     /// The command-line arguments to parse.  
-    /// Typically taken directly from <c>string[] args</c> in <c>Main()</c>.
+    /// Usually taken directly from <c>string[] args</c> in <c>Main()</c>.
     /// </param>
     /// <returns>
     /// An <see cref="Arguments"/> instance containing the parsed values for all known and unknown arguments.  

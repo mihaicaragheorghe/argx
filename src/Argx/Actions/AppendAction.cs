@@ -16,35 +16,35 @@ internal class AppendAction : ArgumentAction
         .GetMethods()
         .First(m => m.Name == "TryGetValue" && m.IsGenericMethodDefinition);
 
-    public override void Execute(Argument arg, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
+    public override void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
     {
-        base.Execute(arg, invocation, values, store);
+        base.Execute(argument, invocation, values, store);
 
-        if (arg.ConstValue == null && values.Length == 0)
+        if (argument.ConstValue == null && values.Length == 0)
         {
             throw new ArgumentValueException(invocation, "expected value");
         }
 
-        var genericMethod = TryGetValueMethod.MakeGenericMethod(arg.ValueType);
-        var itemType = arg.ValueType.GetElementTypeIfEnumerable()!;
-        object[] parameters = [arg.Dest, null!];
+        var genericMethod = TryGetValueMethod.MakeGenericMethod(argument.ValueType);
+        var itemType = argument.ValueType.GetElementTypeIfEnumerable()!;
+        object[] parameters = [argument.Dest, null!];
         var found = (bool)genericMethod.Invoke(store, parameters)!;
         var obj = found ? parameters[1] : null;
-        var len = values.Length == 0 ? GetConstValueLength(arg.ConstValue!) : values.Length;
+        var len = values.Length == 0 ? GetConstValueLength(argument.ConstValue!) : values.Length;
 
         IList list;
         var idx = 0;
 
         if (obj is IList src)
         {
-            list = CollectionUtils.CreateCollection(arg.ValueType, itemType, src.Count + len);
+            list = CollectionUtils.CreateCollection(argument.ValueType, itemType, src.Count + len);
             CopyItems(src, list);
             idx = src.Count;
         }
         else
         {
             list = obj is null
-                ? CollectionUtils.CreateCollection(arg.ValueType, itemType, len)
+                ? CollectionUtils.CreateCollection(argument.ValueType, itemType, len)
                 : throw new InvalidOperationException(
                     $"Argument {invocation} in invalid state: appending to non enumerable type not possible");
         }
@@ -53,12 +53,12 @@ internal class AppendAction : ArgumentAction
 
         if (values.Length == 0)
         {
-            if (itemType.IsInstanceOfType(arg.ConstValue))
+            if (itemType.IsInstanceOfType(argument.ConstValue))
             {
-                Append(list, arg.ConstValue, isArray, idx);
+                Append(list, argument.ConstValue, isArray, idx);
                 idx++;
             }
-            else if (arg.ConstValue is IList constList)
+            else if (argument.ConstValue is IList constList)
             {
                 foreach (var item in constList)
                 {
@@ -79,20 +79,20 @@ internal class AppendAction : ArgumentAction
             if (result.IsError)
             {
                 throw new ArgumentValueException(invocation,
-                    $"invalid value '{value}', expected type {arg.ValueType.GetFriendlyName()}. {result.Error}");
+                    $"invalid value '{value}', expected type {argument.ValueType.GetFriendlyName()}. {result.Error}");
             }
 
-            if (arg.Choices?.Length > 0 && !arg.Choices.Contains(result.Value?.ToString()))
+            if (argument.Choices?.Length > 0 && !argument.Choices.Contains(result.Value?.ToString()))
             {
                 throw new ArgumentValueException(invocation,
-                    $"invalid choice '{value}', expected one of: {string.Join(", ", arg.Choices)}");
+                    $"invalid choice '{value}', expected one of: {string.Join(", ", argument.Choices)}");
             }
 
             Append(list, result.Value, isArray, idx);
             idx++;
         }
 
-        store.Set(arg.Dest, list);
+        store.Set(argument.Dest, list);
     }
 
     private static void Append(IList list, object? value, bool isArray, int idx)

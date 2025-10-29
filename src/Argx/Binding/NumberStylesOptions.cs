@@ -1,5 +1,7 @@
 using System.Globalization;
 
+namespace Argx.Binding;
+
 /// <summary>
 /// Defines how numeric string tokens are parsed into numeric types.
 /// Each property specifies the <see cref="NumberStyles"/> flags used by
