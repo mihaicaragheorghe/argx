@@ -11,7 +11,7 @@ app.AddSubcommand("push", (string[] args) =>
     var branch = pargs.GetRequired<string>("branch");
 
     Console.WriteLine($"Pushing to remote branch {branch}..");
-    return ValueTask.FromResult(0);
+    return 0;
 });
 
 app.AddSubcommand("pull", async (string[] args) =>

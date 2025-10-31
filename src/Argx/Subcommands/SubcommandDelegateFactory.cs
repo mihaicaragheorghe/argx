@@ -5,14 +5,15 @@ namespace Argx.Subcommands;
 
 internal static class SubcommandDelegateFactory
 {
-    private static readonly MethodInfo FromResultMethod = typeof(Task).GetMethod("FromResult")!;
+    private static readonly MethodInfo FromResultMethod = typeof(Task).GetMethod("FromResult")!.MakeGenericMethod(typeof(int));
     private static readonly MethodInfo ValueTaskAsTaskMethod = typeof(ValueTask<int>).GetMethod("AsTask")!;
-    private static readonly MethodInfo ValueTaskAsTaskNonGenericMethod = typeof(ValueTask).GetMethod("AsTask")!;
-    private static readonly MethodInfo TaskContinueWithMethod = typeof(Task).GetMethod("ContinueWith", [typeof(Func<Task, int>)])!;
 
     internal static SubcommandDelegate Create(Delegate handler)
     {
-        ArgumentNullException.ThrowIfNull(handler);
+        if (handler is null)
+        {
+            throw new ArgumentNullException(nameof(handler));
+        }
 
         var method = handler.Method;
         var parameters = method.GetParameters();
@@ -38,40 +39,11 @@ internal static class SubcommandDelegateFactory
             Type t when t == typeof(void) =>
                 Expression.Block(
                     call,
-                    Expression.Call(FromResultMethod, Expression.Constant(0))
-                ),
-            Type t when t == typeof(Task) =>
-                CreateAsyncVoidWrapper(call),
-            Type t when t == typeof(ValueTask) =>
-                CreateValueTaskVoidWrapper(call),
+                    Expression.Call(FromResultMethod, Expression.Constant(0))),
             _ => throw new ArgumentException($"Unsupported return type: {method.ReturnType.Name}")
         };
 
         var lambda = Expression.Lambda<SubcommandDelegate>(body, argsParam);
         return lambda.Compile();
-    }
-
-    private static MethodCallExpression CreateAsyncVoidWrapper(MethodCallExpression call)
-    {
-        var continuation = Expression.Lambda<Func<Task, int>>(
-            Expression.Constant(0),
-            Expression.Parameter(typeof(Task))
-        );
-
-        var continueWithGeneric = TaskContinueWithMethod.MakeGenericMethod(typeof(int));
-        return Expression.Call(call, continueWithGeneric, continuation);
-    }
-
-    private static MethodCallExpression CreateValueTaskVoidWrapper(MethodCallExpression call)
-    {
-        var asTaskCall = Expression.Call(call, ValueTaskAsTaskNonGenericMethod);
-
-        var continuation = Expression.Lambda<Func<Task, int>>(
-            Expression.Constant(0),
-            Expression.Parameter(typeof(Task))
-        );
-
-        var continueWithGeneric = TaskContinueWithMethod.MakeGenericMethod(typeof(int));
-        return Expression.Call(asTaskCall, continueWithGeneric, continuation);
     }
 }

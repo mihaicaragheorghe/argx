@@ -8,7 +8,10 @@ public sealed class CommandLineApplication
 
     public void AddSubcommand<T>(string name, T handler) where T : Delegate
     {
-        ArgumentNullException.ThrowIfNull(handler);
+        if (handler is null)
+        {
+            throw new ArgumentNullException(nameof(handler));
+        }
 
         if (string.IsNullOrWhiteSpace(name))
         {
