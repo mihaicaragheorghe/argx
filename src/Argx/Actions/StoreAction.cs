@@ -2,13 +2,12 @@ using Argx.Binding;
 using Argx.Errors;
 using Argx.Extensions;
 using Argx.Parsing;
-using Argx.Store;
 
 namespace Argx.Actions;
 
 internal class StoreAction : ArgumentAction
 {
-    public override void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
+    public override void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentStore store)
     {
         base.Execute(argument, invocation, values, store);
 

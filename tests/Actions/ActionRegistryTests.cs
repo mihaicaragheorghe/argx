@@ -1,6 +1,5 @@
 using Argx.Actions;
 using Argx.Parsing;
-using Argx.Store;
 
 namespace Argx.Tests.Actions;
 
@@ -45,7 +44,7 @@ public class ActionRegistryTests
 
     private class CustomAction : ArgumentAction
     {
-        public override void Execute(Argument arg, Token name, ReadOnlySpan<Token> values, IArgumentRepository store)
+        public override void Execute(Argument arg, Token name, ReadOnlySpan<Token> values, IArgumentStore store)
         {
         }
 

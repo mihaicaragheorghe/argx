@@ -1,6 +1,6 @@
-namespace Argx.Store;
+namespace Argx.Parsing;
 
-public interface IArgumentRepository
+public interface IArgumentStore
 {
     /// <summary>
     /// Sets the value for the specified argument.
@@ -27,7 +27,7 @@ public interface IArgumentRepository
     bool TryGetValue(string arg, out string? value);
 
     /// <summary>
-    /// Determines whether the repository contains the specified argument.
+    /// Determines whether the store contains the specified argument.
     /// </summary>
     /// <param name="arg">The argument key (dest).</param>
     /// <returns><c>true</c> if the argument exists; otherwise, <c>false</c>.</returns>

@@ -1,9 +1,9 @@
-namespace Argx.Store;
+namespace Argx.Parsing;
 
 /// <summary>
 /// In-memory repository for storing parsed argument values.
 /// </summary>
-public sealed class ArgumentRepository : IArgumentRepository
+public sealed class ArgumentStore : IArgumentStore
 {
     private readonly Dictionary<string, object> _values = new(StringComparer.OrdinalIgnoreCase);
 

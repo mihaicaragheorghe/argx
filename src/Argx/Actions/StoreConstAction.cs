@@ -1,11 +1,10 @@
 using Argx.Parsing;
-using Argx.Store;
 
 namespace Argx.Actions;
 
 internal class StoreConstAction : ArgumentAction
 {
-    public override void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
+    public override void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentStore store)
     {
         base.Execute(argument, invocation, values, store);
 

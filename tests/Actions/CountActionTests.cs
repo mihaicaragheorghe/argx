@@ -1,5 +1,5 @@
 using Argx.Actions;
-using Argx.Store;
+using Argx.Parsing;
 using Argx.Tests.TestUtils;
 
 using Moq;
@@ -8,7 +8,7 @@ namespace Argx.Tests.Actions;
 
 public class CountActionTests
 {
-    private readonly Mock<IArgumentRepository> _repositoryMock = new();
+    private readonly Mock<IArgumentStore> _storeMock = new();
     private readonly CountAction _sut = new();
 
     [Fact]
@@ -23,13 +23,13 @@ public class CountActionTests
     {
         var arg = new Argument("--foo", alias: "-f", action: ArgumentActions.Count, arity: "0");
         var value = 0;
-        _repositoryMock
+        _storeMock
             .Setup(x => x.TryGetValue("foo", out value))
             .Returns(false);
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _repositoryMock.Object);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _storeMock.Object);
 
-        _repositoryMock.Verify(x => x.Set("foo", 1), Times.Once);
+        _storeMock.Verify(x => x.Set("foo", 1), Times.Once);
     }
 
     [Fact]
@@ -37,12 +37,12 @@ public class CountActionTests
     {
         var arg = new Argument("--foo", alias: "-f", action: ArgumentActions.Count, arity: "0");
         var value = 3;
-        _repositoryMock
+        _storeMock
             .Setup(x => x.TryGetValue("foo", out value))
             .Returns(true);
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _repositoryMock.Object);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _storeMock.Object);
 
-        _repositoryMock.Verify(x => x.Set("foo", 4), Times.Once);
+        _storeMock.Verify(x => x.Set("foo", 4), Times.Once);
     }
 }

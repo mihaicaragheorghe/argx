@@ -1,7 +1,6 @@
 using Argx.Actions;
 using Argx.Errors;
 using Argx.Parsing;
-using Argx.Store;
 
 using Moq;
 
@@ -26,31 +25,31 @@ public partial class ArgumentParserTests
     [Fact]
     public void AddArgumentT_ShouldAddPositional_WhenValid()
     {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
+        var store = new Mock<IArgumentStore>();
+        var parser = new ArgumentParser(store.Object);
         parser.AddArgument<int>("foo");
-        repository
+        store
             .Setup(x => x.Contains("foo"))
             .Returns(true);
 
         _ = parser.ParseInternal(["69"]);
 
-        repository.Verify(x => x.Set("foo", 69));
+        store.Verify(x => x.Set("foo", 69));
     }
 
     [Fact]
     public void AddArgument_ShouldAddPositional_WhenValid()
     {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
+        var store = new Mock<IArgumentStore>();
+        var parser = new ArgumentParser(store.Object);
         parser.AddArgument("foo");
-        repository
+        store
             .Setup(x => x.Contains("foo"))
             .Returns(true);
 
         _ = parser.ParseInternal(["bar"]);
 
-        repository.Verify(x => x.Set("foo", "bar"));
+        store.Verify(x => x.Set("foo", "bar"));
     }
 
     [Fact]
@@ -91,7 +90,7 @@ public partial class ArgumentParserTests
     [Fact]
     public void Parse_ShouldStoreTValue_WhenValidPositionalT()
     {
-        var repo = new Mock<IArgumentRepository>();
+        var repo = new Mock<IArgumentStore>();
         var parser = new ArgumentParser(repo.Object);
         parser.Add<int>("x");
         repo.Setup(x => x.Contains("x"))

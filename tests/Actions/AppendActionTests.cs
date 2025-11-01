@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 using Argx.Actions;
 using Argx.Errors;
-using Argx.Store;
+using Argx.Parsing;
 using Argx.Tests.TestUtils;
 
 using Moq;
@@ -13,7 +13,7 @@ namespace Argx.Tests.Actions;
 [SuppressMessage("Performance", "CA1861:Avoid constant arrays as arguments")]
 public class AppendActionTests
 {
-    private readonly Mock<IArgumentRepository> _mockRepository = new();
+    private readonly Mock<IArgumentStore> _mockStore = new();
     private readonly AppendAction _sut = new();
 
     [Fact]
@@ -90,7 +90,7 @@ public class AppendActionTests
         var arg = new Argument("--foo", arity: "1", dest: "foo");
 
         var ex = Assert.Throws<ArgumentValueException>(() =>
-            _sut.Execute(arg, Create.Token("--foo"), [], _mockRepository.Object));
+            _sut.Execute(arg, Create.Token("--foo"), [], _mockStore.Object));
         Assert.Equal("Error: argument --foo: expected value", ex.Message);
     }
 
@@ -99,9 +99,9 @@ public class AppendActionTests
     {
         var arg = new Argument("--foo", arity: "1", dest: "foo", type: typeof(string[]));
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _mockRepository.Object);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
+        _mockStore.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
     }
 
     [Fact]
@@ -109,9 +109,9 @@ public class AppendActionTests
     {
         var arg = new Argument("--foo", arity: "1", dest: "foo", type: typeof(List<string>));
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _mockRepository.Object);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set("foo", new List<string> { "bar" }), Times.Once);
+        _mockStore.Verify(x => x.Set("foo", new List<string> { "bar" }), Times.Once);
     }
 
     [Fact]
@@ -119,9 +119,9 @@ public class AppendActionTests
     {
         var arg = new Argument("--foo", arity: "1", dest: "foo", type: typeof(IEnumerable<string>));
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _mockRepository.Object);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
+        _mockStore.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
     }
 
     [Fact]
@@ -129,9 +129,9 @@ public class AppendActionTests
     {
         var arg = new Argument("--foo", arity: "1", dest: "foo", type: typeof(ICollection<string>));
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _mockRepository.Object);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
+        _mockStore.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
     }
 
     [Fact]
@@ -139,21 +139,21 @@ public class AppendActionTests
     {
         var arg = new Argument("--foo", arity: "3", dest: "foo", type: typeof(List<string>));
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz", "qux"), _mockRepository.Object);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz", "qux"), _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set("foo", new List<string> { "bar", "baz", "qux" }), Times.Once);
+        _mockStore.Verify(x => x.Set("foo", new List<string> { "bar", "baz", "qux" }), Times.Once);
     }
 
     [Fact]
     public void Execute_ShouldAppendToArray_WhenExists()
     {
-        var repository = new ArgumentRepository();
+        var store = new ArgumentStore();
         var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(string[]));
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz"), repository);
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux", "quux"), repository);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz"), store);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux", "quux"), store);
 
-        Assert.True(repository.TryGetValue<string[]>(arg.Dest, out var actual));
+        Assert.True(store.TryGetValue<string[]>(arg.Dest, out var actual));
         Assert.Equal(["bar", "baz", "qux", "quux"], actual);
     }
 
@@ -161,13 +161,13 @@ public class AppendActionTests
     public void Execute_ShouldAppendToIList_WhenStored
         ()
     {
-        var repository = new ArgumentRepository();
+        var store = new ArgumentStore();
         var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(IList<string>));
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz"), repository);
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux", "quux"), repository);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz"), store);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux", "quux"), store);
 
-        Assert.True(repository.TryGetValue<IList<string>>(arg.Dest, out var actual));
+        Assert.True(store.TryGetValue<IList<string>>(arg.Dest, out var actual));
         Assert.True(actual is string[]);
         Assert.Equal(["bar", "baz", "qux", "quux"], actual);
     }
@@ -176,13 +176,13 @@ public class AppendActionTests
     public void Execute_ShouldAppendToList_WhenStored
         ()
     {
-        var repository = new ArgumentRepository();
+        var store = new ArgumentStore();
         var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(List<string>));
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz"), repository);
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux", "quux"), repository);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz"), store);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux", "quux"), store);
 
-        Assert.True(repository.TryGetValue<List<string>>(arg.Dest, out var actual));
+        Assert.True(store.TryGetValue<List<string>>(arg.Dest, out var actual));
         Assert.True(actual is List<string>);
         Assert.Equal(["bar", "baz", "qux", "quux"], actual);
     }
@@ -191,13 +191,13 @@ public class AppendActionTests
     public void Execute_ShouldAppendToIEnumerable_WhenStored
         ()
     {
-        var repository = new ArgumentRepository();
+        var store = new ArgumentStore();
         var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(IEnumerable<string>));
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz"), repository);
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux", "quux"), repository);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz"), store);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux", "quux"), store);
 
-        Assert.True(repository.TryGetValue<IEnumerable<string>>(arg.Dest, out var actual));
+        Assert.True(store.TryGetValue<IEnumerable<string>>(arg.Dest, out var actual));
         Assert.True(actual is IEnumerable<string>);
         Assert.Equal(["bar", "baz", "qux", "quux"], actual);
     }
@@ -206,13 +206,13 @@ public class AppendActionTests
     public void Execute_ShouldAppendToICollection_WhenStored
         ()
     {
-        var repository = new ArgumentRepository();
+        var store = new ArgumentStore();
         var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(ICollection<string>));
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz"), repository);
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux", "quux"), repository);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar", "baz"), store);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux", "quux"), store);
 
-        Assert.True(repository.TryGetValue<ICollection<string>>(arg.Dest, out var actual));
+        Assert.True(store.TryGetValue<ICollection<string>>(arg.Dest, out var actual));
         Assert.True(actual is ICollection<string>);
         Assert.Equal(["bar", "baz", "qux", "quux"], actual);
     }
@@ -222,21 +222,21 @@ public class AppendActionTests
     {
         var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]), constValue: "bar");
 
-        _sut.Execute(arg, Create.Token("--foo"), [], _mockRepository.Object);
+        _sut.Execute(arg, Create.Token("--foo"), [], _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
+        _mockStore.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
     }
 
     [Fact]
     public void Execute_ShouldAppendConstSingleValue_WhenArityIsOptionalAndKeyAlreadyStored()
     {
-        var repository = new ArgumentRepository();
+        var store = new ArgumentStore();
         var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]), constValue: "baz");
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), repository);
-        _sut.Execute(arg, Create.Token("--foo"), [], repository);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), store);
+        _sut.Execute(arg, Create.Token("--foo"), [], store);
 
-        Assert.True(repository.TryGetValue<string[]>(arg.Dest, out var actual));
+        Assert.True(store.TryGetValue<string[]>(arg.Dest, out var actual));
         Assert.Equal(["bar", "baz"], actual);
     }
 
@@ -246,22 +246,22 @@ public class AppendActionTests
         var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]),
             constValue: new[] { "bar" });
 
-        _sut.Execute(arg, Create.Token("--foo"), [], _mockRepository.Object);
+        _sut.Execute(arg, Create.Token("--foo"), [], _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
+        _mockStore.Verify(x => x.Set("foo", new[] { "bar" }), Times.Once);
     }
 
     [Fact]
     public void Execute_ShouldAppendEnumerableConstValue_WhenArityIsOptionalAndKeyAlreadyStored()
     {
-        var repository = new ArgumentRepository();
+        var store = new ArgumentStore();
         var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]),
             constValue: new[] { "baz", "qux" });
 
-        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), repository);
-        _sut.Execute(arg, Create.Token("--foo"), [], repository);
+        _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("bar"), store);
+        _sut.Execute(arg, Create.Token("--foo"), [], store);
 
-        Assert.True(repository.TryGetValue<string[]>(arg.Dest, out var actual));
+        Assert.True(store.TryGetValue<string[]>(arg.Dest, out var actual));
         Assert.Equal(["bar", "baz", "qux"], actual);
     }
 
@@ -271,7 +271,7 @@ public class AppendActionTests
         var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]), constValue: 123);
 
         Assert.Throws<InvalidOperationException>(() =>
-            _sut.Execute(arg, Create.Token("--foo"), [], _mockRepository.Object));
+            _sut.Execute(arg, Create.Token("--foo"), [], _mockStore.Object));
     }
 
     [Fact]
@@ -280,7 +280,7 @@ public class AppendActionTests
         var arg = new Argument("--foo", arity: Arity.Optional, dest: "foo", type: typeof(string[]),
             constValue: new[] { 123 });
 
-        Assert.Throws<InvalidCastException>(() => _sut.Execute(arg, Create.Token("--foo"), [], _mockRepository.Object));
+        Assert.Throws<InvalidCastException>(() => _sut.Execute(arg, Create.Token("--foo"), [], _mockStore.Object));
     }
 
     [Fact]
@@ -289,7 +289,7 @@ public class AppendActionTests
         var arg = new Argument("--foo", arity: "2", dest: "foo", type: typeof(string[]), choices: ["bar", "baz"]);
 
         var ex = Assert.Throws<ArgumentValueException>(() =>
-            _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("baz", "qux"), _mockRepository.Object));
+            _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("baz", "qux"), _mockStore.Object));
         Assert.Equal("Error: argument --foo: invalid choice 'qux', expected one of: bar, baz", ex.Message);
     }
 }

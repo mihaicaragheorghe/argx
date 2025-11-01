@@ -1,5 +1,4 @@
 using Argx.Parsing;
-using Argx.Store;
 
 namespace Argx.Actions;
 
@@ -9,7 +8,7 @@ namespace Argx.Actions;
 /// </summary>
 public abstract class ArgumentAction
 {
-    public virtual void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
+    public virtual void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentStore store)
     {
         if (string.IsNullOrEmpty(invocation.Value))
         {

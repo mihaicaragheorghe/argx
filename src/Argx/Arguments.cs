@@ -1,11 +1,11 @@
-using Argx.Store;
+using Argx.Parsing;
 
 namespace Argx;
 
 /// <inheritdoc cref="IArguments"/>
 public class Arguments : IArguments
 {
-    private readonly IArgumentRepository _repository;
+    private readonly IArgumentStore _store;
 
     /// <inheritdoc />
     public List<string> Extras { get; }
@@ -13,10 +13,10 @@ public class Arguments : IArguments
     /// <summary>
     /// Initializes a new instance of the <see cref="Arguments"/> class.
     /// </summary>
-    /// <param name="repository">The argument repository to use for retrieving argument values.</param>
-    public Arguments(IArgumentRepository repository)
+    /// <param name="store">The argument store to use for retrieving argument values.</param>
+    public Arguments(IArgumentStore store)
     {
-        _repository = repository;
+        _store = store;
         Extras = [];
     }
 
@@ -26,7 +26,7 @@ public class Arguments : IArguments
     /// <inheritdoc />
     public string? GetValue(string arg)
     {
-        if (_repository.TryGetValue(arg, out var value))
+        if (_store.TryGetValue(arg, out var value))
         {
             return value;
         }
@@ -38,12 +38,12 @@ public class Arguments : IArguments
     public T GetValue<T>(string arg) => TryGetValue(arg, out T value) ? value : default!;
 
     /// <inheritdoc />
-    public bool TryGetValue<T>(string arg, out T value) => _repository.TryGetValue(arg, out value);
+    public bool TryGetValue<T>(string arg, out T value) => _store.TryGetValue(arg, out value);
 
     /// <inheritdoc />
     public T GetRequired<T>(string arg)
     {
-        if (_repository.TryGetValue<T>(arg, out var value))
+        if (_store.TryGetValue<T>(arg, out var value))
         {
             return value;
         }

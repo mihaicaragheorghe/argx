@@ -2,7 +2,6 @@ using Argx.Actions;
 using Argx.Errors;
 using Argx.Extensions;
 using Argx.Help;
-using Argx.Store;
 
 namespace Argx.Parsing;
 
@@ -17,7 +16,7 @@ public class ArgumentParser : IArgumentParser
     private readonly OptionSet _knownOpts = new();
     private readonly PositionalList _knownArgs = [];
 
-    private readonly IArgumentRepository _repository;
+    private readonly IArgumentStore _store;
     private readonly ArgumentParserConfiguration _configuration;
 
     /// <summary>
@@ -46,7 +45,7 @@ public class ArgumentParser : IArgumentParser
         _usage = usage;
         _epilogue = epilogue;
         _configuration = config;
-        _repository = new ArgumentRepository();
+        _store = new ArgumentStore();
 
         if (config.AddHelpArgument)
         {
@@ -56,7 +55,7 @@ public class ArgumentParser : IArgumentParser
     }
 
     internal ArgumentParser(
-        IArgumentRepository repository,
+        IArgumentStore store,
         string? app = null,
         string? description = null,
         string? usage = null,
@@ -64,7 +63,7 @@ public class ArgumentParser : IArgumentParser
         ArgumentParserConfiguration? configuration = null)
         : this(app, description, usage, epilogue, configuration)
     {
-        _repository = repository;
+        _store = store;
     }
 
     /// <inheritdoc/>
@@ -280,7 +279,7 @@ public class ArgumentParser : IArgumentParser
 
     internal Arguments ParseInternal(string[] args)
     {
-        var result = new Arguments(_repository);
+        var result = new Arguments(_store);
         var tokens = args.Tokenize();
         var consumeOpts = true;
 
@@ -338,7 +337,7 @@ public class ArgumentParser : IArgumentParser
             argument: argument,
             invocation: new Token(argument.Name, TokenType.Argument, Token.ImplicitPosition),
             values: tokens.Slice(idx, len),
-            store: _repository);
+            store: _store);
 
         return len - 1;
     }
@@ -383,7 +382,7 @@ public class ArgumentParser : IArgumentParser
             argument: arg,
             invocation: tokens[idx],
             values: tokens.Slice(idx + 1, len),
-            store: _repository);
+            store: _store);
 
         return len;
     }
@@ -458,7 +457,7 @@ public class ArgumentParser : IArgumentParser
                 argument: arg,
                 invocation: token,
                 values: [],
-                store: _repository);
+                store: _store);
         }
     }
 
@@ -466,7 +465,7 @@ public class ArgumentParser : IArgumentParser
     {
         foreach (var arg in _knownArgs)
         {
-            if (!_repository.Contains(arg.Dest))
+            if (!_store.Contains(arg.Dest))
             {
                 argName = arg.Name;
                 return false;

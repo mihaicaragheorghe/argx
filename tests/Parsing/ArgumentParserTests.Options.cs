@@ -1,7 +1,6 @@
 using Argx.Actions;
 using Argx.Errors;
 using Argx.Parsing;
-using Argx.Store;
 
 using Moq;
 
@@ -12,25 +11,25 @@ public partial class ArgumentParserTests
     [Fact]
     public void AddFlag_ShouldAddStoreTrueOption_WhenValueIsTrue()
     {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
+        var store = new Mock<IArgumentStore>();
+        var parser = new ArgumentParser(store.Object);
 
         parser.AddFlag("--foo", ["-f"], value: true);
         _ = parser.ParseInternal(["--foo"]);
 
-        repository.Verify(x => x.Set("foo", true));
+        store.Verify(x => x.Set("foo", true));
     }
 
     [Fact]
     public void AddFlag_ShouldAddStoreFalseOption_WhenValueIsFalse()
     {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
+        var store = new Mock<IArgumentStore>();
+        var parser = new ArgumentParser(store.Object);
 
         parser.AddFlag("--foo", ["-f"], value: false);
         _ = parser.ParseInternal(["--foo"]);
 
-        repository.Verify(x => x.Set("foo", false));
+        store.Verify(x => x.Set("foo", false));
     }
 
     [Fact]
@@ -43,13 +42,13 @@ public partial class ArgumentParserTests
     [Fact]
     public void AddOption_ShouldAddOption_WhenValid()
     {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
+        var store = new Mock<IArgumentStore>();
+        var parser = new ArgumentParser(store.Object);
 
         parser.AddOption("--foo");
         _ = parser.ParseInternal(["--foo", "bar"]);
 
-        repository.Verify(x => x.Set("foo", "bar"));
+        store.Verify(x => x.Set("foo", "bar"));
     }
 
     [Fact]
@@ -69,13 +68,13 @@ public partial class ArgumentParserTests
     [Fact]
     public void AddOptionT_ShouldAddOption_WhenValid()
     {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
+        var store = new Mock<IArgumentStore>();
+        var parser = new ArgumentParser(store.Object);
 
         parser.AddOption<int>("--foo");
         _ = parser.ParseInternal(["--foo", "69"]);
 
-        repository.Verify(x => x.Set("foo", 69));
+        store.Verify(x => x.Set("foo", 69));
     }
 
     [Fact]
@@ -116,7 +115,7 @@ public partial class ArgumentParserTests
     [Fact]
     public void Parse_ShouldStoreOptionT_WhenValid()
     {
-        var repo = new Mock<IArgumentRepository>();
+        var repo = new Mock<IArgumentStore>();
         var parser = new ArgumentParser(repo.Object);
         parser.Add<int>("--foo");
 
