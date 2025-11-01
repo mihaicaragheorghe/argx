@@ -5,8 +5,12 @@ namespace Argx;
 public sealed class CommandLineApplication
 {
     private readonly Dictionary<string, SubcommandDelegate> _subcommands = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, AsyncSubcommandDelegate> _asyncSubcommands = new(StringComparer.OrdinalIgnoreCase);
 
-    public void AddSubcommand<T>(string name, T handler) where T : Delegate
+    public void AddSubcommand(string name, AsyncSubcommandDelegate handler) => RegisterSubcommand(name, handler);
+    public void AddSubcommand(string name, SubcommandDelegate handler) => RegisterSubcommand(name, handler);
+
+    private void RegisterSubcommand(string name, Delegate handler)
     {
         if (handler is null)
         {
@@ -18,25 +22,61 @@ public sealed class CommandLineApplication
             throw new ArgumentException("Subcommand name cannot be null or whitespace.", nameof(name));
         }
 
-        _subcommands[name] = SubcommandDelegateFactory.Create(handler);
+        if (handler is AsyncSubcommandDelegate asyncHandler)
+        {
+            _asyncSubcommands[name] = asyncHandler;
+        }
+        else if (handler is SubcommandDelegate syncHandler)
+        {
+            _subcommands[name] = syncHandler;
+        }
+        else
+        {
+            throw new ArgumentException(
+                $"Handler must be either {nameof(AsyncSubcommandDelegate)} or {nameof(SubcommandDelegate)}. Found: {handler.GetType()}");
+        }
     }
 
     public async Task RunAsync(string[] args)
     {
-        if (args.Length == 0)
+        var subcommand = GetSubcommand(args);
+
+        if (_asyncSubcommands.TryGetValue(subcommand, out var asyncHandler))
         {
-            throw new ArgumentException("No subcommand provided.", nameof(args));
+            await asyncHandler.Invoke(args[1..]);
         }
-
-        var subcommand = args[0];
-
-        if (!_subcommands.TryGetValue(subcommand, out var handler))
+        else
         {
-            throw new InvalidOperationException($"Subcommand '{subcommand}' not found.");
+            RunSync(subcommand, args);
         }
-
-        Environment.ExitCode = await handler.Invoke(args[1..]);
     }
 
-    public void Run(string[] args) => RunAsync(args).GetAwaiter().GetResult();
+    public void Run(string[] args)
+    {
+        var subcommand = GetSubcommand(args);
+
+        if (_asyncSubcommands.TryGetValue(subcommand, out var asyncHandler))
+        {
+            asyncHandler.Invoke(args[1..]).GetAwaiter().GetResult();
+        }
+        else
+        {
+            RunSync(subcommand, args);
+        }
+    }
+
+    private void RunSync(string subcommand, string[] args)
+    {
+        if (_subcommands.TryGetValue(subcommand, out var handler))
+        {
+            handler.Invoke(args[1..]);
+        }
+        else
+        {
+            throw new InvalidOperationException($"Unknown subcommand: {subcommand}");
+        }
+    }
+
+    private static string GetSubcommand(string[] args)
+        => args.Length > 0 ? args[0] : throw new ArgumentException("No subcommand provided.", nameof(args));
 }

@@ -1,3 +1,5 @@
 namespace Argx.Subcommands;
 
-public delegate Task<int> SubcommandDelegate(string[] args);
+public delegate void SubcommandDelegate(string[] args);
+
+public delegate Task AsyncSubcommandDelegate(string[] args);
