@@ -4,44 +4,27 @@ namespace Argx;
 
 public sealed class CommandLineApplication
 {
-    private readonly Dictionary<string, SubcommandDelegate> _subcommands = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, AsyncSubcommandDelegate> _asyncSubcommands = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ISubcomamndStore _subcommands;
 
-    public void AddSubcommand(string name, AsyncSubcommandDelegate handler) => RegisterSubcommand(name, handler);
-    public void AddSubcommand(string name, SubcommandDelegate handler) => RegisterSubcommand(name, handler);
-
-    private void RegisterSubcommand(string name, Delegate handler)
+    public CommandLineApplication()
     {
-        if (handler is null)
-        {
-            throw new ArgumentNullException(nameof(handler));
-        }
-
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentException("Subcommand name cannot be null or whitespace.", nameof(name));
-        }
-
-        if (handler is AsyncSubcommandDelegate asyncHandler)
-        {
-            _asyncSubcommands[name] = asyncHandler;
-        }
-        else if (handler is SubcommandDelegate syncHandler)
-        {
-            _subcommands[name] = syncHandler;
-        }
-        else
-        {
-            throw new ArgumentException(
-                $"Handler must be either {nameof(AsyncSubcommandDelegate)} or {nameof(SubcommandDelegate)}. Found: {handler.GetType()}");
-        }
+        _subcommands = new SubcommandStore();
     }
+
+    public CommandLineApplication(ISubcomamndStore subcommands)
+    {
+        _subcommands = subcommands;
+    }
+
+    public void AddSubcommand(string name, AsyncSubcommandDelegate handler) => _subcommands.Register(name, handler);
+
+    public void AddSubcommand(string name, SubcommandDelegate handler) => _subcommands.Register(name, handler);
 
     public async Task RunAsync(string[] args)
     {
         var subcommand = GetSubcommand(args);
 
-        if (_asyncSubcommands.TryGetValue(subcommand, out var asyncHandler))
+        if (_subcommands.TryGetAsyncHandler(subcommand, out var asyncHandler))
         {
             await asyncHandler.Invoke(args[1..]);
         }
@@ -55,7 +38,7 @@ public sealed class CommandLineApplication
     {
         var subcommand = GetSubcommand(args);
 
-        if (_asyncSubcommands.TryGetValue(subcommand, out var asyncHandler))
+        if (_subcommands.TryGetAsyncHandler(subcommand, out var asyncHandler))
         {
             asyncHandler.Invoke(args[1..]).GetAwaiter().GetResult();
         }
@@ -67,7 +50,7 @@ public sealed class CommandLineApplication
 
     private void RunSync(string subcommand, string[] args)
     {
-        if (_subcommands.TryGetValue(subcommand, out var handler))
+        if (_subcommands.TryGetHandler(subcommand, out var handler))
         {
             handler.Invoke(args[1..]);
         }
