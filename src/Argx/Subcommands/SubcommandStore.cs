@@ -2,12 +2,11 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Argx.Subcommands;
 
-internal class SubcommandStore : ISubcomamndStore
+internal class SubcommandStore : ISubcommandStore
 {
-    private readonly Dictionary<string, SubcommandDelegate> _subcommands = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, AsyncSubcommandDelegate> _asyncSubcommands = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, AsyncSubcommandDelegate> _subcommands = new(StringComparer.OrdinalIgnoreCase);
 
-    public void Register(string name, Delegate handler)
+    public void Register(string name, AsyncSubcommandDelegate handler)
     {
         if (handler is null)
         {
@@ -19,27 +18,10 @@ internal class SubcommandStore : ISubcomamndStore
             throw new ArgumentException("Subcommand name cannot be null or whitespace.", nameof(name));
         }
 
-        if (handler is AsyncSubcommandDelegate asyncHandler)
-        {
-            _asyncSubcommands[name] = asyncHandler;
-        }
-        else if (handler is SubcommandDelegate syncHandler)
-        {
-            _subcommands[name] = syncHandler;
-        }
-        else
-        {
-            throw new ArgumentException(
-                $"Handler must be either {nameof(AsyncSubcommandDelegate)} or {nameof(SubcommandDelegate)}. Found: {handler.GetType()}");
-        }
+        _subcommands[name] = handler;
     }
 
-    public bool TryGetAsyncHandler(string name, [MaybeNullWhen(false)] out AsyncSubcommandDelegate handler)
-    {
-        return _asyncSubcommands.TryGetValue(name, out handler);
-    }
-
-    public bool TryGetHandler(string name, [MaybeNullWhen(false)] out SubcommandDelegate handler)
+    public bool TryGetHandler(string name, [MaybeNullWhen(false)] out AsyncSubcommandDelegate handler)
     {
         return _subcommands.TryGetValue(name, out handler);
     }
