@@ -1,6 +1,5 @@
 <Solution>
     <Folder Name="/src/">
-        <Project Path="src/Argx.Console/Argx.Console.csproj"/>
         <Project Path="src/Argx/Argx.csproj"/>
         <Project Path="src/Argx.Benchmarks/Argx.Benchmarks.csproj" Type="Classic C#"/>
     </Folder>
