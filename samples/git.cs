@@ -1,4 +1,6 @@
-#:project ../Argx
+#!/usr/bin/env dotnet
+
+#:project ../src/Argx
 
 using Argx;
 using Argx.Parsing;
