@@ -4,22 +4,22 @@ internal class SubcommandDelegateFactory
 {
     internal static AsyncSubcommandDelegate Create(Delegate handler)
     {
-        if (handler is AsyncSubcommandDelegate asyncHandler)
+        switch (handler)
         {
-            return asyncHandler;
-        }
-        else if (handler is SubcommandDelegate syncHandler)
-        {
-            return args =>
-            {
-                syncHandler(args);
-                return Task.CompletedTask;
-            };
-        }
-        else
-        {
-            throw new ArgumentException(
-                $"Handler must be either {nameof(AsyncSubcommandDelegate)} or {nameof(SubcommandDelegate)}. Found: {handler.GetType()}");
+            case AsyncSubcommandDelegate asyncHandler:
+                return asyncHandler;
+
+            case SubcommandDelegate syncHandler:
+                {
+                    return args =>
+                    {
+                        syncHandler(args);
+                        return Task.CompletedTask;
+                    };
+                }
+
+            default:
+                throw new ArgumentException($"Cannot create subcommand delegate from {handler.GetType()}");
         }
     }
 }
