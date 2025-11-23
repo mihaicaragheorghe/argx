@@ -5,12 +5,12 @@
 using Argx;
 using Argx.Parsing;
 
-var app = new CommandLineApplication();
+var app = new CommandLineApplication(name: "git");
 
 // dotnet run git.cs push main
 app.AddSubcommand("push", args =>
 {
-    var parser = new ArgumentParser();
+    var parser = new ArgumentParser(app: app.Name);
     parser.AddArgument("remote");
     parser.AddArgument("refspec");
     var pargs = parser.Parse(args);
@@ -24,7 +24,7 @@ app.AddSubcommand("push", args =>
 // dotnet run git.cs pull main
 app.AddSubcommand("pull", async args =>
 {
-    var parser = new ArgumentParser();
+    var parser = new ArgumentParser(app: app.Name);
     parser.AddArgument("remote");
     parser.AddArgument("refspec");
     var pargs = parser.Parse(args);
@@ -39,7 +39,7 @@ app.AddSubcommand("pull", async args =>
 // dotnet run git.cs status
 app.AddSubcommand("status", async args =>
 {
-    var parser = new ArgumentParser();
+    var parser = new ArgumentParser(app: app.Name);
     var pargs = parser.Parse(args);
 
     await Task.Delay(1000);

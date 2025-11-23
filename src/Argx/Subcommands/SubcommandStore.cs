@@ -6,6 +6,11 @@ internal class SubcommandStore : ISubcommandStore
 {
     private readonly Dictionary<string, AsyncSubcommandDelegate> _subcommands = new(StringComparer.OrdinalIgnoreCase);
 
+    public IEnumerable<string> GetRegisteredSubcommandNames()
+    {
+        return _subcommands.Keys;
+    }
+
     public void Register(string name, AsyncSubcommandDelegate handler)
     {
         if (handler is null)
