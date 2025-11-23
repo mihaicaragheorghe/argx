@@ -6,10 +6,9 @@ internal static partial class TokenConverter
 {
     private delegate bool TryConvertString(string token, out object? value);
 
-    private static Dictionary<Type, TryConvertString>? s_stringConverters;
-
     private static Dictionary<Type, TryConvertString> StringConverters
-        => s_stringConverters ??= new Dictionary<Type, TryConvertString>
+    {
+        get => field ??= new Dictionary<Type, TryConvertString>
         {
             [typeof(string)] = (input, out value) =>
             {
@@ -259,4 +258,5 @@ internal static partial class TokenConverter
                 return false;
             },
         };
+    }
 }

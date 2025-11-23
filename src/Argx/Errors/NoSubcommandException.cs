@@ -1,8 +1,11 @@
 namespace Argx.Errors;
 
-internal sealed class NoSubcommandException : Exception
+/// <summary>
+/// Exception thrown when no subcommand is provided.
+/// </summary>
+public sealed class NoSubcommandException : Exception
 {
-    internal NoSubcommandException()
+    public NoSubcommandException()
         : base("No subcommand provided.")
     {
     }

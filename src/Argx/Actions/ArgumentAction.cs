@@ -16,5 +16,14 @@ public abstract class ArgumentAction
         }
     }
 
+    /// <summary>
+    /// Called when a new argument specification is added to the parser.
+    /// It ensures that the action is valid and can be performed.
+    /// Each action has its own validation rules and throws an exception if they are not met.
+    /// </summary>
+    /// <remarks>
+    /// This helps catch configuration errors at startup, rather than at runtime during parsing.
+    /// </remarks>
+    /// <param name="argument"></param>
     public abstract void Validate(Argument argument);
 }

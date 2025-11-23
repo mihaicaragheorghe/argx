@@ -24,7 +24,6 @@ public class TokenConverterTests
 
         var result = TokenConverter.ConvertTokens(type: typeof(int), tokens: span);
 
-        Assert.True(result.IsSuccess);
         Assert.Equal(result.Value, 123);
         Assert.False(result.IsError);
         Assert.Null(result.Error);
@@ -48,7 +47,6 @@ public class TokenConverterTests
 
         var result = TokenConverter.ConvertTokens(type: typeof(int[]), tokens: span);
 
-        Assert.True(result.IsSuccess);
         Assert.Equal(result.Value, expected);
         Assert.False(result.IsError);
         Assert.Null(result.Error);
@@ -63,7 +61,7 @@ public class TokenConverterTests
 
         var result = TokenConverter.ConvertTokens(type: typeof(int[]), tokens: span);
 
-        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
         Assert.Equal(expected, result.Value);
     }
 
@@ -75,7 +73,7 @@ public class TokenConverterTests
 
         var result = TokenConverter.ConvertTokens(type: typeof(int[]), tokens: span);
 
-        Assert.True(result.IsSuccess);
+        Assert.False(result.IsError);
         Assert.Equal(Array.Empty<int>(), result.Value);
     }
 
@@ -101,7 +99,6 @@ public class TokenConverterTests
 
         var result = TokenConverter.ConvertObject(typeof(string), token);
 
-        Assert.True(result.IsSuccess);
         Assert.False(result.IsError);
         Assert.Null(result.Error);
         Assert.Equal(token.Value, result.Value);

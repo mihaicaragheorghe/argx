@@ -1,9 +1,9 @@
 namespace Argx.Errors;
 
-internal sealed class UnknownSubcommandException : Exception
+/// <summary>
+/// Exception thrown when an unknown subcommand is provided.
+/// </summary>
+public sealed class UnknownSubcommandException(string subcommand)
+    : Exception($"Unknown subcommand: {subcommand}")
 {
-    internal UnknownSubcommandException(string subcommand)
-        : base($"Unknown subcommand: {subcommand}")
-    {
-    }
 }
