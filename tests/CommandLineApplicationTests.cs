@@ -1,3 +1,4 @@
+using Argx.Errors;
 using Argx.Subcommands;
 
 namespace Argx.Tests;
@@ -20,7 +21,7 @@ public class CommandLineApplicationTest
 
         app.AddSubcommand("foo", handler);
 
-        await app.RunAsync(["foo", "bar", "baz"]);
+        await app.RunAsyncImpl(["foo", "bar", "baz"]);
 
         Assert.True(called);
         Assert.Equal(["bar", "baz"], captured);
@@ -41,25 +42,25 @@ public class CommandLineApplicationTest
 
         app.AddSubcommand("sync", syncHandler);
 
-        await app.RunAsync(["sync", "x", "y", "z"]);
+        await app.RunAsyncImpl(["sync", "x", "y", "z"]);
 
         Assert.True(called);
         Assert.Equal(["x", "y", "z"], captured);
     }
 
     [Fact]
-    public async Task RunAsync_ShouldThrowInvalidOperationException_WhenUnknownSubcommand()
+    public async Task RunAsync_ShouldThrowUnknownSubcommandException_WhenUnknownSubcommand()
     {
         var app = new CommandLineApplication(new SubcommandStore());
 
-        await Assert.ThrowsAsync<InvalidOperationException>(() => app.RunAsync(["missing"]));
+        await Assert.ThrowsAsync<UnknownSubcommandException>(() => app.RunAsyncImpl(["missing"]));
     }
 
     [Fact]
-    public async Task RunAsync_ShouldThrowArgumentException_WhenNoArguments()
+    public async Task RunAsync_ShouldThrowNoSubcommandException_WhenNoArguments()
     {
         var app = new CommandLineApplication(new SubcommandStore());
 
-        await Assert.ThrowsAsync<ArgumentException>(() => app.RunAsync([]));
+        await Assert.ThrowsAsync<NoSubcommandException>(() => app.RunAsyncImpl([]));
     }
 }

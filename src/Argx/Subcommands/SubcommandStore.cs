@@ -13,11 +13,6 @@ internal class SubcommandStore : ISubcommandStore
             throw new ArgumentNullException(nameof(handler));
         }
 
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new ArgumentException("Subcommand name cannot be null or whitespace.", nameof(name));
-        }
-
         _subcommands[name] = handler;
     }
 

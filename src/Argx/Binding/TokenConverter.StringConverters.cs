@@ -11,13 +11,13 @@ internal static partial class TokenConverter
     private static Dictionary<Type, TryConvertString> StringConverters
         => s_stringConverters ??= new Dictionary<Type, TryConvertString>
         {
-            [typeof(string)] = (string input, out object? value) =>
+            [typeof(string)] = (input, out value) =>
             {
                 value = input;
                 return true;
             },
 
-            [typeof(bool)] = (string token, out object? value) =>
+            [typeof(bool)] = (token, out value) =>
             {
                 if (bool.TryParse(token, out var parsed))
                 {
@@ -29,7 +29,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(int)] = (string token, out object? value) =>
+            [typeof(int)] = (token, out value) =>
             {
                 if (int.TryParse(token,
                     style: ArgumentConversionDefaults.NumberStyles.Int,
@@ -44,7 +44,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(long)] = (string token, out object? value) =>
+            [typeof(long)] = (token, out value) =>
             {
                 if (long.TryParse(token,
                     style: ArgumentConversionDefaults.NumberStyles.Long,
@@ -59,7 +59,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(short)] = (string token, out object? value) =>
+            [typeof(short)] = (token, out value) =>
             {
                 if (short.TryParse(token,
                     style: ArgumentConversionDefaults.NumberStyles.Short,
@@ -74,7 +74,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(uint)] = (string token, out object? value) =>
+            [typeof(uint)] = (token, out value) =>
             {
                 if (uint.TryParse(token,
                     style: ArgumentConversionDefaults.NumberStyles.Int,
@@ -89,7 +89,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(ulong)] = (string token, out object? value) =>
+            [typeof(ulong)] = (token, out value) =>
             {
                 if (ulong.TryParse(token,
                     style: ArgumentConversionDefaults.NumberStyles.Long,
@@ -104,7 +104,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(ushort)] = (string token, out object? value) =>
+            [typeof(ushort)] = (token, out value) =>
             {
                 if (ushort.TryParse(token,
                     style: ArgumentConversionDefaults.NumberStyles.Short,
@@ -119,7 +119,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(decimal)] = (string input, out object? value) =>
+            [typeof(decimal)] = (input, out value) =>
             {
                 if (decimal.TryParse(input,
                     style: ArgumentConversionDefaults.NumberStyles.Decimal,
@@ -134,7 +134,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(double)] = (string input, out object? value) =>
+            [typeof(double)] = (input, out value) =>
             {
                 if (double.TryParse(input,
                     style: ArgumentConversionDefaults.NumberStyles.Double,
@@ -149,7 +149,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(float)] = (string input, out object? value) =>
+            [typeof(float)] = (input, out value) =>
             {
                 if (float.TryParse(input,
                     style: ArgumentConversionDefaults.NumberStyles.Float,
@@ -164,7 +164,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(Guid)] = (string input, out object? value) =>
+            [typeof(Guid)] = (input, out value) =>
             {
                 if (Guid.TryParse(input, out var parsed))
                 {
@@ -176,7 +176,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(DateTime)] = (string input, out object? value) =>
+            [typeof(DateTime)] = (input, out value) =>
             {
                 if (ArgumentConversionDefaults.DateTimeFormat != null)
                 {
@@ -204,7 +204,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(DateTimeOffset)] = (string input, out object? value) =>
+            [typeof(DateTimeOffset)] = (input, out value) =>
             {
                 if (ArgumentConversionDefaults.DateTimeFormat != null)
                 {
@@ -232,7 +232,7 @@ internal static partial class TokenConverter
                 return false;
             },
 
-            [typeof(TimeSpan)] = (string input, out object? value) =>
+            [typeof(TimeSpan)] = (input, out value) =>
             {
                 if (ArgumentConversionDefaults.TimeSpanFormat != null)
                 {

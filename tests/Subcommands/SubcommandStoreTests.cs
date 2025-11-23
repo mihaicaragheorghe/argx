@@ -11,16 +11,6 @@ public class SubcommandStoreTests
         Assert.Throws<ArgumentNullException>(() => sut.Register("foo", null!));
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData("  ")]
-    [InlineData(null)]
-    public void Register_ShouldThrowArgumentException_WhenNameNullOrEmpty(string? name)
-    {
-        var sut = new SubcommandStore();
-        Assert.Throws<ArgumentException>(() => sut.Register(name!, args => Task.CompletedTask));
-    }
-
     [Fact]
     public void Register_ShouldStoreHandler_WhenValid()
     {

@@ -32,7 +32,7 @@ public partial class ArgumentParserTests
             .Setup(x => x.Contains("foo"))
             .Returns(true);
 
-        _ = parser.ParseInternal(["69"]);
+        _ = parser.ParseImpl(["69"]);
 
         store.Verify(x => x.Set("foo", 69));
     }
@@ -47,7 +47,7 @@ public partial class ArgumentParserTests
             .Setup(x => x.Contains("foo"))
             .Returns(true);
 
-        _ = parser.ParseInternal(["bar"]);
+        _ = parser.ParseImpl(["bar"]);
 
         store.Verify(x => x.Set("foo", "bar"));
     }
@@ -58,7 +58,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add("foo");
 
-        var result = parser.ParseInternal(["bar"]);
+        var result = parser.ParseImpl(["bar"]);
 
         Assert.Equal("bar", result["foo"]);
     }
@@ -70,7 +70,7 @@ public partial class ArgumentParserTests
         parser.Add("foo");
         parser.Add("bar");
 
-        var result = parser.ParseInternal(["baz", "qux"]);
+        var result = parser.ParseImpl(["baz", "qux"]);
 
         Assert.Equal("baz", result["foo"]);
         Assert.Equal("qux", result["bar"]);
@@ -82,7 +82,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add("foo", dest: "bar");
 
-        var result = parser.ParseInternal(["baz"]);
+        var result = parser.ParseImpl(["baz"]);
 
         Assert.Equal("baz", result["bar"]);
     }
@@ -96,7 +96,7 @@ public partial class ArgumentParserTests
         repo.Setup(x => x.Contains("x"))
             .Returns(true);
 
-        _ = parser.ParseInternal(["21"]);
+        _ = parser.ParseImpl(["21"]);
 
         repo.Verify(x => x.Set("x", 21));
     }
@@ -109,7 +109,7 @@ public partial class ArgumentParserTests
         parser.Add<int>("x");
         parser.Add<int>("y");
 
-        var result = parser.ParseInternal(args);
+        var result = parser.ParseImpl(args);
 
         Assert.Equal("21", result["x"]);
         Assert.Equal("22", result["y"]);
@@ -123,7 +123,7 @@ public partial class ArgumentParserTests
         parser.Add<int>("x");
         parser.Add<int>("y");
 
-        var result = parser.ParseInternal(args);
+        var result = parser.ParseImpl(args);
 
         Assert.True(result.TryGetValue<int>("x", out var x));
         Assert.True(result.TryGetValue<int>("y", out var y));
@@ -138,7 +138,7 @@ public partial class ArgumentParserTests
         parser.Add<int>("x");
         parser.Add<int>("y");
 
-        var result = parser.ParseInternal(["1", "2", "3"]);
+        var result = parser.ParseImpl(["1", "2", "3"]);
 
         Assert.Equal("1", result["x"]);
         Assert.Equal("2", result["y"]);
@@ -152,7 +152,7 @@ public partial class ArgumentParserTests
         string[] expected = ["bar", "baz", "qux"];
         parser.Add<string[]>("foo", arity: "3", action: ArgumentActions.Store);
 
-        var result = parser.ParseInternal(["bar", "baz", "qux", "--extra"]);
+        var result = parser.ParseImpl(["bar", "baz", "qux", "--extra"]);
 
         Assert.True(result.TryGetValue<string[]>("foo", out var actual));
         Assert.Equal(expected, actual);
@@ -165,7 +165,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add<string>("foo", arity: Arity.Optional, action: ArgumentActions.Store);
 
-        var result = parser.ParseInternal(["bar", "baz", "qux"]);
+        var result = parser.ParseImpl(["bar", "baz", "qux"]);
         Assert.True(result.TryGetValue<string>("foo", out var actual));
         Assert.Equal("bar", actual);
     }
@@ -177,7 +177,7 @@ public partial class ArgumentParserTests
         parser.Add<string[]>("foo", arity: Arity.Any, action: ArgumentActions.Store);
         parser.Add<string>("--qux");
 
-        var result = parser.ParseInternal(["bar", "baz", "--qux", "quux"]);
+        var result = parser.ParseImpl(["bar", "baz", "--qux", "quux"]);
 
         Assert.True(result.TryGetValue<string[]>("foo", out var actual));
         Assert.Equal(["bar", "baz"], actual);
@@ -191,7 +191,7 @@ public partial class ArgumentParserTests
         parser.Add<string[]>("foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
         parser.Add<string>("--qux");
 
-        var result = parser.ParseInternal(["bar", "baz", "--qux", "quux"]);
+        var result = parser.ParseImpl(["bar", "baz", "--qux", "quux"]);
 
         Assert.True(result.TryGetValue<string[]>("foo", out var actual));
         Assert.Equal(expected, actual);
@@ -204,7 +204,7 @@ public partial class ArgumentParserTests
         parser.Add<string[]>("foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
         parser.Add<string[]>("--bar", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
 
-        Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["--bar", "baz", "qux", "quux"]));
+        Assert.Throws<ArgumentValueException>(() => parser.ParseImpl(["--bar", "baz", "qux", "quux"]));
     }
 
     [Fact]
@@ -213,7 +213,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add<string[]>("--foo", arity: "1", action: ArgumentActions.Store);
 
-        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["--foo"]));
+        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseImpl(["--foo"]));
         Assert.Equal("Error: argument --foo: not enough values provided", ex.Message);
     }
 
@@ -223,7 +223,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add<int[]>("nums", arity: Arity.Any, action: ArgumentActions.Append);
 
-        var result = parser.ParseInternal(["1", "2", "3"]);
+        var result = parser.ParseImpl(["1", "2", "3"]);
 
         Assert.True(result.TryGetValue<int[]>("nums", out var nums));
         Assert.Equal([1, 2, 3], nums);

@@ -259,7 +259,7 @@ public class ArgumentParser : IArgumentParser
     {
         try
         {
-            return ParseInternal(args);
+            return ParseImpl(args);
         }
         catch (ArgumentValueException ex)
         {
@@ -277,7 +277,7 @@ public class ArgumentParser : IArgumentParser
         }
     }
 
-    internal Arguments ParseInternal(string[] args)
+    internal Arguments ParseImpl(string[] args)
     {
         var result = new Arguments(_store);
         var tokens = args.Tokenize();

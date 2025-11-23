@@ -82,7 +82,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser(store.Object);
         parser.Add("--foo");
 
-        _ = parser.ParseInternal(["--foo", "bar"]);
+        _ = parser.ParseImpl(["--foo", "bar"]);
 
         store.Verify(x => x.Set("foo", "bar"));
     }
@@ -94,7 +94,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser(store.Object);
         parser.Add<int>("--foo");
 
-        _ = parser.ParseInternal(["--foo", "69"]);
+        _ = parser.ParseImpl(["--foo", "69"]);
 
         store.Verify(x => x.Set("foo", 69));
     }
@@ -107,7 +107,7 @@ public partial class ArgumentParserTests
         parser.Add("arg1");
         parser.Add("arg2");
 
-        var result = parser.ParseInternal(["--foo", "bar", "--", "--baz", "qux"]);
+        var result = parser.ParseImpl(["--foo", "bar", "--", "--baz", "qux"]);
 
         Assert.Equal("--baz", result["arg1"]);
         Assert.Equal("qux", result["arg2"]);
@@ -131,7 +131,7 @@ public partial class ArgumentParserTests
         parser.Add("x");
         parser.Add("y");
 
-        var result = parser.ParseInternal(args);
+        var result = parser.ParseImpl(args);
 
         Assert.Equal("bar", result["foo"]);
         Assert.Equal("qux", result["bax"]);
@@ -155,7 +155,7 @@ public partial class ArgumentParserTests
         parser.Add("foo");
         parser.Add("bar");
 
-        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["foo"]));
+        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseImpl(["foo"]));
         Assert.Equal("Error: argument bar: expected value", ex.Message);
     }
 

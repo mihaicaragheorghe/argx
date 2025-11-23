@@ -15,7 +15,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser(store.Object);
 
         parser.AddFlag("--foo", ["-f"], value: true);
-        _ = parser.ParseInternal(["--foo"]);
+        _ = parser.ParseImpl(["--foo"]);
 
         store.Verify(x => x.Set("foo", true));
     }
@@ -27,7 +27,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser(store.Object);
 
         parser.AddFlag("--foo", ["-f"], value: false);
-        _ = parser.ParseInternal(["--foo"]);
+        _ = parser.ParseImpl(["--foo"]);
 
         store.Verify(x => x.Set("foo", false));
     }
@@ -46,7 +46,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser(store.Object);
 
         parser.AddOption("--foo");
-        _ = parser.ParseInternal(["--foo", "bar"]);
+        _ = parser.ParseImpl(["--foo", "bar"]);
 
         store.Verify(x => x.Set("foo", "bar"));
     }
@@ -72,7 +72,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser(store.Object);
 
         parser.AddOption<int>("--foo");
-        _ = parser.ParseInternal(["--foo", "69"]);
+        _ = parser.ParseImpl(["--foo", "69"]);
 
         store.Verify(x => x.Set("foo", 69));
     }
@@ -83,7 +83,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add("--input");
 
-        var result = parser.ParseInternal(["--input", "foo.txt"]);
+        var result = parser.ParseImpl(["--input", "foo.txt"]);
 
         Assert.Equal("foo.txt", result["input"]);
     }
@@ -95,7 +95,7 @@ public partial class ArgumentParserTests
         parser.Add("--foo");
         parser.Add("--bar");
 
-        var result = parser.ParseInternal(["--foo", "bar", "--bar", "baz"]);
+        var result = parser.ParseImpl(["--foo", "bar", "--bar", "baz"]);
 
         Assert.Equal("bar", result["foo"]);
         Assert.Equal("baz", result["bar"]);
@@ -107,7 +107,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add("--input", dest: "file");
 
-        var result = parser.ParseInternal(["--input", "foo.txt"]);
+        var result = parser.ParseImpl(["--input", "foo.txt"]);
 
         Assert.Equal("foo.txt", result["file"]);
     }
@@ -119,7 +119,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser(repo.Object);
         parser.Add<int>("--foo");
 
-        _ = parser.ParseInternal(["--foo", "21"]);
+        _ = parser.ParseImpl(["--foo", "21"]);
 
         repo.Verify(x => x.Set("foo", 21));
     }
@@ -130,7 +130,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add<int>("--foo");
 
-        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["--foo", "bar"]));
+        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseImpl(["--foo", "bar"]));
         Assert.Equal("Error: argument --foo: expected type int. Failed to convert 'bar' to int", ex.Message);
     }
 
@@ -140,7 +140,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add("--foo", ["-f"]);
 
-        var result = parser.ParseInternal(["--foo", "bar", "--baz", "qux"]);
+        var result = parser.ParseImpl(["--foo", "bar", "--baz", "qux"]);
 
         Assert.Null(result["baz"]);
         Assert.Contains("--baz", result.Extras);
@@ -153,7 +153,7 @@ public partial class ArgumentParserTests
         string[] expected = ["bar", "baz", "qux"];
         parser.Add<string[]>("--foo", arity: "3", action: ArgumentActions.Store);
 
-        var result = parser.ParseInternal(["--foo", "bar", "baz", "qux", "--extra", "quux"]);
+        var result = parser.ParseImpl(["--foo", "bar", "baz", "qux", "--extra", "quux"]);
 
         Assert.True(result.TryGetValue<string[]>("foo", out var actual));
         Assert.Equal(expected, actual);
@@ -167,7 +167,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add<string>("--foo", arity: Arity.Optional, action: ArgumentActions.Store);
 
-        var result = parser.ParseInternal(["--foo", "bar", "baz", "qux"]);
+        var result = parser.ParseImpl(["--foo", "bar", "baz", "qux"]);
 
         Assert.True(result.TryGetValue<string>("foo", out var actual));
         Assert.Equal("bar", actual);
@@ -179,7 +179,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add<string>("--foo", arity: Arity.Optional, action: ArgumentActions.Store, constValue: "bar");
 
-        var result = parser.ParseInternal(["--foo", "--baz", "qux"]);
+        var result = parser.ParseImpl(["--foo", "--baz", "qux"]);
 
         Assert.True(result.TryGetValue<string>("foo", out var actual));
         Assert.Equal("bar", actual);
@@ -192,7 +192,7 @@ public partial class ArgumentParserTests
         parser.Add<string[]>("--foo", arity: Arity.Any, action: ArgumentActions.Store);
         parser.Add<string>("--qux");
 
-        var result = parser.ParseInternal(["--foo", "bar", "baz", "--qux", "quux"]);
+        var result = parser.ParseImpl(["--foo", "bar", "baz", "--qux", "quux"]);
 
         Assert.True(result.TryGetValue<string[]>("foo", out var actual));
         Assert.Equal(["bar", "baz"], actual);
@@ -206,7 +206,7 @@ public partial class ArgumentParserTests
         parser.Add<string[]>("--foo", arity: Arity.Any, action: ArgumentActions.Store, constValue: expected);
         parser.Add<string>("--bar");
 
-        var result = parser.ParseInternal(["--foo", "--bar", "baz", "qux"]);
+        var result = parser.ParseImpl(["--foo", "--bar", "baz", "qux"]);
 
         Assert.True(result.TryGetValue<string[]>("foo", out var actual));
         Assert.Equal(expected, actual);
@@ -220,7 +220,7 @@ public partial class ArgumentParserTests
         parser.Add<string[]>("--foo", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
         parser.Add<string>("--qux");
 
-        var result = parser.ParseInternal(["--foo", "bar", "baz", "--qux", "quux"]);
+        var result = parser.ParseImpl(["--foo", "bar", "baz", "--qux", "quux"]);
 
         Assert.True(result.TryGetValue<string[]>("foo", out var actual));
         Assert.Equal(expected, actual);
@@ -234,7 +234,7 @@ public partial class ArgumentParserTests
         parser.Add<string[]>("--bar", arity: Arity.AtLeastOne, action: ArgumentActions.Store);
 
         var ex = Assert.Throws<ArgumentValueException>(() =>
-            parser.ParseInternal(["--foo", "--bar", "baz", "qux", "quux"]));
+            parser.ParseImpl(["--foo", "--bar", "baz", "qux", "quux"]));
         Assert.Equal("Error: argument --foo: requires at least one value", ex.Message);
     }
 
@@ -244,7 +244,7 @@ public partial class ArgumentParserTests
         var parser = new ArgumentParser();
         parser.Add<string[]>("foo", arity: "3", action: ArgumentActions.Store);
 
-        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["foo", "bar"]));
+        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseImpl(["foo", "bar"]));
         Assert.Equal("Error: argument foo: not enough values provided", ex.Message);
     }
 
@@ -256,7 +256,7 @@ public partial class ArgumentParserTests
         parser.AddFlag("-b");
         parser.AddFlag("-c");
 
-        var result = parser.ParseInternal(["-abc", "value"]);
+        var result = parser.ParseImpl(["-abc", "value"]);
 
         Assert.True(result.TryGetValue<bool>("a", out _));
         Assert.True(result.TryGetValue<bool>("b", out _));
@@ -271,7 +271,7 @@ public partial class ArgumentParserTests
         parser.AddOption("-b", arity: Arity.Optional, constValue: "foo");
         parser.AddOption<int>("-c", arity: Arity.Optional, constValue: 69);
 
-        var result = parser.ParseInternal(["-abc", "value"]);
+        var result = parser.ParseImpl(["-abc", "value"]);
 
         Assert.True(result.TryGetValue<bool>("a", out _));
         Assert.True(result.TryGetValue<string>("b", out var b));
@@ -287,7 +287,7 @@ public partial class ArgumentParserTests
         parser.AddFlag("-a");
         parser.AddFlag("-b");
 
-        var result = parser.ParseInternal(["-abx", "value"]);
+        var result = parser.ParseImpl(["-abx", "value"]);
 
         Assert.True(result.TryGetValue<bool>("a", out _));
         Assert.True(result.TryGetValue<bool>("b", out _));
@@ -305,7 +305,7 @@ public partial class ArgumentParserTests
         parser.AddFlag("-a");
         parser.AddOption<string[]>("-b", arity: arity);
 
-        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["-ab", "value"]));
+        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseImpl(["-ab", "value"]));
         Assert.Equal("Error: argument -b: cannot be bundled because it requires a value", ex.Message);
     }
 }
