@@ -6,11 +6,19 @@ namespace Argx.Tests.Help;
 
 public class HelpBuilderTests
 {
+    public HelpBuilderTests()
+    {
+        HelpConfiguration.IndentSize = 2;
+        HelpConfiguration.MaxLineWidth = 80;
+        HelpConfiguration.UseAliasInUsageText = false;
+        HelpConfiguration.SectionSpacing = Environment.NewLine + Environment.NewLine;
+    }
+
     [Fact]
     public void AddSection_ShouldAddSection()
     {
         var section = new HelpSection("foo", "bar");
-        var result = new HelpBuilder(HelpConfiguration.Default())
+        var result = new HelpBuilder()
             .AddSection(section.Title, section.Content)
             .Build();
 
@@ -20,7 +28,7 @@ public class HelpBuilderTests
     [Fact]
     public void AddSection_ShouldIgnoreEmptySection()
     {
-        var result = new HelpBuilder(HelpConfiguration.Default())
+        var result = new HelpBuilder()
             .AddSection("", "")
             .Build();
 
@@ -30,7 +38,7 @@ public class HelpBuilderTests
     [Fact]
     public void AddText_ShouldAddText()
     {
-        var result = new HelpBuilder(HelpConfiguration.Default())
+        var result = new HelpBuilder()
             .AddText("foo")
             .Build();
 
@@ -40,7 +48,7 @@ public class HelpBuilderTests
     [Fact]
     public void AddText_ShouldIgnoreEmptyText()
     {
-        var result = new HelpBuilder(HelpConfiguration.Default())
+        var result = new HelpBuilder()
             .AddText("")
             .Build();
 
@@ -50,7 +58,7 @@ public class HelpBuilderTests
     [Fact]
     public void AddArguments_ShouldIgnoreEmptyArgumentList()
     {
-        var result = new HelpBuilder(HelpConfiguration.Default())
+        var result = new HelpBuilder()
             .AddArguments([])
             .Build();
 
@@ -62,11 +70,11 @@ public class HelpBuilderTests
     {
         var arg = new Argument("--foo", usage: "foo argument", alias: "-f");
         const string expected = """
-                                Arguments:
+                                Arguments
                                   --foo, -f  foo argument
                                 """;
 
-        var result = new HelpBuilder(HelpConfiguration.Default())
+        var result = new HelpBuilder()
             .AddArguments([arg])
             .Build();
 
@@ -85,7 +93,7 @@ public class HelpBuilderTests
             new("--quux")
         ];
         const string expected = """
-                                Arguments:
+                                Arguments
                                   --bar, -b    bar argument
                                   --baz, -baz  baz argument
                                   --foo        foo argument
@@ -93,7 +101,7 @@ public class HelpBuilderTests
                                   qux          qux argument
                                 """;
 
-        var result = new HelpBuilder(HelpConfiguration.Default())
+        var result = new HelpBuilder()
             .AddArguments(args)
             .Build();
 
@@ -109,19 +117,19 @@ public class HelpBuilderTests
         var option = new Argument("--foo", usage: "foo option", alias: "-f");
         var positional = new Argument("bar", usage: "bar positional");
         const string expected = """
-                                Program:
+                                Program
                                   What the program does
 
                                 Usage: Program [--help, -h] [--foo, -f FOO] bar
 
-                                Positional arguments:
+                                Positional arguments
                                   bar  bar positional
 
-                                Options:
+                                Options
                                   --foo, -f  foo option
                                 """;
 
-        var result = new HelpBuilder(HelpConfiguration.Default())
+        var result = new HelpBuilder()
             .AddSection(program.Title, program.Content)
             .AddSection(usage.Title, usage.Content)
             .AddArguments([positional], "Positional arguments")
@@ -136,11 +144,11 @@ public class HelpBuilderTests
     {
         var arg = new Argument("foo", isPositional: true);
         const string expected = """
-                                Usage:
+                                Usage
                                   prog foo
                                 """;
 
-        var actual = new HelpBuilder(HelpConfiguration.Default())
+        var actual = new HelpBuilder()
             .AddUsage([arg], prefix: "prog")
             .Build();
 
@@ -157,11 +165,11 @@ public class HelpBuilderTests
             new("z", isPositional: true)
         ];
         const string expected = """
-                                Usage:
+                                Usage
                                   prog x y z
                                 """;
 
-        var actual = new HelpBuilder(HelpConfiguration.Default())
+        var actual = new HelpBuilder()
             .AddUsage(args, prefix: "prog")
             .Build();
 
@@ -174,11 +182,11 @@ public class HelpBuilderTests
         var arg = new Argument("foo", isPositional: true);
         var programName = Path.GetFileName(Assembly.GetEntryAssembly()?.Location);
         var expected = $"""
-                        Usage:
+                        Usage
                           {programName} foo
                         """;
 
-        var actual = new HelpBuilder(HelpConfiguration.Default())
+        var actual = new HelpBuilder()
             .AddUsage([arg])
             .Build();
 
@@ -190,11 +198,11 @@ public class HelpBuilderTests
     {
         var arg = new Argument("--foo", arity: "0");
         const string expected = """
-                                Usage:
+                                Usage
                                   prog [--foo]
                                 """;
 
-        var actual = new HelpBuilder(HelpConfiguration.Default())
+        var actual = new HelpBuilder()
             .AddUsage([arg], prefix: "prog")
             .Build();
 
@@ -206,11 +214,11 @@ public class HelpBuilderTests
     {
         var arg = new Argument("--foo", arity: "1");
         const string expected = """
-                                Usage:
+                                Usage
                                   prog [--foo FOO]
                                 """;
 
-        var actual = new HelpBuilder(HelpConfiguration.Default())
+        var actual = new HelpBuilder()
             .AddUsage([arg], prefix: "prog")
             .Build();
 
@@ -222,11 +230,11 @@ public class HelpBuilderTests
     {
         var arg = new Argument("--foo", arity: "3");
         const string expected = """
-                                Usage:
+                                Usage
                                   prog [--foo FOO FOO FOO]
                                 """;
 
-        var actual = new HelpBuilder(HelpConfiguration.Default())
+        var actual = new HelpBuilder()
             .AddUsage([arg], prefix: "prog")
             .Build();
 
@@ -238,11 +246,11 @@ public class HelpBuilderTests
     {
         var arg = new Argument("--foo", arity: Arity.Optional);
         const string expected = """
-                                Usage:
+                                Usage
                                   prog [--foo [FOO]]
                                 """;
 
-        var actual = new HelpBuilder(HelpConfiguration.Default())
+        var actual = new HelpBuilder()
             .AddUsage([arg], prefix: "prog")
             .Build();
 
@@ -254,11 +262,11 @@ public class HelpBuilderTests
     {
         var arg = new Argument("--foo", arity: Arity.Any);
         const string expected = """
-                                Usage:
+                                Usage
                                   prog [--foo [FOO ...]]
                                 """;
 
-        var actual = new HelpBuilder(HelpConfiguration.Default())
+        var actual = new HelpBuilder()
             .AddUsage([arg], prefix: "prog")
             .Build();
 
@@ -270,11 +278,11 @@ public class HelpBuilderTests
     {
         var arg = new Argument("--foo", arity: Arity.AtLeastOne);
         const string expected = """
-                                Usage:
+                                Usage
                                   prog [--foo [FOO ...]]
                                 """;
 
-        var actual = new HelpBuilder(HelpConfiguration.Default())
+        var actual = new HelpBuilder()
             .AddUsage([arg], prefix: "prog")
             .Build();
 
@@ -290,27 +298,29 @@ public class HelpBuilderTests
             new("--bar", arity: "1", alias: "-b")
         ];
         const string expected = """
-                                Usage:
+                                Usage
                                   prog [-f FOO] [-b BAR]
                                 """;
-        var actual = new HelpBuilder(new HelpConfiguration { UseAliasInUsageText = true })
+        HelpConfiguration.UseAliasInUsageText = true;
+
+        var actual = new HelpBuilder()
             .AddUsage(args, prefix: "prog")
             .Build();
 
+        HelpConfiguration.UseAliasInUsageText = false;
         Assert.Equal(expected, actual);
     }
-
 
     [Fact]
     public void AddUsage_ShouldUseMetavar_WhenOption()
     {
         var arg = new Argument("--foo", arity: "1", metavar: "bar");
         const string expected = """
-                                Usage:
+                                Usage
                                   prog [--foo bar]
                                 """;
 
-        var actual = new HelpBuilder(HelpConfiguration.Default())
+        var actual = new HelpBuilder()
             .AddUsage([arg], prefix: "prog")
             .Build();
 
@@ -330,11 +340,11 @@ public class HelpBuilderTests
         ];
 
         const string expected = """
-                                Usage:
+                                Usage
                                   prog [--help] [-v] [--foo FOO] filename action
                                 """;
 
-        var actual = new HelpBuilder(HelpConfiguration.Default())
+        var actual = new HelpBuilder()
             .AddUsage(args, prefix: "prog")
             .Build();
 
@@ -354,16 +364,19 @@ public class HelpBuilderTests
         ];
 
         const string expected = """
-                                Usage:
+                                Usage
                                   prog [--help] [-v]
                                        [--foo FOO]
                                        filename action
                                 """;
 
-        var actual = new HelpBuilder(new HelpConfiguration { MaxLineWidth = 20 })
+        HelpConfiguration.MaxLineWidth = 20;
+
+        var actual = new HelpBuilder()
             .AddUsage(args, prefix: "prog")
             .Build();
 
+        HelpConfiguration.MaxLineWidth = HelpConfiguration.DefaultMaxLineWidth;
         Assert.Equal(expected, actual);
     }
 }

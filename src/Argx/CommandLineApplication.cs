@@ -8,22 +8,31 @@ public sealed class CommandLineApplication
 {
     private readonly ISubcommandStore _subcommands;
     private readonly bool _exitOnError = true;
-    private readonly string? _description;
-    private readonly string? _usage;
 
-    public string Name => field ?? Environment.GetCommandLineArgs()[0];
+    public string? Name { get; }
+    public string? Usage { get; }
+    public string? Description { get; }
+    public string? Epilogue { get; }
 
     public CommandLineApplication(
         string? name = null,
         string? description = null,
         string? usage = null,
+        string? epilogue = null,
         bool exitOnError = true)
     {
         Name = name;
-        _usage = usage;
-        _description = description;
+        Usage = usage;
+        Description = description;
+        Epilogue = epilogue;
         _exitOnError = exitOnError;
         _subcommands = new SubcommandStore();
+        _subcommands.Register("help", _ =>
+            {
+                WriteHelp(Console.Out);
+                return Task.CompletedTask;
+            })
+            .WithUsage("Display help information about this application");
     }
 
     public CommandLineApplication(
@@ -31,16 +40,17 @@ public sealed class CommandLineApplication
         string? name = null,
         string? description = null,
         string? usage = null,
+        string? epilogue = null,
         bool exitOnError = true)
-        : this(name, description, usage, exitOnError)
+        : this(name, description, usage, epilogue, exitOnError)
     {
         _subcommands = subcommands;
     }
 
-    public void AddSubcommand(string name, AsyncSubcommandDelegate handler)
+    public Subcommand AddSubcommand(string name, AsyncSubcommandDelegate handler)
         => _subcommands.Register(name, SubcommandDelegateFactory.Create(handler));
 
-    public void AddSubcommand(string name, SubcommandDelegate handler)
+    public Subcommand AddSubcommand(string name, SubcommandDelegate handler)
         => _subcommands.Register(name, SubcommandDelegateFactory.Create(handler));
 
     public async Task RunAsync(string[] args)
@@ -51,7 +61,7 @@ public sealed class CommandLineApplication
         }
         catch (UnknownSubcommandException ex)
         {
-            Console.WriteLine($"{Name}: {ex.Message}. See --help for a list of available subcommands.");
+            Console.WriteLine($"{GetName()}: {ex.Message}. See 'help' for a list of available subcommands.");
 
             if (_exitOnError)
             {
@@ -61,7 +71,7 @@ public sealed class CommandLineApplication
         }
         catch (NoSubcommandException ex)
         {
-            Console.WriteLine($"{Name}: {ex.Message}. See --help for a list of available subcommands.");
+            Console.WriteLine($"{GetName()}: {ex.Message}. See 'help' for a list of available subcommands.");
 
             if (_exitOnError)
             {
@@ -90,20 +100,45 @@ public sealed class CommandLineApplication
     private static string GetSubcommand(string[] args)
         => args.Length > 0 ? args[0] : throw new NoSubcommandException();
 
-    private void WriteHelp(TextWriter writer)
+    internal void WriteHelp(TextWriter writer)
     {
-        var builder = new HelpBuilder(HelpConfiguration.Default());
+        var builder = new HelpBuilder();
 
-        builder.AddSection(Name, _description ?? string.Empty);
-
-        builder.AddSection("Usage", string.IsNullOrEmpty(_usage) ? $"{Name} <subcommand> [<args>]" : _usage);
-
-        var subcommandNames = _subcommands.GetRegisteredSubcommandNames().ToList();
-        if (subcommandNames.Any())
+        if (!string.IsNullOrEmpty(Name))
         {
-            builder.AddSection("Available Subcommands", string.Join(Environment.NewLine, subcommandNames));
+            builder.AddSection(Name, Description ?? string.Empty);
+        }
+        else if (!string.IsNullOrEmpty(Description))
+        {
+            builder.AddText(Description);
+        }
+
+        if (string.IsNullOrEmpty(Usage))
+        {
+            builder.AddSection("Usage", $"{GetName()} <subcommand> [<args>]");
+        }
+        else
+        {
+            builder.AddSection("Usage", Usage);
+        }
+
+        var rows = _subcommands.GetRegisteredSubcommands()
+            .Select(sc => new TwoColumnRow(Left: sc.Name, Right: sc.Usage ?? string.Empty))
+            .OrderBy(r => r.Left)
+            .ToList();
+
+        builder.AddRows("Available subcommands", rows);
+
+        if (!string.IsNullOrEmpty(Epilogue))
+        {
+            builder.AddSection(string.Empty, Epilogue);
         }
 
         writer.WriteLine(builder.Build());
     }
+
+    private string GetName()
+        => string.IsNullOrEmpty(Name)
+            ? Path.GetFileName(Environment.GetCommandLineArgs()[0])
+            : Name;
 }

@@ -49,7 +49,7 @@ internal class HelpSection
 
         if (!string.IsNullOrWhiteSpace(Title))
         {
-            sb.AppendLine($"{ind}{Title}:");
+            sb.AppendLine($"{ind}{Title}");
             ind += new string(' ', _indentSize);
         }
 

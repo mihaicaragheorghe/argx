@@ -4,25 +4,34 @@ namespace Argx.Subcommands;
 
 internal class SubcommandStore : ISubcommandStore
 {
-    private readonly Dictionary<string, AsyncSubcommandDelegate> _subcommands = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, Subcommand> _subcommands = new(StringComparer.OrdinalIgnoreCase);
 
-    public IEnumerable<string> GetRegisteredSubcommandNames()
+    public IEnumerable<Subcommand> GetRegisteredSubcommands()
     {
-        return _subcommands.Keys;
+        return _subcommands.Values;
     }
 
-    public void Register(string name, AsyncSubcommandDelegate handler)
+    public Subcommand Register(string name, AsyncSubcommandDelegate handler)
     {
         if (handler is null)
         {
             throw new ArgumentNullException(nameof(handler));
         }
 
-        _subcommands[name] = handler;
+        var subcommand = new Subcommand(name, handler);
+        _subcommands[name] = subcommand;
+        return subcommand;
     }
 
     public bool TryGetHandler(string name, [MaybeNullWhen(false)] out AsyncSubcommandDelegate handler)
     {
-        return _subcommands.TryGetValue(name, out handler);
+        if (_subcommands.TryGetValue(name, out var subcommand))
+        {
+            handler = subcommand.Handler;
+            return true;
+        }
+
+        handler = null;
+        return false;
     }
 }

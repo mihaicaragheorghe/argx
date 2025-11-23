@@ -481,7 +481,7 @@ public class ArgumentParser : IArgumentParser
     internal void WriteHelp(TextWriter writer)
     {
         var arguments = ConcatArguments();
-        var builder = new HelpBuilder(_configuration.HelpConfiguration);
+        var builder = new HelpBuilder();
 
         if (!string.IsNullOrEmpty(_app))
         {
@@ -514,7 +514,7 @@ public class ArgumentParser : IArgumentParser
 
     private void WriteUsage(TextWriter writer)
     {
-        var builder = new HelpBuilder(_configuration.HelpConfiguration);
+        var builder = new HelpBuilder();
         var arguments = ConcatArguments();
 
         if (!string.IsNullOrEmpty(_usage))

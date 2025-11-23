@@ -168,17 +168,17 @@ public partial class ArgumentParserTests
         parser.Add("y");
         var writer = new StringWriter();
         const string expected = """
-                                prog:
+                                prog
                                   what the program does
 
-                                Usage:
+                                Usage
                                   prog [--help] [--foo FOO] x y
 
-                                Positional arguments:
+                                Positional arguments
                                   x
                                   y
 
-                                Options:
+                                Options
                                   --foo
                                   --help, -h  Print help message
 
@@ -203,14 +203,14 @@ public partial class ArgumentParserTests
         var expected = $"""
                         what the program does
 
-                        Usage:
+                        Usage
                           {program} [--help] [--foo FOO] x y
 
-                        Positional arguments:
+                        Positional arguments
                           x
                           y
 
-                        Options:
+                        Options
                           --foo
                           --help, -h  Print help message
 
@@ -236,14 +236,14 @@ public partial class ArgumentParserTests
         var expected = $"""
                         what the program does
 
-                        Usage:
+                        Usage
                           {program} [--help] [--foo FOO] x y
 
-                        Positional arguments:
+                        Positional arguments
                           x
                           y
 
-                        Options:
+                        Options
                           --foo
                           --help, -h  Print help message
 
@@ -266,14 +266,14 @@ public partial class ArgumentParserTests
         var program = Path.GetFileName(Assembly.GetEntryAssembly()?.Location);
         var writer = new StringWriter();
         var expected = $"""
-                        Usage:
+                        Usage
                           {program} [--help] [--foo FOO] x y
 
-                        Positional arguments:
+                        Positional arguments
                           x
                           y
 
-                        Options:
+                        Options
                           --foo
                           --help, -h  Print help message
 
@@ -293,14 +293,14 @@ public partial class ArgumentParserTests
         parser.Add("y");
         var writer = new StringWriter();
         const string expected = $"""
-                                 Usage:
+                                 Usage
                                    prog x y
 
-                                 Positional arguments:
+                                 Positional arguments
                                    x
                                    y
 
-                                 Options:
+                                 Options
                                    --foo
                                    --help, -h  Print help message
 
@@ -320,14 +320,14 @@ public partial class ArgumentParserTests
         parser.Add("y");
         var writer = new StringWriter();
         const string expected = $"""
-                                 Usage:
+                                 Usage
                                    prog x y
 
-                                 Positional arguments:
+                                 Positional arguments
                                    x
                                    y
 
-                                 Options:
+                                 Options
                                    --foo
                                    --help, -h  Print help message
 

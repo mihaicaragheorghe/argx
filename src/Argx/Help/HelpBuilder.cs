@@ -6,13 +6,6 @@ internal class HelpBuilder
 {
     private readonly List<HelpSection> _sections = [];
 
-    private readonly HelpConfiguration _config;
-
-    internal HelpBuilder(HelpConfiguration config)
-    {
-        _config = config;
-    }
-
     internal HelpBuilder AddSection(string title, string content)
     {
         if (string.IsNullOrWhiteSpace(title) && string.IsNullOrWhiteSpace(content))
@@ -20,7 +13,7 @@ internal class HelpBuilder
             return this;
         }
 
-        _sections.Add(new HelpSection(title, content, _config.IndentSize, _config.MaxLineWidth));
+        _sections.Add(new HelpSection(title, content, HelpConfiguration.IndentSize, HelpConfiguration.MaxLineWidth));
         return this;
     }
 
@@ -28,7 +21,7 @@ internal class HelpBuilder
     {
         if (string.IsNullOrWhiteSpace(text)) return this;
 
-        _sections.Add(new HelpSection(string.Empty, text, _config.IndentSize, _config.MaxLineWidth));
+        _sections.Add(new HelpSection(string.Empty, text, HelpConfiguration.IndentSize, HelpConfiguration.MaxLineWidth));
         return this;
     }
 
@@ -36,22 +29,19 @@ internal class HelpBuilder
     {
         if (arguments.Count == 0) return this;
 
-        var section = new HelpSection(title, _config.IndentSize, _config.MaxLineWidth);
-
         var rows = arguments
             .Select(a => new TwoColumnRow(Left: a.GetDisplayName(), Right: a.Usage ?? string.Empty))
             .OrderBy(r => r.Left)
             .ToList();
 
-        section.AppendRows(rows);
-        _sections.Add(section);
+        AddRows(title, rows);
         return this;
     }
 
     internal HelpBuilder AddUsage(IList<Argument> arguments, string? prefix = null, string title = "Usage")
     {
         var sb = new StringBuilder();
-        var section = new HelpSection(title, _config.IndentSize, _config.MaxLineWidth);
+        var section = new HelpSection(title, HelpConfiguration.IndentSize, HelpConfiguration.MaxLineWidth);
 
         if (string.IsNullOrEmpty(prefix))
         {
@@ -73,7 +63,7 @@ internal class HelpBuilder
                 };
 
             sb.Append('[');
-            sb.Append(_config.UseAliasInUsageText && opt.Aliases?.Count > 0 ? opt.Aliases.First() : opt.Name);
+            sb.Append(HelpConfiguration.UseAliasInUsageText && opt.Aliases?.Count > 0 ? opt.Aliases.First() : opt.Name);
             if (!string.IsNullOrEmpty(value)) sb.Append(' ').Append(value);
             sb.Append("] ");
         }
@@ -96,6 +86,16 @@ internal class HelpBuilder
         return this;
     }
 
+    internal HelpBuilder AddRows(string title, IList<TwoColumnRow> rows)
+    {
+        if (rows.Count == 0) return this;
+
+        var section = new HelpSection(title, HelpConfiguration.IndentSize, HelpConfiguration.MaxLineWidth);
+        section.AppendRows(rows);
+        _sections.Add(section);
+        return this;
+    }
+
     internal string Build()
     {
         var sb = new StringBuilder();
@@ -103,7 +103,7 @@ internal class HelpBuilder
         foreach (var section in _sections.Select(s => s.Render()))
         {
             sb.Append(section);
-            sb.Append(_config.SectionSpacing);
+            sb.Append(HelpConfiguration.SectionSpacing);
         }
 
         return sb.ToString().TrimEnd();
