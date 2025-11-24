@@ -8,6 +8,7 @@ using Moq;
 
 namespace Argx.Tests.Parsing;
 
+[Collection("HelpTests")]
 public partial class ArgumentParserTests
 {
     [Theory]

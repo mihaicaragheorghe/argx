@@ -8,6 +8,7 @@ using Moq;
 
 namespace Argx.Tests;
 
+[Collection("HelpTests")]
 public class CommandLineApplicationTests
 {
     private readonly Mock<IEnvironment> _mockEnvironment = new();

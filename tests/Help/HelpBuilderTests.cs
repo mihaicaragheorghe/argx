@@ -4,6 +4,7 @@ using Argx.Help;
 
 namespace Argx.Tests.Help;
 
+[Collection("HelpTests")]
 public class HelpBuilderTests
 {
     public HelpBuilderTests()

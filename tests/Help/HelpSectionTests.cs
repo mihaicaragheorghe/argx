@@ -2,6 +2,7 @@ using Argx.Help;
 
 namespace Argx.Tests.Help;
 
+[Collection("HelpTests")]
 public class HelpSectionTests
 {
     [Fact]
