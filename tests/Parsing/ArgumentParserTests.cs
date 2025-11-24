@@ -1,5 +1,6 @@
 using System.Reflection;
 
+using Argx.Abstractions;
 using Argx.Actions;
 using Argx.Errors;
 using Argx.Parsing;
@@ -150,6 +151,34 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
+    public void Parse_ShouldExit_WhenExitOnError()
+    {
+        var store = new Mock<IArgumentStore>();
+        var env = new Mock<IEnvironment>();
+        var parser = new ArgumentParser(
+            store.Object,
+            env: env.Object,
+            app: "prog",
+            configuration: new ArgumentParserConfiguration { ExitOnError = true, ErrorExitCode = 42 });
+        parser.Add("--foo", action: ArgumentActions.Store, choices: ["bar"]);
+
+        using var sw = new StringWriter();
+        Console.SetOut(sw);
+
+        _ = parser.Parse(["--foo", "baz"]);
+
+        env.Verify(x => x.Exit(42), Times.Once);
+        var expectedOutput = """
+        Error: argument --foo: invalid choice 'baz', expected one of: bar
+
+        Usage
+          prog [--help] [--foo FOO]
+
+        """;
+        Assert.Equal(expectedOutput, sw.ToString());
+    }
+
+    [Fact]
     public void Parse_ShouldThrowArgumentValueException_WhenRequiredArgNotProvided()
     {
         var parser = new ArgumentParser();
@@ -158,6 +187,37 @@ public partial class ArgumentParserTests
 
         var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseImpl(["foo"]));
         Assert.Equal("Error: argument bar: expected value", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("-h")]
+    [InlineData("--help")]
+    public void Parse_ShouldWriteHelpAndExit_WhenHelpArgumentProvided(string helpArg)
+    {
+        var store = new Mock<IArgumentStore>();
+        var env = new Mock<IEnvironment>();
+        var parser = new ArgumentParser(store.Object, env: env.Object, app: "prog");
+        parser.Add("--foo");
+
+        using var sw = new StringWriter();
+        Console.SetOut(sw);
+
+        var expectedOutput = """
+        prog
+
+        Usage
+          prog [--help] [--foo FOO]
+
+        Options
+          --foo
+          --help, -h  Print help message
+
+        """;
+
+        _ = parser.ParseImpl([helpArg]);
+
+        env.Verify(x => x.Exit(0), Times.Once);
+        Assert.Equal(expectedOutput, sw.ToString());
     }
 
     [Fact]
@@ -221,7 +281,6 @@ public partial class ArgumentParserTests
 
         Assert.Equal(expected, writer.ToString());
     }
-
 
     [Theory]
     [InlineData("")]

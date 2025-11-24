@@ -1,7 +1,9 @@
+using Argx.Abstractions;
 using Argx.Actions;
 using Argx.Errors;
 using Argx.Extensions;
 using Argx.Help;
+using Argx.Utils;
 
 namespace Argx.Parsing;
 
@@ -16,6 +18,7 @@ public class ArgumentParser : IArgumentParser
     private readonly OptionSet _knownOpts = new();
     private readonly PositionalList _knownArgs = [];
 
+    private readonly IEnvironment _env;
     private readonly IArgumentStore _store;
     private readonly ArgumentParserConfiguration _configuration;
 
@@ -46,6 +49,7 @@ public class ArgumentParser : IArgumentParser
         _epilogue = epilogue;
         _configuration = config;
         _store = new ArgumentStore();
+        _env = new EnvironmentControl();
 
         if (config.AddHelpArgument)
         {
@@ -56,6 +60,7 @@ public class ArgumentParser : IArgumentParser
 
     internal ArgumentParser(
         IArgumentStore store,
+        IEnvironment? env = null,
         string? app = null,
         string? description = null,
         string? usage = null,
@@ -64,6 +69,7 @@ public class ArgumentParser : IArgumentParser
         : this(app, description, usage, epilogue, configuration)
     {
         _store = store;
+        _env = env ?? new EnvironmentControl();
     }
 
     /// <inheritdoc/>
@@ -272,8 +278,8 @@ public class ArgumentParser : IArgumentParser
             Console.WriteLine();
             WriteUsage(Console.Out);
 
-            Environment.Exit(_configuration.ErrorExitCode);
-            return null;
+            _env.Exit(_configuration.ErrorExitCode);
+            return null!;
         }
     }
 
@@ -349,7 +355,8 @@ public class ArgumentParser : IArgumentParser
         if (_configuration.AddHelpArgument && token == "-h" || token == "--help")
         {
             WriteHelp(Console.Out);
-            Environment.Exit(0);
+            _env.Exit(0);
+            return 0;
         }
 
         if (IsBundle(token.Value))
