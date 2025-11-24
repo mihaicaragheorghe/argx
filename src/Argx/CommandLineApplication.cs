@@ -1,12 +1,15 @@
+using Argx.Abstractions;
 using Argx.Errors;
 using Argx.Help;
 using Argx.Subcommands;
+using Argx.Utils;
 
 namespace Argx;
 
 public sealed class CommandLineApplication
 {
     private readonly ISubcommandStore _subcommands;
+    private readonly IEnvironment _env;
     private readonly bool _exitOnError = true;
 
     public string? Name { get; }
@@ -26,6 +29,7 @@ public sealed class CommandLineApplication
         Description = description;
         Epilogue = epilogue;
         _exitOnError = exitOnError;
+        _env = new EnvironmentControl();
         _subcommands = new SubcommandStore();
         _subcommands.Register("help", _ =>
             {
@@ -35,8 +39,9 @@ public sealed class CommandLineApplication
             .WithUsage("Display help information about this application");
     }
 
-    public CommandLineApplication(
+    internal CommandLineApplication(
         ISubcommandStore subcommands,
+        IEnvironment? environment = null,
         string? name = null,
         string? description = null,
         string? usage = null,
@@ -44,6 +49,7 @@ public sealed class CommandLineApplication
         bool exitOnError = true)
         : this(name, description, usage, epilogue, exitOnError)
     {
+        _env = environment ?? new EnvironmentControl();
         _subcommands = subcommands;
     }
 
@@ -61,21 +67,19 @@ public sealed class CommandLineApplication
         }
         catch (UnknownSubcommandException ex)
         {
-            Console.WriteLine($"{GetName()}: {ex.Message}. See 'help' for a list of available subcommands.");
-
             if (_exitOnError)
             {
-                Environment.Exit(1);
+                Console.WriteLine($"{GetName()}: {ex.Message}. See 'help' for a list of available commands.");
+                _env.Exit(1);
             }
             else throw;
         }
-        catch (NoSubcommandException ex)
+        catch (NoSubcommandException)
         {
-            Console.WriteLine($"{GetName()}: {ex.Message}. See 'help' for a list of available subcommands.");
-
             if (_exitOnError)
             {
-                Environment.Exit(1);
+                WriteHelp(Console.Out);
+                _env.Exit(1);
             }
             else throw;
         }
@@ -115,7 +119,7 @@ public sealed class CommandLineApplication
 
         if (string.IsNullOrEmpty(Usage))
         {
-            builder.AddSection("Usage", $"{GetName()} <subcommand> [<args>]");
+            builder.AddSection("Usage", $"{GetName()} <command> [<arguments>]");
         }
         else
         {
@@ -127,7 +131,9 @@ public sealed class CommandLineApplication
             .OrderBy(r => r.Left)
             .ToList();
 
-        builder.AddRows("Available subcommands", rows);
+        builder.AddRows("Available commands", rows);
+
+        builder.AddText("Use '<command> --help' to get more information about a specific command.");
 
         if (!string.IsNullOrEmpty(Epilogue))
         {
@@ -139,6 +145,6 @@ public sealed class CommandLineApplication
 
     private string GetName()
         => string.IsNullOrEmpty(Name)
-            ? Path.GetFileName(Environment.GetCommandLineArgs()[0])
+            ? Path.GetFileName(_env.GetCommandLineArgs()[0])
             : Name;
 }

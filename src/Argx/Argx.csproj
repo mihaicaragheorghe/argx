@@ -10,6 +10,7 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="Argx.Tests"/>
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
     </ItemGroup>
 
 </Project>
