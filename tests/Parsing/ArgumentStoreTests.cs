@@ -1,13 +1,13 @@
-using Argx.Store;
+using Argx.Parsing;
 
 namespace Argx.Tests.Parsing;
 
-public class ArgumentRepositoryTests
+public class ArgumentStoreTests
 {
     [Fact]
     public void Set_ShouldAddKeyValue_WhenNewKey()
     {
-        var repo = new ArgumentRepository();
+        var repo = new ArgumentStore();
 
         repo.Set("foo", "bar");
 
@@ -18,7 +18,7 @@ public class ArgumentRepositoryTests
     [Fact]
     public void Set_ShouldUpdateKeyValue_WhenExistingKey()
     {
-        var repo = new ArgumentRepository();
+        var repo = new ArgumentStore();
 
         repo.Set("foo", "bar");
         repo.Set("foo", "baz");
@@ -30,7 +30,7 @@ public class ArgumentRepositoryTests
     [Fact]
     public void TryGetValue_ShouldReturnFalseAndOutNull_WhenNotExists()
     {
-        var repo = new ArgumentRepository();
+        var repo = new ArgumentStore();
         repo.Set("foo", "bar");
 
         var result = repo.TryGetValue("baz", out var value);
@@ -42,7 +42,7 @@ public class ArgumentRepositoryTests
     [Fact]
     public void TryGetValue_ShouldReturnTrueAndOutValue_WhenExists()
     {
-        var repo = new ArgumentRepository();
+        var repo = new ArgumentStore();
         repo.Set("foo", "bar");
 
         var result = repo.TryGetValue("foo", out var value);
@@ -56,7 +56,7 @@ public class ArgumentRepositoryTests
     [InlineData(false, "False")]
     public void TryGetValue_ShouldOutString_WhenValueNotString(object obj, string expected)
     {
-        var repo = new ArgumentRepository();
+        var repo = new ArgumentStore();
         repo.Set("foo", obj);
 
         _ = repo.TryGetValue("foo", out var actual);
@@ -71,7 +71,7 @@ public class ArgumentRepositoryTests
     [InlineData("FOO", "foo")]
     public void TryGetValue_ShouldBeCaseInsensitive(string set, string get)
     {
-        var repo = new ArgumentRepository();
+        var repo = new ArgumentStore();
         repo.Set(set, "bar");
 
         var result = repo.TryGetValue(get, out _);
@@ -82,7 +82,7 @@ public class ArgumentRepositoryTests
     [Fact]
     public void TryGetValueT_ShouldReturnTrueAndOutValue_WhenExistsAndValueTypeT()
     {
-        var repo = new ArgumentRepository();
+        var repo = new ArgumentStore();
         repo.Set("foo", 21);
 
         var result = repo.TryGetValue<int>("foo", out var value);
@@ -94,7 +94,7 @@ public class ArgumentRepositoryTests
     [Fact]
     public void TryGetValueT_ShouldReturnFalseAndOutDefault_WhenNotExists()
     {
-        var repo = new ArgumentRepository();
+        var repo = new ArgumentStore();
 
         var result = repo.TryGetValue<int>("foo", out var value);
 
@@ -105,7 +105,7 @@ public class ArgumentRepositoryTests
     [Fact]
     public void TryGetValueT_ShouldReturnFalseAndOutDefault_WhenExistsButNotTypeT()
     {
-        var repo = new ArgumentRepository();
+        var repo = new ArgumentStore();
         repo.Set("foo", "bar");
 
         var result = repo.TryGetValue<int>("foo", out var value);
@@ -117,7 +117,7 @@ public class ArgumentRepositoryTests
     [Fact]
     public void Contains_ShouldReturnTrue_WhenContainsKey()
     {
-        var repo = new ArgumentRepository();
+        var repo = new ArgumentStore();
         repo.Set("foo", "bar");
 
         Assert.True(repo.Contains("foo"));
@@ -126,7 +126,7 @@ public class ArgumentRepositoryTests
     [Fact]
     public void Contains_ShouldReturnFalse_WhenDoesNotContainKey()
     {
-        var repo = new ArgumentRepository();
+        var repo = new ArgumentStore();
         repo.Set("foo", "bar");
 
         Assert.False(repo.Contains("baz"));

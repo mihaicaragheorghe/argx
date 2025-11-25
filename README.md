@@ -200,7 +200,7 @@ This helps catch configuration errors at startup, rather than at runtime during 
 
 #### Execute
 
-Called when the argument is encountered during parsing. This method performs the action’s logic, such as storing values, it receives the argument definition, the token that triggered it, any associated value tokens (identified by arity), and the argument repository where parsed results are stored.  
+Called when the argument is encountered during parsing. This method performs the action’s logic, such as storing values, it receives the argument definition, the token that triggered it, any associated value tokens (identified by arity), and the argument store where parsed results are stored.  
 Each action overrides this method to implement its specific behavior.  
 The base implementation validates that the invocation is not null or empty.
 

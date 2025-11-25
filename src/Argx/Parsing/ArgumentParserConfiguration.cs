@@ -22,10 +22,5 @@ public class ArgumentParserConfiguration
     /// </summary>
     public int ErrorExitCode { get; set; } = 1;
 
-    /// <summary>
-    /// Gets or sets the help configuration settings.
-    /// </summary>
-    public HelpConfiguration HelpConfiguration { get; set; } = HelpConfiguration.Default();
-
     public static ArgumentParserConfiguration Default() => new();
 }

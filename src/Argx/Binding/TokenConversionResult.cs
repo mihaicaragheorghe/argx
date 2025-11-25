@@ -2,8 +2,6 @@ namespace Argx.Binding;
 
 internal sealed class TokenConversionResult
 {
-    internal bool IsSuccess { get; }
-
     internal bool IsError { get; }
 
     internal object? Value { get; }
@@ -12,7 +10,6 @@ internal sealed class TokenConversionResult
 
     private TokenConversionResult(bool success, object? value, string? error)
     {
-        IsSuccess = success;
         IsError = !success;
         Value = value;
         Error = error;

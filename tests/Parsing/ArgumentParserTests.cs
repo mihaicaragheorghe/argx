@@ -1,14 +1,15 @@
 using System.Reflection;
 
+using Argx.Abstractions;
 using Argx.Actions;
 using Argx.Errors;
 using Argx.Parsing;
-using Argx.Store;
 
 using Moq;
 
 namespace Argx.Tests.Parsing;
 
+[Collection("HelpTests")]
 public partial class ArgumentParserTests
 {
     [Theory]
@@ -79,25 +80,25 @@ public partial class ArgumentParserTests
     [Fact]
     public void Add_ShouldAddArgument_WhenValid()
     {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
+        var store = new Mock<IArgumentStore>();
+        var parser = new ArgumentParser(store.Object);
         parser.Add("--foo");
 
-        _ = parser.ParseInternal(["--foo", "bar"]);
+        _ = parser.ParseImpl(["--foo", "bar"]);
 
-        repository.Verify(x => x.Set("foo", "bar"));
+        store.Verify(x => x.Set("foo", "bar"));
     }
 
     [Fact]
     public void AddT_ShouldAddArgument_WhenValid()
     {
-        var repository = new Mock<IArgumentRepository>();
-        var parser = new ArgumentParser(repository.Object);
+        var store = new Mock<IArgumentStore>();
+        var parser = new ArgumentParser(store.Object);
         parser.Add<int>("--foo");
 
-        _ = parser.ParseInternal(["--foo", "69"]);
+        _ = parser.ParseImpl(["--foo", "69"]);
 
-        repository.Verify(x => x.Set("foo", 69));
+        store.Verify(x => x.Set("foo", 69));
     }
 
     [Fact]
@@ -108,7 +109,7 @@ public partial class ArgumentParserTests
         parser.Add("arg1");
         parser.Add("arg2");
 
-        var result = parser.ParseInternal(["--foo", "bar", "--", "--baz", "qux"]);
+        var result = parser.ParseImpl(["--foo", "bar", "--", "--baz", "qux"]);
 
         Assert.Equal("--baz", result["arg1"]);
         Assert.Equal("qux", result["arg2"]);
@@ -132,7 +133,7 @@ public partial class ArgumentParserTests
         parser.Add("x");
         parser.Add("y");
 
-        var result = parser.ParseInternal(args);
+        var result = parser.ParseImpl(args);
 
         Assert.Equal("bar", result["foo"]);
         Assert.Equal("qux", result["bax"]);
@@ -150,14 +151,73 @@ public partial class ArgumentParserTests
     }
 
     [Fact]
+    public void Parse_ShouldExit_WhenExitOnError()
+    {
+        var store = new Mock<IArgumentStore>();
+        var env = new Mock<IEnvironment>();
+        var parser = new ArgumentParser(
+            store.Object,
+            env: env.Object,
+            app: "prog",
+            configuration: new ArgumentParserConfiguration { ExitOnError = true, ErrorExitCode = 42 });
+        parser.Add("--foo", action: ArgumentActions.Store, choices: ["bar"]);
+
+        using var sw = new StringWriter();
+        Console.SetOut(sw);
+
+        _ = parser.Parse(["--foo", "baz"]);
+
+        env.Verify(x => x.Exit(42), Times.Once);
+        var expectedOutput = """
+        Error: argument --foo: invalid choice 'baz', expected one of: bar
+
+        Usage
+          prog [--help] [--foo FOO]
+
+        """;
+        Assert.Equal(expectedOutput, sw.ToString());
+    }
+
+    [Fact]
     public void Parse_ShouldThrowArgumentValueException_WhenRequiredArgNotProvided()
     {
         var parser = new ArgumentParser();
         parser.Add("foo");
         parser.Add("bar");
 
-        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseInternal(["foo"]));
+        var ex = Assert.Throws<ArgumentValueException>(() => parser.ParseImpl(["foo"]));
         Assert.Equal("Error: argument bar: expected value", ex.Message);
+    }
+
+    [Theory]
+    [InlineData("-h")]
+    [InlineData("--help")]
+    public void Parse_ShouldWriteHelpAndExit_WhenHelpArgumentProvided(string helpArg)
+    {
+        var store = new Mock<IArgumentStore>();
+        var env = new Mock<IEnvironment>();
+        var parser = new ArgumentParser(store.Object, env: env.Object, app: "prog");
+        parser.Add("--foo");
+
+        using var sw = new StringWriter();
+        Console.SetOut(sw);
+
+        var expectedOutput = """
+        prog
+
+        Usage
+          prog [--help] [--foo FOO]
+
+        Options
+          --foo
+          --help, -h  Print help message
+
+        """;
+
+        _ = parser.ParseImpl([helpArg]);
+
+        env.Verify(x => x.Exit(0), Times.Once);
+        Assert.Equal(expectedOutput, sw.ToString());
     }
 
     [Fact]
@@ -169,17 +229,17 @@ public partial class ArgumentParserTests
         parser.Add("y");
         var writer = new StringWriter();
         const string expected = """
-                                prog:
+                                prog
                                   what the program does
 
-                                Usage:
+                                Usage
                                   prog [--help] [--foo FOO] x y
 
-                                Positional arguments:
+                                Positional arguments
                                   x
                                   y
 
-                                Options:
+                                Options
                                   --foo
                                   --help, -h  Print help message
 
@@ -204,14 +264,14 @@ public partial class ArgumentParserTests
         var expected = $"""
                         what the program does
 
-                        Usage:
+                        Usage
                           {program} [--help] [--foo FOO] x y
 
-                        Positional arguments:
+                        Positional arguments
                           x
                           y
 
-                        Options:
+                        Options
                           --foo
                           --help, -h  Print help message
 
@@ -221,7 +281,6 @@ public partial class ArgumentParserTests
 
         Assert.Equal(expected, writer.ToString());
     }
-
 
     [Theory]
     [InlineData("")]
@@ -237,14 +296,14 @@ public partial class ArgumentParserTests
         var expected = $"""
                         what the program does
 
-                        Usage:
+                        Usage
                           {program} [--help] [--foo FOO] x y
 
-                        Positional arguments:
+                        Positional arguments
                           x
                           y
 
-                        Options:
+                        Options
                           --foo
                           --help, -h  Print help message
 
@@ -267,14 +326,14 @@ public partial class ArgumentParserTests
         var program = Path.GetFileName(Assembly.GetEntryAssembly()?.Location);
         var writer = new StringWriter();
         var expected = $"""
-                        Usage:
+                        Usage
                           {program} [--help] [--foo FOO] x y
 
-                        Positional arguments:
+                        Positional arguments
                           x
                           y
 
-                        Options:
+                        Options
                           --foo
                           --help, -h  Print help message
 
@@ -294,14 +353,14 @@ public partial class ArgumentParserTests
         parser.Add("y");
         var writer = new StringWriter();
         const string expected = $"""
-                                 Usage:
+                                 Usage
                                    prog x y
 
-                                 Positional arguments:
+                                 Positional arguments
                                    x
                                    y
 
-                                 Options:
+                                 Options
                                    --foo
                                    --help, -h  Print help message
 
@@ -321,14 +380,14 @@ public partial class ArgumentParserTests
         parser.Add("y");
         var writer = new StringWriter();
         const string expected = $"""
-                                 Usage:
+                                 Usage
                                    prog x y
 
-                                 Positional arguments:
+                                 Positional arguments
                                    x
                                    y
 
-                                 Options:
+                                 Options
                                    --foo
                                    --help, -h  Print help message
 

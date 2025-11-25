@@ -5,18 +5,17 @@ using Argx.Binding;
 using Argx.Errors;
 using Argx.Extensions;
 using Argx.Parsing;
-using Argx.Store;
 using Argx.Utils;
 
 namespace Argx.Actions;
 
 internal class AppendAction : ArgumentAction
 {
-    private static readonly MethodInfo TryGetValueMethod = typeof(IArgumentRepository)
+    private static readonly MethodInfo TryGetValueMethod = typeof(IArgumentStore)
         .GetMethods()
         .First(m => m.Name == "TryGetValue" && m.IsGenericMethodDefinition);
 
-    public override void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentRepository store)
+    public override void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentStore store)
     {
         base.Execute(argument, invocation, values, store);
 

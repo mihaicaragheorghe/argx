@@ -1,6 +1,6 @@
 using Argx.Actions;
 using Argx.Errors;
-using Argx.Store;
+using Argx.Parsing;
 using Argx.Tests.TestUtils;
 
 using Moq;
@@ -9,7 +9,7 @@ namespace Argx.Tests.Actions;
 
 public class StoreActionTests
 {
-    private readonly Mock<IArgumentRepository> _mockRepository = new();
+    private readonly Mock<IArgumentStore> _mockStore = new();
     private readonly StoreAction _sut = new();
 
     [Fact]
@@ -52,7 +52,7 @@ public class StoreActionTests
         var arg = new Argument("--foo", arity: "1", dest: "foo");
 
         var ex = Assert.Throws<ArgumentValueException>(() =>
-            _sut.Execute(arg, Create.Token("--foo"), [], _mockRepository.Object));
+            _sut.Execute(arg, Create.Token("--foo"), [], _mockStore.Object));
         Assert.Equal("Error: argument --foo: expected value", ex.Message);
     }
 
@@ -63,9 +63,9 @@ public class StoreActionTests
         const string value = "bar";
         var arg = new Argument($"--{key}", arity: "1", dest: key);
 
-        _sut.Execute(arg, Create.Token(arg.Name), Create.Tokens(value), _mockRepository.Object);
+        _sut.Execute(arg, Create.Token(arg.Name), Create.Tokens(value), _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set(key, value));
+        _mockStore.Verify(x => x.Set(key, value));
     }
 
     [Fact]
@@ -75,9 +75,9 @@ public class StoreActionTests
         const string value = "bar";
         var arg = new Argument($"--{key}", arity: null, dest: key);
 
-        _sut.Execute(arg, Create.Token(arg.Name), Create.Tokens(value), _mockRepository.Object);
+        _sut.Execute(arg, Create.Token(arg.Name), Create.Tokens(value), _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set(key, value));
+        _mockStore.Verify(x => x.Set(key, value));
     }
 
     [Fact]
@@ -85,9 +85,9 @@ public class StoreActionTests
     {
         var arg = new Argument($"--foo", arity: Arity.Optional, dest: "foo", constValue: "bar");
 
-        _sut.Execute(arg, Create.Token("--foo"), [], _mockRepository.Object);
+        _sut.Execute(arg, Create.Token("--foo"), [], _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set("foo", "bar"));
+        _mockStore.Verify(x => x.Set("foo", "bar"));
     }
 
     [Fact]
@@ -97,9 +97,9 @@ public class StoreActionTests
         var tokens = Create.Tokens("--foo", "bar", "baz", "qux");
         var value = new[] { "bar", "baz", "qux" };
 
-        _sut.Execute(arg, tokens[0], tokens[1..], _mockRepository.Object);
+        _sut.Execute(arg, tokens[0], tokens[1..], _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set("foo", value));
+        _mockStore.Verify(x => x.Set("foo", value));
     }
 
     [Fact]
@@ -109,9 +109,9 @@ public class StoreActionTests
         var tokens = Create.Tokens("--foo", "bar", "baz", "qux");
         var value = new[] { "bar", "baz", "qux" };
 
-        _sut.Execute(arg, tokens[0], tokens[1..], _mockRepository.Object);
+        _sut.Execute(arg, tokens[0], tokens[1..], _mockStore.Object);
 
-        _mockRepository.Verify(x => x.Set("foo", value));
+        _mockStore.Verify(x => x.Set("foo", value));
     }
 
     [Theory]
@@ -138,7 +138,7 @@ public class StoreActionTests
         {
             var arg = new Argument("--foo", type: type, dest: "foo");
             var span = Create.Tokens("--foo", "bar");
-            _sut.Execute(arg, span[0], span[1..], _mockRepository.Object);
+            _sut.Execute(arg, span[0], span[1..], _mockStore.Object);
         });
         Assert.StartsWith($"Error: argument --foo: expected type {typeStr}", ex.Message);
     }
@@ -149,7 +149,7 @@ public class StoreActionTests
         var arg = new Argument("--foo", arity: "1", dest: "foo", choices: ["bar", "baz"]);
 
         var ex = Assert.Throws<ArgumentValueException>(() =>
-            _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux"), _mockRepository.Object));
+            _sut.Execute(arg, Create.Token("--foo"), Create.Tokens("qux"), _mockStore.Object));
         Assert.Equal("Error: argument --foo: invalid choice 'qux', expected one of: bar, baz", ex.Message);
     }
 }

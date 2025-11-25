@@ -2,6 +2,7 @@ using Argx.Help;
 
 namespace Argx.Tests.Help;
 
+[Collection("HelpTests")]
 public class HelpSectionTests
 {
     [Fact]
@@ -89,7 +90,7 @@ public class HelpSectionTests
     {
         var section = new HelpSection("foo");
         var result = section.Render();
-        Assert.Equal("foo:", result);
+        Assert.Equal("foo", result);
     }
 
     [Fact]
@@ -106,7 +107,7 @@ public class HelpSectionTests
         var section = new HelpSection("foo", "bar");
         var result = section.Render();
         const string expected = """
-                                foo:
+                                foo
                                   bar
                                 """;
         Assert.Equal(expected, result);
@@ -120,12 +121,12 @@ public class HelpSectionTests
         root.AddChild(new HelpSection("bar", "bar content"));
         const string expected =
             """
-            root:
+            root
               root content
 
-              foo:
+              foo
                 foo content
-              bar:
+              bar
                 bar content
             """;
 
@@ -144,13 +145,13 @@ public class HelpSectionTests
         foo.AddChild(bar);
         const string expected =
             """
-            root:
+            root
               root content
 
-              foo:
+              foo
                 foo content
 
-                bar:
+                bar
                   bar content
             """;
 
@@ -164,7 +165,7 @@ public class HelpSectionTests
     {
         var section = new HelpSection("test", "Lorem ipsum dolor sit amet", maxLineWidth: 10);
         const string expected = """
-                                test:
+                                test
                                   Lorem
                                   ipsum
                                   dolor sit
@@ -183,13 +184,13 @@ public class HelpSectionTests
         var child = new HelpSection("child", "Lorem ipsum dolor sit amet", maxLineWidth: 10);
         root.AddChild(child);
         const string expected = """
-                                root:
+                                root
                                   Lorem
                                   ipsum
                                   dolor sit
                                   amet
 
-                                  child:
+                                  child
                                     Lorem
                                     ipsum
                                     dolor
