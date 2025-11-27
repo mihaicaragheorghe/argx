@@ -6,17 +6,41 @@ using Argx.Utils;
 
 namespace Argx;
 
-public sealed class CommandLineApplication
+/// <summary>
+/// Represents a command line application.
+/// </summary>
+public sealed class CommandLineApplication : ICommandLineApplication
 {
+    /// <inheritdoc/>
+    public string? Name { get; }
+
+    /// <inheritdoc/>
+    public string? Usage { get; }
+
+    /// <inheritdoc/>
+    public string? Description { get; }
+
+    /// <inheritdoc/>
+    public string? Epilogue { get; }
+
     private readonly ISubcommandStore _subcommands;
     private readonly IEnvironment _env;
     private readonly bool _exitOnError = true;
 
-    public string? Name { get; }
-    public string? Usage { get; }
-    public string? Description { get; }
-    public string? Epilogue { get; }
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CommandLineApplication"/> class.
+    /// </summary>
+    /// <param name="name">
+    /// The name of the command line application.
+    /// If not provided, the application will infer the name using argument zero from the environment.
+    /// </param>
+    /// <param name="usage">
+    /// The usage information for the command line application.
+    /// If not provided, a default usage string will be generated based on registered subcommands.
+    /// </param>
+    /// <param name="description">The description of the command line application.</param>
+    /// <param name="epilogue">The epilogue text for the command line application.</param>
+    /// <param name="exitOnError">Indicates whether the application should exit on error or throw exceptions.</param>
     public CommandLineApplication(
         string? name = null,
         string? description = null,
@@ -53,12 +77,15 @@ public sealed class CommandLineApplication
         _subcommands = subcommands;
     }
 
+    /// <inheritdoc/>
     public Subcommand AddSubcommand(string name, AsyncSubcommandDelegate handler)
         => _subcommands.Register(name, SubcommandDelegateFactory.Create(handler));
 
+    /// <inheritdoc/>
     public Subcommand AddSubcommand(string name, SubcommandDelegate handler)
         => _subcommands.Register(name, SubcommandDelegateFactory.Create(handler));
 
+    /// <inheritdoc/>
     public async Task RunAsync(string[] args)
     {
         try
@@ -99,6 +126,7 @@ public sealed class CommandLineApplication
         }
     }
 
+    /// <inheritdoc/>
     public void Run(string[] args) => RunAsync(args).GetAwaiter().GetResult();
 
     private static string GetSubcommand(string[] args)

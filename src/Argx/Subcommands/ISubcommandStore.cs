@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace Argx.Subcommands;
 
-public interface ISubcommandStore
+internal interface ISubcommandStore
 {
     Subcommand Register(string name, AsyncSubcommandDelegate handler);
 
