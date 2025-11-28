@@ -1,6 +1,8 @@
+using System.Reflection;
+
+using Argx.Attributes;
 using Argx.Extensions;
 using Argx.Parsing;
-using Argx.Utils;
 
 namespace Argx;
 
@@ -54,6 +56,7 @@ public class Arguments : IArguments
             $"Missing required value for argument '{arg}' (expected type: {typeof(T).Name}).");
     }
 
+    /// <inheritdoc />
     public void Bind<T>(T instance) where T : class
     {
         if (instance == null)
@@ -61,23 +64,58 @@ public class Arguments : IArguments
             throw new ArgumentNullException(nameof(instance));
         }
 
-        var properties = typeof(T).GetWritableProperties();
+        var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanWrite && !HasIgnoreAttribute(p));
 
         foreach (var property in properties)
         {
-            var argName = property.Name.PascalToKebabCase();
+            var propertyType = property.PropertyType;
 
-            var tryGetMethod = typeof(IArguments).GetMethod(nameof(TryGetValue))!
-                .MakeGenericMethod(property.PropertyType);
-
-            var parameters = new object[] { argName, null! };
-            var success = (bool)tryGetMethod.Invoke(this, parameters)!;
-
-            if (success)
+            if (typeof(T).TryGetNullableType(out var nullableType))
             {
-                var value = parameters[1];
-                property.SetValue(instance, value);
+                propertyType = nullableType;
+            }
+
+            if (!propertyType.IsComplexType() || propertyType.IsEnumerable())
+            {
+                SetProperty(instance, property);
             }
         }
+    }
+
+    /// <inheritdoc />
+    public T Get<T>() where T : class, new()
+    {
+        var instance = new T();
+        Bind(instance);
+        return instance;
+    }
+
+    private void SetProperty<T>(T instance, PropertyInfo property)
+    {
+        var argName = GetArgumentName(property);
+
+        var tryGetMethod = typeof(IArguments).GetMethod(nameof(TryGetValue))!
+            .MakeGenericMethod(property.PropertyType);
+
+        var parameters = new object[] { argName, null! };
+        var success = (bool)tryGetMethod.Invoke(this, parameters)!;
+
+        if (success)
+        {
+            var value = parameters[1];
+            property.SetValue(instance, value);
+        }
+    }
+
+    private static bool HasIgnoreAttribute(PropertyInfo property)
+    {
+        return property.GetCustomAttribute<IgnoreAttribute>() != null;
+    }
+
+    private string GetArgumentName(PropertyInfo property)
+    {
+        var attr = property.GetCustomAttribute<ArgumentAttribute>();
+        return attr?.Name ?? property.Name.PascalToKebabCase();
     }
 }

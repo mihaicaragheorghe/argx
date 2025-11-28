@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 
 namespace Argx.Extensions;
 
@@ -99,26 +98,5 @@ internal static class TypeExtensions
             || type == typeof(TimeSpan)
             || type == typeof(Guid)
             || type.IsEnum);
-    }
-
-    internal static IEnumerable<PropertyInfo> GetWritableProperties(this Type type)
-    {
-        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.CanWrite);
-
-        foreach (var property in properties)
-        {
-            var propertyType = property.PropertyType;
-
-            if (type.TryGetNullableType(out var nullableType))
-            {
-                propertyType = nullableType;
-            }
-
-            if (!propertyType.IsComplexType() || propertyType.IsEnumerable())
-            {
-                yield return property;
-            }
-        }
     }
 }
