@@ -1,5 +1,5 @@
 <Solution>
     <Project Path="src/Argx/Argx.csproj"/>
     <Project Path="tests/Argx.Tests.csproj"/>
-    <Project Path="benchmarks/Argx.Benchmarks.csproj" Type="Classic C#"/>
+    <Project Path="benchmarks/Argx.Benchmarks.csproj"/>
 </Solution>

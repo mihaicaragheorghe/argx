@@ -1,4 +1,6 @@
+using Argx.Extensions;
 using Argx.Parsing;
+using Argx.Utils;
 
 namespace Argx;
 
@@ -50,5 +52,32 @@ public class Arguments : IArguments
 
         throw new InvalidOperationException(
             $"Missing required value for argument '{arg}' (expected type: {typeof(T).Name}).");
+    }
+
+    public void Bind<T>(T instance) where T : class
+    {
+        if (instance == null)
+        {
+            throw new ArgumentNullException(nameof(instance));
+        }
+
+        var properties = typeof(T).GetWritableProperties();
+
+        foreach (var property in properties)
+        {
+            var argName = property.Name.PascalToKebabCase();
+
+            var tryGetMethod = typeof(IArguments).GetMethod(nameof(TryGetValue))!
+                .MakeGenericMethod(property.PropertyType);
+
+            var parameters = new object[] { argName, null! };
+            var success = (bool)tryGetMethod.Invoke(this, parameters)!;
+
+            if (success)
+            {
+                var value = parameters[1];
+                property.SetValue(instance, value);
+            }
+        }
     }
 }

@@ -1,6 +1,6 @@
 # Argx
 
-A modern command-line argument parsing library for dotnet.
+A modern command-line argument parsing library for .NET
 
 ## How it works
 

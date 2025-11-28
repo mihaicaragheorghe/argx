@@ -56,4 +56,6 @@ public interface IArguments
     /// <returns>The value associated with the specified argument, cast to the specified type.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the specified argument does not exist.</exception>
     public T GetRequired<T>(string arg);
+
+    void Bind<T>(T instance) where T : class;
 }
