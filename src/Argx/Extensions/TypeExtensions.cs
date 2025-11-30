@@ -88,4 +88,15 @@ internal static class TypeExtensions
 
         return type.Name;
     }
+
+    internal static bool IsComplexType(this Type type)
+    {
+        return !(type.IsPrimitive
+            || type == typeof(string)
+            || type == typeof(decimal)
+            || type == typeof(DateTime)
+            || type == typeof(TimeSpan)
+            || type == typeof(Guid)
+            || type.IsEnum);
+    }
 }
