@@ -220,6 +220,14 @@ $ ./git.cs satus
 git: Unknown subcommand: satus. See 'help' for a list of available commands.
 ````
 
+## Installation
+
+Install the package from [NuGet](https://www.nuget.org/packages/Argx/)
+
+``` console
+dotnet add package argx
+```
+
 ## ArgumentParser
 
 The argument parsing is done via `ArgumentParser`, which provides functionality for defining, parsing, and managing command-line arguments.
