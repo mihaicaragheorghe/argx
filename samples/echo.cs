@@ -24,20 +24,20 @@ parser.AddOption<int>("-v",
     dest: "verbosity");
 
 // Parse the arguments
-var argx = parser.Parse(args);
+var parsedArgs = parser.Parse(args);
 
 // Access the values
 // Required: will throw if not present
-var echo = argx.GetRequired<string>("echo");
+var echo = parsedArgs.GetRequired<string>("echo");
 
 // Optional: returns default if not found
-var prefix = argx.GetValue<string>("prefix") ?? string.Empty;
+var prefix = parsedArgs.GetValue<string>("prefix") ?? string.Empty;
 
 // TryGetValue pattern
-if (!argx.TryGetValue<int>("count", out var count))
+if (!parsedArgs.TryGetValue<int>("count", out var count))
     count = 1;
 
-var verbosity = argx.GetValue<int>("verbosity");
+var verbosity = parsedArgs.GetValue<int>("verbosity");
 Console.WriteLine($"Verbosity level: {verbosity}");
 
 for (int i = 0; i < count; i++)

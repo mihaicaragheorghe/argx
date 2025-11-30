@@ -10,7 +10,7 @@
 
     <PropertyGroup>
         <PackageId>Argx</PackageId>
-        <Version>0.0.3</Version>
+        <Version>0.0.4</Version>
         <Authors>Mihai Caragheorghe</Authors>
         <PackageTags>command-line;cli;argument-parser;argparse;arguments;args;parser</PackageTags>
         <Description>A modern command-line argument parsing library for .NET</Description>
