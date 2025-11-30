@@ -1,5 +1,3 @@
-using Argx.Help;
-
 namespace Argx.Parsing;
 
 /// <summary>

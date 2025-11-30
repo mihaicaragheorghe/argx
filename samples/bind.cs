@@ -4,6 +4,7 @@
 
 using Argx;
 using Argx.Actions;
+using Argx.Extensions;
 using Argx.Parsing;
 
 var parser = new ArgumentParser();

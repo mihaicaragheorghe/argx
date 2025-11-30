@@ -56,30 +56,4 @@ public interface IArguments
     /// <returns>The value associated with the specified argument, cast to the specified type.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the specified argument does not exist.</exception>
     public T GetRequired<T>(string arg);
-
-    /// <summary>
-    /// Binds the argument values to the properties of the specified instance.
-    /// </summary>
-    /// <remarks>
-    /// The properties of the instance should have public setters.
-    /// By default, the property name converted to kebab-case will be used as the argument name,
-    /// but this can be overridden using the <see cref="Attributes.ArgumentAttribute"/>.
-    /// Properties marked with the <see cref="Attributes.IgnoreAttribute"/> will be ignored during binding
-    /// </remarks>
-    /// <typeparam name="T">The type of the instance to bind the argument values to.</typeparam>
-    /// <param name="instance">The instance to bind the argument values to.</param>
-    void Bind<T>(T instance) where T : class;
-
-    /// <summary>
-    /// Creates a new instance of type <typeparamref name="T"/>, binds the argument values to its properties, and returns it.
-    /// </summary>
-    /// <remarks>
-    /// The properties of the instance should have public setters.
-    /// By default, the property name converted to kebab-case will be used as the argument name,
-    /// but this can be overridden using the <see cref="Attributes.ArgumentAttribute"/>.
-    /// Properties marked with the <see cref="Attributes.IgnoreAttribute"/> will be ignored during binding
-    /// </remarks>
-    /// <typeparam name="T">The type of the instance to create and bind the argument values to.</typeparam>
-    /// <returns>The created and bound instance of type <typeparamref name="T"/>.</returns>
-    T Get<T>() where T : class, new();
 }
