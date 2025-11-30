@@ -10,44 +10,6 @@ namespace Argx.Extensions;
 public static class ArgumentsExtensions
 {
     /// <summary>
-    /// Binds the argument values to the properties of the specified instance.
-    /// </summary>
-    /// <remarks>
-    /// The properties of the instance should have public setters.
-    /// By default, the property name converted to kebab-case will be used as the argument name,
-    /// but this can be overridden using the <see cref="ArgumentAttribute"/>.
-    /// Properties marked with the <see cref="IgnoreAttribute"/> will be ignored during binding
-    /// </remarks>
-    /// <typeparam name="T">The type of the instance to bind the argument values to.</typeparam>
-    /// <param name="args">The <see cref="IArguments"/> instance.</param>
-    /// <param name="instance">The instance to bind the argument values to.</param>
-    public static void Bind<T>(this IArguments args, T instance) where T : class
-    {
-        if (instance == null)
-        {
-            throw new ArgumentNullException(nameof(instance));
-        }
-
-        var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.CanWrite && !HasIgnoreAttribute(p));
-
-        foreach (var property in properties)
-        {
-            var propertyType = property.PropertyType;
-
-            if (typeof(T).TryGetNullableType(out var nullableType))
-            {
-                propertyType = nullableType;
-            }
-
-            if (!propertyType.IsComplexType() || propertyType.IsEnumerable())
-            {
-                args.SetProperty(instance, property);
-            }
-        }
-    }
-
-    /// <summary>
     /// Creates a new instance of type <typeparamref name="T"/>, binds the argument values to its properties, and returns it.
     /// </summary>
     /// <remarks>
@@ -66,9 +28,67 @@ public static class ArgumentsExtensions
         return instance;
     }
 
-    private static void SetProperty<T>(this IArguments args, T instance, PropertyInfo property)
+    /// <summary>
+    /// Binds the argument values to the properties of the specified instance.
+    /// </summary>
+    /// <remarks>
+    /// The properties of the instance should have public setters.
+    /// By default, the property name converted to kebab-case will be used as the argument name,
+    /// but this can be overridden using the <see cref="ArgumentAttribute"/>.
+    /// Properties marked with the <see cref="IgnoreAttribute"/> will be ignored during binding
+    /// </remarks>
+    /// <typeparam name="T">The type of the instance to bind the argument values to.</typeparam>
+    /// <param name="args">The <see cref="IArguments"/> instance.</param>
+    /// <param name="instance">The instance to bind the argument values to.</param>
+    /// <returns>The <see cref="IArguments"/> instance.</returns>
+    public static IArguments Bind<T>(this IArguments args, T instance) where T : class
     {
-        var argName = GetArgumentName(property);
+        if (instance == null)
+        {
+            throw new ArgumentNullException(nameof(instance));
+        }
+
+        BindObject(args, instance);
+        return args;
+    }
+
+    private static void BindObject(IArguments args, object instance, string? prefix = null)
+    {
+        var type = instance.GetType();
+        var properties = instance.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.CanWrite && !HasIgnoreAttribute(p));
+
+        foreach (var property in properties)
+        {
+            var propertyType = property.PropertyType;
+
+            if (propertyType.TryGetNullableType(out var nullableType))
+            {
+                propertyType = nullableType;
+            }
+
+            if (!propertyType.IsComplexType() || propertyType.IsEnumerable())
+            {
+                args.SetProperty(instance, property, prefix);
+                continue;
+            }
+
+            var currentValue = property.GetValue(instance);
+
+            if (currentValue is null)
+            {
+                currentValue = Activator.CreateInstance(propertyType);
+                property.SetValue(instance, currentValue);
+            }
+
+            prefix = prefix is null ? property.Name : prefix + property.Name;
+            BindObject(args, currentValue!, prefix);
+        }
+    }
+
+    private static void SetProperty<T>(this IArguments args, T instance, PropertyInfo property, string? prefix = null)
+    {
+        var argName = GetArgumentName(property, prefix);
 
         var tryGetMethod = typeof(IArguments).GetMethod(nameof(args.TryGetValue))!
             .MakeGenericMethod(property.PropertyType);
@@ -88,9 +108,11 @@ public static class ArgumentsExtensions
         return property.GetCustomAttribute<IgnoreAttribute>() != null;
     }
 
-    private static string GetArgumentName(PropertyInfo property)
+    private static string GetArgumentName(PropertyInfo property, string? prefix = null)
     {
         var attr = property.GetCustomAttribute<ArgumentAttribute>();
-        return attr?.Name ?? property.Name.PascalToKebabCase();
+        return attr?.Name ?? (prefix is null
+            ? property.Name.PascalToKebabCase()
+            : $"{prefix.PascalToKebabCase()}-{property.Name.PascalToKebabCase()}");
     }
 }

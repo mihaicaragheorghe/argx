@@ -85,6 +85,61 @@ public class ArgumentsExtensionsTests
     }
 
     [Fact]
+    public void Bind_ShouldSetNullableProperties_OnInstance()
+    {
+        var boolean = true;
+        var str = "foo";
+        int intVal = 42;
+        long longVal = 1234567890L;
+        short shortVal = 7;
+        uint uintVal = 24;
+        ulong ulongVal = 9876543210UL;
+        ushort ushortVal = 14;
+        float floatVal = 3.14f;
+        double doubleVal = 2.71828;
+        decimal decimalVal = 1.6180339887m;
+        Guid guidVal = Guid.NewGuid();
+        DateTime dateTimeVal = DateTime.Now;
+        TimeSpan timeSpanVal = TimeSpan.FromHours(1);
+
+        var store = new ArgumentStore();
+        store.Set("boolean", boolean);
+        store.Set("string", str);
+        store.Set("int", intVal);
+        store.Set("long", longVal);
+        store.Set("short", shortVal);
+        store.Set("unsigned-int", uintVal);
+        store.Set("unsigned-long", ulongVal);
+        store.Set("unsigned-short", ushortVal);
+        store.Set("float", floatVal);
+        store.Set("double", doubleVal);
+        store.Set("decimal", decimalVal);
+        store.Set("guid", guidVal);
+        store.Set("date-time", dateTimeVal);
+        store.Set("time-span", timeSpanVal);
+
+        var testClass = new TestClassWithNullables();
+        var sut = new Arguments(store);
+
+        sut.Bind(testClass);
+
+        Assert.Equal(boolean, testClass.Boolean);
+        Assert.Equal(str, testClass.String);
+        Assert.Equal(intVal, testClass.Int);
+        Assert.Equal(longVal, testClass.Long);
+        Assert.Equal(shortVal, testClass.Short);
+        Assert.Equal(uintVal, testClass.UnsignedInt);
+        Assert.Equal(ulongVal, testClass.UnsignedLong);
+        Assert.Equal(ushortVal, testClass.UnsignedShort);
+        Assert.Equal(floatVal, testClass.Float);
+        Assert.Equal(doubleVal, testClass.Double);
+        Assert.Equal(decimalVal, testClass.Decimal);
+        Assert.Equal(guidVal, testClass.Guid);
+        Assert.Equal(dateTimeVal, testClass.DateTime);
+        Assert.Equal(timeSpanVal, testClass.TimeSpan);
+    }
+
+    [Fact]
     public void Bind_ShouldIgnoreMissingProperties_OnInstance()
     {
         var store = new ArgumentStore();
@@ -158,6 +213,76 @@ public class ArgumentsExtensionsTests
         sut.Bind(testClass);
 
         Assert.Equal("bar", testClass.CustomNamedProperty);
+    }
+
+    [Fact]
+    public void Bind_ShouldBindNestedObjects_OnInstance()
+    {
+        var rootOptions = new RootOptions
+        {
+            Child = new ChildOptions
+            {
+                GrandChild = new GrandChildOptions()
+            }
+        };
+        var store = new ArgumentStore();
+        var sut = new Arguments(store);
+        store.Set("name", "root");
+        store.Set("count", 10);
+        store.Set("child-label", "child");
+        store.Set("child-value", 20);
+        store.Set("child-grand-child-flag", true);
+
+        sut.Bind(rootOptions);
+
+        Assert.Equal("root", rootOptions.Name);
+        Assert.Equal(10, rootOptions.Count);
+        Assert.NotNull(rootOptions.Child);
+        Assert.Equal("child", rootOptions.Child.Label);
+        Assert.Equal(20, rootOptions.Child.Value);
+        Assert.NotNull(rootOptions.Child.GrandChild);
+        Assert.True(rootOptions.Child.GrandChild.Flag);
+    }
+
+    [Fact]
+    public void Bind_ShouldCreateNestedObjects_WhenNull()
+    {
+        var rootOptions = new RootOptions
+        {
+            Child = null!
+        };
+        var store = new ArgumentStore();
+        var sut = new Arguments(store);
+        store.Set("name", "root");
+        store.Set("count", 10);
+        store.Set("child-label", "child");
+        store.Set("child-value", 20);
+        store.Set("child-grand-child-flag", true);
+
+        sut.Bind(rootOptions);
+
+        Assert.Equal("root", rootOptions.Name);
+        Assert.Equal(10, rootOptions.Count);
+        Assert.NotNull(rootOptions.Child);
+        Assert.Equal("child", rootOptions.Child.Label);
+        Assert.Equal(20, rootOptions.Child.Value);
+        Assert.NotNull(rootOptions.Child.GrandChild);
+        Assert.True(rootOptions.Child.GrandChild.Flag);
+    }
+
+    [Fact]
+    public void Bind_ShouldThrow_WhenNestedObjectNullAndNoParameterlessConstructor()
+    {
+        var rootOptions = new RootOptionsWithoutParameterlessConstructorChild
+        {
+            Child = null!
+        };
+        var store = new ArgumentStore();
+        var sut = new Arguments(store);
+        store.Set("name", "root");
+        store.Set("count", 10);
+
+        Assert.Throws<MissingMethodException>(() => sut.Bind(rootOptions));
     }
 
     [Fact]
@@ -276,5 +401,39 @@ public class ArgumentsExtensionsTests
         var created = sut.Get<TestClassWithArgumentAttribute>();
 
         Assert.Equal("bar", created.CustomNamedProperty);
+    }
+
+    [Fact]
+    public void Get_ShouldBindNestedObjects_OnInstance()
+    {
+        var store = new ArgumentStore();
+        var sut = new Arguments(store);
+        store.Set("name", "root");
+        store.Set("count", 10);
+        store.Set("child-label", "child");
+        store.Set("child-value", 20);
+        store.Set("child-grand-child-flag", true);
+
+        var result = sut.Get<RootOptions>();
+
+        Assert.Equal("root", result.Name);
+        Assert.Equal(10, result.Count);
+        Assert.NotNull(result.Child);
+        Assert.Equal("child", result.Child.Label);
+        Assert.Equal(20, result.Child.Value);
+        Assert.NotNull(result.Child.GrandChild);
+        Assert.True(result.Child.GrandChild.Flag);
+    }
+
+    [Fact]
+    public void Get_ShouldThrow_WhenNestedObjectNullAndNoParameterlessConstructor()
+    {
+        var store = new ArgumentStore();
+        var sut = new Arguments(store);
+        store.Set("name", "root");
+        store.Set("count", 10);
+        store.Set("child-label", "child");
+
+        Assert.Throws<MissingMethodException>(() => sut.Get<RootOptionsWithoutParameterlessConstructorChild>());
     }
 }
