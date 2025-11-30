@@ -7,16 +7,7 @@ using Argx.Parsing;
 
 var app = new CommandLineApplication(
     name: "git",
-    description: "a fast, scalable, distributed revision control system with an unusually rich command set that provides both high-level operations and full access to internals.",
-    usage:
-    """
-    git [-v | --version] [-h | --help] [-C <path>] [-c <name>=<value>]
-        [--exec-path[=<path>]] [--html-path] [--man-path] [--info-path]
-        [-p | --paginate | -P | --no-pager] [--no-replace-objects] [--no-lazy-fetch]
-        [--no-optional-locks] [--no-advice] [--bare] [--git-dir=<path>]
-        [--work-tree=<path>] [--namespace=<name>] [--config-env=<name>=<envvar>]
-        <command> [<args>]
-    """);
+    description: "a fast, scalable, distributed revision control system with an unusually rich command set that provides both high-level operations and full access to internals.");
 
 app.AddSubcommand("push", args =>
     {
