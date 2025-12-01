@@ -380,4 +380,68 @@ public class HelpBuilderTests
         HelpConfiguration.MaxLineWidth = HelpConfiguration.DefaultMaxLineWidth;
         Assert.Equal(expected, actual);
     }
+
+    [Fact]
+    public void AddUsage_ShouldHandle_PositionalWithFixedArity()
+    {
+        var arg = new Argument("file", isPositional: true, arity: "3");
+        const string expected = """
+                                Usage
+                                  prog <file> <file> <file>
+                                """;
+
+        var actual = new HelpBuilder()
+            .AddUsage([arg], prefix: "prog")
+            .Build();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void AddUsage_ShouldHandle_PositionalWithOptionalArity()
+    {
+        var arg = new Argument("file", isPositional: true, arity: Arity.Optional);
+        const string expected = """
+                                Usage
+                                  prog [<file>]
+                                """;
+
+        var actual = new HelpBuilder()
+            .AddUsage([arg], prefix: "prog")
+            .Build();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void AddUsage_ShouldHandle_PositionalWithAnyArity()
+    {
+        var arg = new Argument("file", isPositional: true, arity: Arity.Any);
+        const string expected = """
+                                Usage
+                                  prog [<file> ...]
+                                """;
+
+        var actual = new HelpBuilder()
+            .AddUsage([arg], prefix: "prog")
+            .Build();
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Fact]
+    public void AddUsage_ShouldHandle_PositionalWithAtLeastOneArity()
+    {
+        var arg = new Argument("file", isPositional: true, arity: Arity.AtLeastOne);
+        const string expected = """
+                                Usage
+                                  prog <file> [<file> ...]
+                                """;
+
+        var actual = new HelpBuilder()
+            .AddUsage([arg], prefix: "prog")
+            .Build();
+
+        Assert.Equal(expected, actual);
+    }
 }

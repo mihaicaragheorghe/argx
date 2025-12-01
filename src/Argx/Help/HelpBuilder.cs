@@ -70,7 +70,24 @@ internal class HelpBuilder
 
         foreach (var pos in arguments.Where(a => a.IsPositional))
         {
-            sb.Append('<').Append(pos.Name).Append('>').Append(' ');
+            if (pos.Arity.IsFixed)
+            {
+                for (int i = 0; i < int.Parse(pos.Arity.Value); i++)
+                {
+                    sb.Append('<').Append(pos.Name).Append('>').Append(' ');
+                }
+                continue;
+            }
+
+            var value = pos.Arity.Value switch
+            {
+                Arity.Optional => $"[<{pos.Name}>]",
+                Arity.Any => $"[<{pos.Name}> ...]",
+                Arity.AtLeastOne => $"<{pos.Name}> [<{pos.Name}> ...]",
+                _ => ""
+            };
+
+            sb.Append(value).Append(' ');
         }
 
         if (!string.IsNullOrEmpty(prefix))
