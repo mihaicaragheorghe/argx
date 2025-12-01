@@ -146,7 +146,7 @@ public class HelpBuilderTests
         var arg = new Argument("foo", isPositional: true);
         const string expected = """
                                 Usage
-                                  prog foo
+                                  prog <foo>
                                 """;
 
         var actual = new HelpBuilder()
@@ -167,7 +167,7 @@ public class HelpBuilderTests
         ];
         const string expected = """
                                 Usage
-                                  prog x y z
+                                  prog <x> <y> <z>
                                 """;
 
         var actual = new HelpBuilder()
@@ -184,7 +184,7 @@ public class HelpBuilderTests
         var programName = Path.GetFileName(Assembly.GetEntryAssembly()?.Location);
         var expected = $"""
                         Usage
-                          {programName} foo
+                          {programName} <foo>
                         """;
 
         var actual = new HelpBuilder()
@@ -342,7 +342,7 @@ public class HelpBuilderTests
 
         const string expected = """
                                 Usage
-                                  prog [--help] [-v] [--foo FOO] filename action
+                                  prog [--help] [-v] [--foo FOO] <filename> <action>
                                 """;
 
         var actual = new HelpBuilder()
@@ -368,10 +368,10 @@ public class HelpBuilderTests
                                 Usage
                                   prog [--help] [-v]
                                        [--foo FOO]
-                                       filename action
+                                       <filename> <action>
                                 """;
 
-        HelpConfiguration.MaxLineWidth = 20;
+        HelpConfiguration.MaxLineWidth = 24;
 
         var actual = new HelpBuilder()
             .AddUsage(args, prefix: "prog")

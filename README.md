@@ -81,7 +81,7 @@ myapp
   A simple example application
 
 Usage
-  myapp [--help] [--prefix PREFIX] [--count COUNT] [-v] echo
+  myapp [--help] [--prefix PREFIX] [--count COUNT] [-v] <echo>
 
 Positional arguments
   echo  The string to be echoed back
@@ -100,7 +100,7 @@ $ ./echo.cs
 Error: argument echo: expected value
 
 Usage
-  myapp [--help] [--prefix PREFIX] [--count COUNT] [-v] echo
+  myapp [--help] [--prefix PREFIX] [--count COUNT] [-v] <echo>
 ```
 
 ### Multiple values

@@ -70,7 +70,7 @@ internal class HelpBuilder
 
         foreach (var pos in arguments.Where(a => a.IsPositional))
         {
-            sb.Append(pos.Name).Append(' ');
+            sb.Append('<').Append(pos.Name).Append('>').Append(' ');
         }
 
         if (!string.IsNullOrEmpty(prefix))

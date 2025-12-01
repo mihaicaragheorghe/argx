@@ -233,7 +233,7 @@ public partial class ArgumentParserTests
                                   what the program does
 
                                 Usage
-                                  prog [--help] [--foo FOO] x y
+                                  prog [--help] [--foo FOO] <x> <y>
 
                                 Positional arguments
                                   x
@@ -265,7 +265,7 @@ public partial class ArgumentParserTests
                         what the program does
 
                         Usage
-                          {program} [--help] [--foo FOO] x y
+                          {program} [--help] [--foo FOO] <x> <y>
 
                         Positional arguments
                           x
@@ -297,7 +297,7 @@ public partial class ArgumentParserTests
                         what the program does
 
                         Usage
-                          {program} [--help] [--foo FOO] x y
+                          {program} [--help] [--foo FOO] <x> <y>
 
                         Positional arguments
                           x
@@ -327,7 +327,7 @@ public partial class ArgumentParserTests
         var writer = new StringWriter();
         var expected = $"""
                         Usage
-                          {program} [--help] [--foo FOO] x y
+                          {program} [--help] [--foo FOO] <x> <y>
 
                         Positional arguments
                           x
