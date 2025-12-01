@@ -6,6 +6,14 @@ A modern command-line argument parsing library for .NET
 
 The application should define the arguments and the commands it requires and the library will figure out how to parse them. It will automatically generate help and usage messages, as well as errors when the user input is not valid.
 
+## Installation
+
+Install the package from [NuGet](https://www.nuget.org/packages/Argx/)
+
+``` console
+dotnet add package argx
+```
+
 ## Getting started
 
 The `ArgumentParser` contains the core functionality of this library in order to define, parse and manage arguments. An in-dept documentation of its public API is available [below](#argumentparser).
@@ -219,14 +227,6 @@ Parsing errors are handled by the `CommandLineApplication`:
 $ ./git.cs satus
 git: Unknown subcommand: satus. See 'help' for a list of available commands.
 ````
-
-## Installation
-
-Install the package from [NuGet](https://www.nuget.org/packages/Argx/)
-
-``` console
-dotnet add package argx
-```
 
 ## ArgumentParser
 
@@ -495,7 +495,7 @@ If the application is run with `--help` or `-h`, it will output:
 
 ``` console
 Usage:
-  Argx.Console.dll [--help] [--level LEVEL] [--debug] file
+  Argx.Console.dll [--help] [--level LEVEL] [--debug] <file>
 
 Positional arguments:
   file
@@ -520,7 +520,6 @@ var config = new ArgumentParserConfiguration
     AddHelpArgument = true,
     ExitOnError = true,
     ErrorExitCode = 1,
-    HelpConfiguration = HelpConfiguration.Default()
 };
 ```
 
@@ -532,32 +531,24 @@ var config = new ArgumentParserConfiguration
 (Default: `true`)
 - `ErrorExitCode`: The exit code used when an error occurs and ExitOnError is enabled.
 (Default: `1`)
-- `HelpConfiguration`: Specifies how help messages are formatted and displayed.
-(Default: `HelpConfiguration.Default()`). See [help configuration](#help-configuration)
 
 ### Help configuration
 
-The `HelpConfiguration` class defines how help and usage text is formatted and displayed.
+The `HelpConfiguration` class defines how help and usage text is formatted and displayed. It is static, so changes are reflected for all parsers.
 
 ``` csharp
-var helpConfig = new HelpConfiguration
-{
-    SectionSpacing = Environment.NewLine + Environment.NewLine,
-    IndentSize = 2,
-    MaxLineWidth = 80,
-    UseAliasInUsageText = false
-};
+HelpConfiguration.SectionSpacing = Environment.NewLine + Environment.NewLine;
+HelpConfiguration.IndentSize = 2;
+HelpConfiguration.MaxLineWidth = 80;
+HelpConfiguration.UseAliasInUsageText = false;
 ```
 
 **Options**:
 
 - `SectionSpacing`: Spacing between sections in the help output. (Default: two new lines)
-- `IndentSize`: Number of spaces used to indent help text.
-(Default: 2)
-- `MaxLineWidth`: Maximum width of help text before wrapping occurs.
-(Default: 80)
-- `UseAliasInUsageText`: Whether to show argument aliases instead of primary names in usage text.
-(Default: false)
+- `IndentSize`: Number of spaces used to indent help text. (Default: 2)
+- `MaxLineWidth`: Maximum width of help text before wrapping occurs. (Default: 80)
+- `UseAliasInUsageText`: Whether to show argument aliases instead of primary names in usage text. (Default: false)
 
 ### Argument type parsing configuration
 
@@ -604,3 +595,7 @@ ArgumentConversionDefaults.NumberStyles.Double = NumberStyles.Currency;
 - Guid
 - DateTime
 - TimeSpan
+
+## Samples
+
+Check out the [samples folder](https://github.com/mihaicaragheorghe/argx/tree/main/samples) in the repository.
