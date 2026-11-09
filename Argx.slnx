@@ -1,4 +1,5 @@
 <Solution>
+    <Project Path="src/Argx.AOT/Argx.AOT.csproj"/>
     <Project Path="src/Argx/Argx.csproj"/>
     <Project Path="tests/Argx.Tests.csproj"/>
     <Project Path="benchmarks/Argx.Benchmarks.csproj"/>

@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.1;net10.0;</TargetFrameworks>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>Argx.AOT</PackageId>
+        <Version>0.0.6</Version>
+        <Authors>Mihai Caragheorghe</Authors>
+        <PackageTags>command-line;cli;argument-parser;argparse;arguments;args;parser</PackageTags>
+        <Description>An AOT-compatible modern command-line argument parsing library for .NET</Description>
+        <PackageProjectUrl>https://github.com/mihaicaragheorghe/argx</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/mihaicaragheorghe/argx</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net10.0'">
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Argx.Tests"/>
+        <InternalsVisibleTo Include="Argx"/>
+        <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="../../README.md" Pack="true" PackagePath=""/>
+    </ItemGroup>
+
+</Project>

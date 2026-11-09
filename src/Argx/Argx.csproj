@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFrameworks>netstandard2.1;net10.0;</TargetFrameworks>
@@ -20,6 +20,10 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../Argx.AOT/Argx.AOT.csproj"/>
+    </ItemGroup>
 
     <ItemGroup>
         <InternalsVisibleTo Include="Argx.Tests"/>

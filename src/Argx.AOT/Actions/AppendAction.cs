@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Reflection;
 
 using Argx.Binding;
 using Argx.Errors;
@@ -11,10 +10,6 @@ namespace Argx.Actions;
 
 internal class AppendAction : ArgumentAction
 {
-    private static readonly MethodInfo TryGetValueMethod = typeof(IArgumentStore)
-        .GetMethods()
-        .First(m => m.Name == "TryGetValue" && m.IsGenericMethodDefinition);
-
     public override void Execute(Argument argument, Token invocation, ReadOnlySpan<Token> values, IArgumentStore store)
     {
         base.Execute(argument, invocation, values, store);
@@ -24,11 +19,9 @@ internal class AppendAction : ArgumentAction
             throw new ArgumentValueException(invocation, "expected value");
         }
 
-        var genericMethod = TryGetValueMethod.MakeGenericMethod(argument.ValueType);
         var itemType = argument.ValueType.GetElementTypeIfEnumerable()!;
-        object[] parameters = [argument.Dest, null!];
-        var found = (bool)genericMethod.Invoke(store, parameters)!;
-        var obj = found ? parameters[1] : null;
+        var found = store.TryGetValue<object>(argument.Dest, out var previous);
+        var obj = found ? previous : null;
         var len = values.Length == 0 ? GetConstValueLength(argument.ConstValue!) : values.Length;
 
         IList list;
