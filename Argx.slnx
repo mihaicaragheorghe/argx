@@ -1,6 +1,10 @@
 <Solution>
     <Project Path="src/Argx.AOT/Argx.AOT.csproj"/>
-    <Project Path="src/Argx/Argx.csproj"/>
+    <Project Path="src/Argx.Generators/Argx.Generators.csproj"/>
     <Project Path="tests/Argx.Tests.csproj"/>
     <Project Path="benchmarks/Argx.Benchmarks.csproj"/>
+    <Project Path="samples/Argx.Binding.Sample/Argx.Binding.Sample.csproj"/>
+    <Project Path="samples/Argx.AOT.Smoke/Argx.AOT.Smoke.csproj"/>
+    <Project Path="samples/Argx.AOT.TrimAnalysis/Argx.AOT.TrimAnalysis.csproj"/>
+    <Project Path="tests/GeneratorTests/Argx.Generators.Tests.csproj"/>
 </Solution>

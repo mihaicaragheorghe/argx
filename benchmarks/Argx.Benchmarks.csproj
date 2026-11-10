@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\src\Argx\Argx.csproj" />
+      <ProjectReference Include="..\src\Argx.AOT\Argx.AOT.csproj" />
     </ItemGroup>
 
 </Project>

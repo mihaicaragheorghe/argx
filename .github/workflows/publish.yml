@@ -1,38 +1,50 @@
-name: Publish to NuGet
-
+name: Validate and publish
 on:
   push:
-    branches:
-      - main
-    paths:
-      - 'src/Argx/**'
-      - 'src/Argx.AOT/**'
-      - '.github/workflows/publish.yml'
+    branches: [main]
+  pull_request:
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    
+  validate:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            rid: linux-x64
+          - os: windows-latest
+            rid: win-x64
+          - os: macos-14
+            rid: osx-arm64
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '10.0.x'
-    
-    - name: Restore dependencies
-      run: dotnet restore
-    
-    - name: Build
-      run: dotnet build -c Release --no-restore
-    
-    - name: Test
-      run: dotnet test -c Release --no-build --verbosity normal
-    
-    - name: Pack
-      run: |
-        dotnet pack src/Argx.AOT/Argx.AOT.csproj -c Release --no-build -o ./nupkg
-        dotnet pack src/Argx/Argx.csproj -c Release --no-build -o ./nupkg
-    
-    - name: Push to NuGet
-      run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet build -c Release
+      - run: dotnet test -c Release --no-build
+      - run: dotnet pack src/Argx.AOT/Argx.AOT.csproj -c Release --no-build -o artifacts/packages
+      - run: dotnet publish samples/Argx.AOT.Smoke -c Release -r ${{ matrix.rid }} -o artifacts/native
+      - run: dotnet publish samples/Argx.AOT.TrimAnalysis -c Release -r ${{ matrix.rid }}
+      - run: dotnet publish samples/Argx.AOT.PackageSmoke -c Release -r ${{ matrix.rid }} -o artifacts/package-native --source artifacts/packages --source https://api.nuget.org/v3/index.json -p:RestorePackagesPath=${{ github.workspace }}/artifacts/package-cache
+      - shell: bash
+        run: |
+          ./artifacts/native/Argx.AOT.Smoke
+          ./artifacts/package-native/Argx.AOT.PackageSmoke
+      - uses: actions/upload-artifact@v4
+        if: matrix.rid == 'linux-x64'
+        with:
+          name: packages
+          path: artifacts/packages/*.nupkg
+  publish:
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/download-artifact@v4
+        with:
+          name: packages
+          path: artifacts/packages
+      - run: dotnet nuget push artifacts/packages/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

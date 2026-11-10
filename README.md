@@ -8,17 +8,41 @@ The application should define the arguments and the commands it requires and the
 
 ## Installation
 
-Install the package from [NuGet](https://www.nuget.org/packages/Argx/)
+Install the package from [NuGet](https://www.nuget.org/packages/Argx.AOT/)
 
 ``` console
-dotnet add package argx
+dotnet add package Argx.AOT
 ```
 
 ### Native AOT
 
-Use `Argx.AOT` instead of `Argx` for native AOT applications. These are alternative packages with the same core types; do not reference both in one application. Object binding (`Get<T>()` / `Bind<T>()`) is only available in regular `Argx` (for now).
+`Argx.AOT` is the single runtime package for JIT and Native AOT applications. It includes a source generator for object binding. Replace references to the old `Argx` package; assembly identity has changed, so rebuild consumers.
 
-`Argx.AOT` avoids reflection-based fallbacks, so additional collection element types require explicit registration. See [multiple values](#multiple-values) for details.
+### Generated object binding
+
+```csharp
+using Argx.Attributes;
+using Argx.Binding;
+using Argx.Extensions;
+
+[ArgxBinding(typeof(Options))]
+internal partial class CliBindings : ArgumentBindingContext { }
+
+public class Options
+{
+    public int Count { get; set; }
+}
+```
+
+Call `CliBindings.Default.RegisterCollections()` before parsing when model collections require factories. Bind with `parsed.Get(CliBindings.Default.Options)` or `parsed.Bind(existing, CliBindings.Default.Options)`.
+
+For existing generic calls, call `CliBindings.Default.Register()` once before parsing, then use `parsed.Get<Options>()` / `parsed.Bind(existing)`. Registration includes model collection factories. Unknown runtime subtypes must be included with another `[ArgxBinding]` declaration. Conflicting registry entries throw.
+
+Models use public writable properties, kebab-case keys, `[Argument("key")]` overrides, and `[Ignore]`. Nested models are constructed when null; a missing accessible parameterless constructor throws only when construction is needed. Missing arguments preserve defaults. Init-only/private setters and cyclic model graphs produce generator errors. Nested paths are independent per sibling and names use invariant casing.
+
+Additional collection element types in imperative parser code still require `ArgumentCollectionFactories.Register<T>()`. This registers factories, not token converters. Enum/custom token parsing is unchanged.
+
+Repository project consumers must also reference `Argx.Generators` with `OutputItemType="Analyzer"` and `ReferenceOutputAssembly="false"`; NuGet consumers receive the generator automatically. Run the binding sample with `dotnet run --project samples/Argx.Binding.Sample`.
 
 ## Getting started
 
@@ -425,7 +449,7 @@ parser.AddOption<DayOfWeek[]>("--monday", arity: "?",
     action: ArgumentActions.Append, constValue: DayOfWeek.Monday);
 ```
 
-Registration supports arrays, `List<T>`, `IEnumerable<T>`, `IList<T>`, and `ICollection<T>`. It does not add token conversion support for new element types. Regular `Argx` falls back to reflection for unregistered collection element types.
+Registration supports arrays, `List<T>`, `IEnumerable<T>`, `IList<T>`, and `ICollection<T>`. It does not add token conversion support for new element types. Unregistered element types produce an error; there is no reflection fallback.
 
 #### Custom actions
 

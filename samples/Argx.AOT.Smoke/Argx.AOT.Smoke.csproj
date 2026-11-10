@@ -11,4 +11,5 @@
 	<ItemGroup>
 		<ProjectReference Include="../../src/Argx.AOT/Argx.AOT.csproj"/>
 	</ItemGroup>
+<ItemGroup><ProjectReference Include="../../src/Argx.Generators/Argx.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" /></ItemGroup>
 </Project>

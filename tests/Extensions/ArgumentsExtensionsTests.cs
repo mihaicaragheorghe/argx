@@ -12,6 +12,7 @@ public class ArgumentsExtensionsTests
 
     public ArgumentsExtensionsTests()
     {
+        TestBindings.Default.Register();
         _storeMock = new();
     }
 

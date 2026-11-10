@@ -1,12 +1,11 @@
-#!/usr/bin/env dotnet --
-
-#:project ../src/Argx
-
 using Argx;
+using Argx.Attributes;
+using Argx.Binding;
 using Argx.Actions;
 using Argx.Extensions;
 using Argx.Parsing;
 
+SampleBindings.Default.Register();
 var parser = new ArgumentParser();
 parser.Add("--name", usage: "Application name");
 parser.Add<int>("--max-connections", usage: "Maximum number of connections");
@@ -67,3 +66,5 @@ public class CacheConfig
     public string Provider { get; set; } = null!;
     public int ExpirationMinutes { get; set; }
 }
+[ArgxBinding(typeof(AppConfig))]
+internal partial class SampleBindings : ArgumentBindingContext { }

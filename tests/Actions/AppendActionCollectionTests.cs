@@ -13,8 +13,9 @@ public class AppendActionCollectionTests
     [InlineData(typeof(IEnumerable<DayOfWeek>))]
     [InlineData(typeof(IList<DayOfWeek>))]
     [InlineData(typeof(ICollection<DayOfWeek>))]
-    public void Execute_ShouldAppendEnumConstants_WithoutRegistration(Type type)
+    public void Execute_ShouldAppendEnumConstants_WithRegistration(Type type)
     {
+        ArgumentCollectionFactories.Register<DayOfWeek>();
         var store = new ArgumentStore();
         var action = new AppendAction();
         var argument = new Argument("--monday", type: type, arity: "?", dest: "days",

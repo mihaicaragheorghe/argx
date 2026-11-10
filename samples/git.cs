@@ -1,6 +1,6 @@
 #!/usr/bin/env dotnet --
 
-#:project ../src/Argx
+#:project ../src/Argx.AOT
 
 using Argx;
 using Argx.Parsing;
