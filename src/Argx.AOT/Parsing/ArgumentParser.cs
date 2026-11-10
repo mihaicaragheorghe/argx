@@ -133,6 +133,11 @@ public class ArgumentParser : IArgumentParser
 
         handler!.Validate(arg);
 
+        if (handler is StoreAction or AppendAction && arg.ValueType.IsEnumerable())
+        {
+            arg.CollectionFactory = _configuration.Collections.GetFactory(arg.ValueType);
+        }
+
         if (isPositional)
         {
             _knownArgs.Add(arg);

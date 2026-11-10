@@ -1,3 +1,5 @@
+using System.Collections;
+
 using Argx.Actions;
 
 namespace Argx;
@@ -7,6 +9,8 @@ namespace Argx;
 /// </summary>
 public class Argument
 {
+    internal Func<int, IList>? CollectionFactory { get; set; }
+
     /// <summary>
     /// The name of the argument, used to identify the argument in the command-line.
     /// </summary>

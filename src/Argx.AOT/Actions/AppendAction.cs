@@ -29,14 +29,14 @@ internal class AppendAction : ArgumentAction
 
         if (obj is IList src)
         {
-            list = CollectionUtils.CreateCollection(argument.ValueType, itemType, src.Count + len);
+            list = CollectionUtils.CreateCollection(argument.ValueType, src.Count + len, argument.CollectionFactory);
             CopyItems(src, list);
             idx = src.Count;
         }
         else
         {
             list = obj is null
-                ? CollectionUtils.CreateCollection(argument.ValueType, itemType, len)
+                ? CollectionUtils.CreateCollection(argument.ValueType, len, argument.CollectionFactory)
                 : throw new InvalidOperationException(
                     $"Argument {invocation} in invalid state: appending to non enumerable type not possible");
         }

@@ -1,3 +1,5 @@
+using System.Collections;
+
 using Argx.Extensions;
 using Argx.Parsing;
 using Argx.Utils;
@@ -6,11 +8,11 @@ namespace Argx.Binding;
 
 internal static partial class TokenConverter
 {
-    internal static TokenConversionResult ConvertTokens(Type type, ReadOnlySpan<Token> tokens)
+    internal static TokenConversionResult ConvertTokens(Type type, ReadOnlySpan<Token> tokens, Func<int, IList>? collectionFactory = null)
         => tokens.Length switch
         {
             1 when !type.IsEnumerable() => ConvertToken(type, tokens[0]),
-            _ => ConvertSpan(type, tokens),
+            _ => ConvertSpan(type, tokens, collectionFactory),
         };
 
     internal static TokenConversionResult ConvertObject(Type type, object? obj)
@@ -41,7 +43,7 @@ internal static partial class TokenConverter
         return TokenConversionResult.Failure($"Failed to convert '{token}' to {type.GetFriendlyName()}");
     }
 
-    private static TokenConversionResult ConvertSpan(Type type, ReadOnlySpan<Token> tokens)
+    private static TokenConversionResult ConvertSpan(Type type, ReadOnlySpan<Token> tokens, Func<int, IList>? collectionFactory = null)
     {
         if (!type.IsEnumerable())
         {
@@ -50,7 +52,7 @@ internal static partial class TokenConverter
         }
 
         var itemType = type.GetElementTypeIfEnumerable() ?? typeof(string);
-        var values = CollectionUtils.CreateCollection(type, itemType, tokens.Length);
+        var values = CollectionUtils.CreateCollection(type, tokens.Length, collectionFactory);
         var isArray = values is Array;
 
         for (var i = 0; i < tokens.Length; i++)
