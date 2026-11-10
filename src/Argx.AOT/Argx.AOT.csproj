@@ -27,7 +27,6 @@
 
     <ItemGroup>
         <InternalsVisibleTo Include="Argx.Tests"/>
-        <InternalsVisibleTo Include="Argx"/>
         <InternalsVisibleTo Include="DynamicProxyGenAssembly2"/>
     </ItemGroup>
 

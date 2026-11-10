@@ -14,6 +14,12 @@ Install the package from [NuGet](https://www.nuget.org/packages/Argx/)
 dotnet add package argx
 ```
 
+### Native AOT
+
+Use `Argx.AOT` instead of `Argx` for native AOT applications. These are alternative packages with the same core types; do not reference both in one application. Object binding (`Get<T>()` / `Bind<T>()`) is only available in regular `Argx` (for now).
+
+`Argx.AOT` avoids reflection-based fallbacks, so additional collection element types require explicit registration. See [multiple values](#multiple-values) for details.
+
 ## Getting started
 
 The `ArgumentParser` contains the core functionality of this library in order to define, parse and manage arguments. An in-dept documentation of its public API is available [below](#argumentparser).
@@ -408,6 +414,18 @@ Console.WriteLine(string.Join(", ", argx.GetValue<int[]>("foo"))); // Outputs: 0
 ```
 
 **NOTE**: `Arity.AtLeastOne` reads all the following values until another option is encountered or end is reached. This means we can append both individual values and collections of values. If arity was 1, then it would append only the following value. `Arity.Any` works in a similar way but it needs a `constValue` when no value is provided. See [arity](#arity) for more details.
+
+**Collection factories for Native AOT**  
+Built-in scalar collection element types are supported automatically. In `Argx.AOT`, additional element types used with constant append values require AOT-safe collection factories registered before parsing:
+
+```csharp
+Argx.Binding.ArgumentCollectionFactories.Register<DayOfWeek>();
+
+parser.AddOption<DayOfWeek[]>("--monday", arity: "?",
+    action: ArgumentActions.Append, constValue: DayOfWeek.Monday);
+```
+
+Registration supports arrays, `List<T>`, `IEnumerable<T>`, `IList<T>`, and `ICollection<T>`. It does not add token conversion support for new element types. Regular `Argx` falls back to reflection for unregistered collection element types.
 
 #### Custom actions
 
