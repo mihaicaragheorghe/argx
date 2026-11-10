@@ -6,7 +6,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-        <DefineConstants>$(DefineConstants);ARGX_REFLECTION</DefineConstants>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -23,7 +22,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Compile Include="../Argx.AOT/**/*.cs" Exclude="../Argx.AOT/bin/**;../Argx.AOT/obj/**" LinkBase="Core"/>
+        <ProjectReference Include="../Argx.AOT/Argx.AOT.csproj"/>
     </ItemGroup>
 
     <ItemGroup>

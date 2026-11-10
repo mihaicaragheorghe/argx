@@ -1,13 +1,9 @@
 using System.Collections;
-
-using Argx.Binding;
-
 namespace Argx.Utils;
 internal static class CollectionUtils
 {
     internal static IList CreateCollection(Type type, Type itemType, int capacity = 0)
     {
-        if (ArgumentCollectionFactories.TryCreate(type, capacity, out var collection)) return collection;
         if (itemType == typeof(string)) return Create<string>(type, capacity);
         if (itemType == typeof(bool)) return Create<bool>(type, capacity);
         if (itemType == typeof(int)) return Create<int>(type, capacity);
@@ -37,30 +33,8 @@ internal static class CollectionUtils
         if (itemType == typeof(DateTime?)) return Create<DateTime?>(type, capacity);
         if (itemType == typeof(DateTimeOffset?)) return Create<DateTimeOffset?>(type, capacity);
         if (itemType == typeof(TimeSpan?)) return Create<TimeSpan?>(type, capacity);
-#if ARGX_REFLECTION
-        return CreateWithReflection(type, itemType, capacity);
-#else
-        throw new ArgumentException(
-            $"Type {type} cannot be created. Register its element type with ArgumentCollectionFactories.Register<T>() before parsing.");
-#endif
-    }
-
-#if ARGX_REFLECTION
-    private static IList CreateWithReflection(Type type, Type itemType, int capacity)
-    {
-        if (type.IsArray) return Array.CreateInstance(itemType, capacity);
-
-        if (type.IsGenericType)
-        {
-            var genericType = type.GetGenericTypeDefinition();
-            if (genericType == typeof(IEnumerable<>) || genericType == typeof(IList<>) ||
-                genericType == typeof(ICollection<>)) return Array.CreateInstance(itemType, capacity);
-            if (genericType == typeof(List<>)) return (IList)Activator.CreateInstance(type)!;
-        }
-
         throw new ArgumentException($"Type {type} cannot be created.");
     }
-#endif
     private static IList Create<T>(Type type, int capacity)
     {
         if (type == typeof(T[]) || type == typeof(IEnumerable<T>) ||
