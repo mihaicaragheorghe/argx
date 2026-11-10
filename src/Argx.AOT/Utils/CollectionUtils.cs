@@ -1,5 +1,6 @@
 using System.Collections;
 namespace Argx.Utils;
+
 internal static class CollectionUtils
 {
     internal static IList CreateCollection(Type type, Type itemType, int capacity = 0)
@@ -33,13 +34,23 @@ internal static class CollectionUtils
         if (itemType == typeof(DateTime?)) return Create<DateTime?>(type, capacity);
         if (itemType == typeof(DateTimeOffset?)) return Create<DateTimeOffset?>(type, capacity);
         if (itemType == typeof(TimeSpan?)) return Create<TimeSpan?>(type, capacity);
+
         throw new ArgumentException($"Type {type} cannot be created.");
     }
+
     private static IList Create<T>(Type type, int capacity)
     {
         if (type == typeof(T[]) || type == typeof(IEnumerable<T>) ||
-            type == typeof(IList<T>) || type == typeof(ICollection<T>)) return new T[capacity];
-        if (type == typeof(List<T>)) return new List<T>(capacity);
+            type == typeof(IList<T>) || type == typeof(ICollection<T>))
+        {
+            return new T[capacity];
+        }
+
+        if (type == typeof(List<T>))
+        {
+            return new List<T>(capacity);
+        }
+
         throw new ArgumentException($"Type {type} cannot be created.");
     }
 }
