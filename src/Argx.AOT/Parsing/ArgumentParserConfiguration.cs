@@ -1,3 +1,5 @@
+using Argx.Binding;
+
 namespace Argx.Parsing;
 
 /// <summary>
@@ -5,6 +7,12 @@ namespace Argx.Parsing;
 /// </summary>
 public class ArgumentParserConfiguration
 {
+    /// <summary>
+    /// Factories for collection arguments. Register custom element types before adding arguments.
+    /// Registrations belong to this configuration and are shared only by parsers using it.
+    /// </summary>
+    public CollectionFactoryRegistry Collections { get; } = new();
+
     /// <summary>
     /// Gets or sets a value indicating whether to automatically add a help argument (-h/--help).
     /// </summary>

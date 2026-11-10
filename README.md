@@ -1,6 +1,6 @@
 # Argx
 
-A modern command-line argument parsing library for .NET
+A modern AOT-compatible command-line argument parsing library for .NET
 
 ## How it works
 
@@ -11,8 +11,12 @@ The application should define the arguments and the commands it requires and the
 Install the package from [NuGet](https://www.nuget.org/packages/Argx/)
 
 ``` console
-dotnet add package argx
+dotnet add package Argx
 ```
+
+### Native AOT
+
+Use `Argx.AOT` instead of `Argx` for native AOT applications. These are alternative packages with the same core types; do not reference both in one application. Object binding (`Get<T>()` / `Bind<T>()`) is only available in regular `Argx` (for now).
 
 ## Getting started
 
@@ -595,6 +599,34 @@ ArgumentConversionDefaults.NumberStyles.Double = NumberStyles.Currency;
 - Guid
 - DateTime
 - TimeSpan
+
+### Custom collection element types
+
+Built-in element types and their nullable forms have AOT-safe collection factories by default.
+For other element types, register them before adding collection arguments:
+
+``` csharp
+var configuration = new ArgumentParserConfiguration();
+configuration.Collections.Register<DayOfWeek>();
+
+var parser = new ArgumentParser(configuration: configuration);
+parser.AddOption<DayOfWeek[]>("--monday",
+    action: ArgumentActions.Append,
+    arity: Arity.Optional,
+    constValue: DayOfWeek.Monday);
+
+var result = parser.Parse("--monday", "--monday");
+// result.GetRequired<DayOfWeek[]>("monday") contains Monday twice.
+```
+
+`Register<TElement>()` supports `TElement[]`, `List<TElement>`, `IEnumerable<TElement>`,
+`IList<TElement>`, and `ICollection<TElement>`. The interface types use arrays.
+Register nullable custom types separately, for example `Register<DayOfWeek?>()`.
+
+Registrations belong to the configuration instance, not global state. Missing factories for
+`store` and `append` collection arguments are reported when the argument is added.
+Registering a factory enables collection construction, not string-to-element conversion;
+the enum example uses typed constants rather than parsing enum names.
 
 ## Samples
 

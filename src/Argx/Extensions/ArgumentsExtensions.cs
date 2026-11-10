@@ -21,6 +21,10 @@ public static class ArgumentsExtensions
     /// <typeparam name="T">The type of the instance to create and bind the argument values to.</typeparam>
     /// <param name="args">The <see cref="IArguments"/> instance.</param>
     /// <returns>The created and bound instance of type <typeparamref name="T"/>.</returns>
+#if NET10_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Object binding reflects over properties and constructors. Use explicit argument retrieval for trimmed applications.")]
+    [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Object binding constructs generic methods at runtime.")]
+#endif
     public static T Get<T>(this IArguments args) where T : class, new()
     {
         var instance = new T();
@@ -41,6 +45,10 @@ public static class ArgumentsExtensions
     /// <param name="args">The <see cref="IArguments"/> instance.</param>
     /// <param name="instance">The instance to bind the argument values to.</param>
     /// <returns>The <see cref="IArguments"/> instance.</returns>
+#if NET10_0_OR_GREATER
+    [System.Diagnostics.CodeAnalysis.RequiresUnreferencedCode("Object binding reflects over properties and constructors. Use explicit argument retrieval for trimmed applications.")]
+    [System.Diagnostics.CodeAnalysis.RequiresDynamicCode("Object binding constructs generic methods at runtime.")]
+#endif
     public static IArguments Bind<T>(this IArguments args, T instance) where T : class
     {
         if (instance == null)

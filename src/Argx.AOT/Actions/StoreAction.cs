@@ -34,7 +34,7 @@ internal class StoreAction : ArgumentAction
             }
         }
 
-        TokenConversionResult result = TokenConverter.ConvertTokens(argument.ValueType, values);
+        TokenConversionResult result = TokenConverter.ConvertTokens(argument.ValueType, values, argument.CollectionFactory);
 
         if (result.IsError)
         {

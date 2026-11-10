@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFrameworks>netstandard2.1;net10.0;</TargetFrameworks>
@@ -10,7 +10,7 @@
 
     <PropertyGroup>
         <PackageId>Argx</PackageId>
-        <Version>0.0.6</Version>
+        <Version>0.0.7</Version>
         <Authors>Mihai Caragheorghe</Authors>
         <PackageTags>command-line;cli;argument-parser;argparse;arguments;args;parser</PackageTags>
         <Description>A modern command-line argument parsing library for .NET</Description>
@@ -20,6 +20,10 @@
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="../Argx.AOT/Argx.AOT.csproj"/>
+    </ItemGroup>
 
     <ItemGroup>
         <InternalsVisibleTo Include="Argx.Tests"/>
